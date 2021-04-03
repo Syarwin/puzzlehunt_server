@@ -8,37 +8,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="{% static "huntserver/favicon.ico" %}" />
     <title>{% block title %} {% site_title %} {% endblock title %}</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous" />
     {% block base_includes %} {% endblock base_includes %}
     <script src="{% static "jquery.min.js" %}"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js" integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf" crossorigin="anonymous"></script>
     {% block includes %} {% endblock includes %}
     <link rel="stylesheet" type="text/css" href="{% static "huntserver/base.css" %}">
     <!-- Done for compatability with the fixed navbar, move into base.css eventually -->
   </head>
   <body>
 
-    <nav class="navbar navbar-default navbar-fixed-top" {% if debug %} style="background-color: lightgoldenrodyellow;" {% endif %} >
-      <div class="container-fluid">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-wrapper" aria-expanded="false">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="/">
-            <span class="glyphicon glyphicon-home"></span>
-          </a>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-fixed-top">
+			<div class="container-fluid">
           <a class="navbar-brand" href="/">
             {% if debug %} Dev Server {% else %} {% site_title %} {% endif %}
           </a>
-        </div>
-
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="navbar-collapse-wrapper">
-          <ul class="nav navbar-nav">
+					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-collapse-wrapper" aria-controls="navbar-collapse-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+						<span class="navbar-toggler-icon"></span>
+					</button>
+					<div class="collapse navbar-collapse" id="navbar-collapse-wrapper">
+						<ul class="navbar-nav me-auto mb-2 mb-lg-0">
             {% block prev-hunts-header %}
               {% set_hunts %}
               {% if tmpl_hunts %}
@@ -62,11 +51,13 @@
             {% endblock %}
             {% block left-header %}
             {% endblock %}
-          </ul>
-          <ul class="nav navbar-nav navbar-right">
+						</ul>
+
+
+	          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             {% block right-header %}
               {% if user.is_authenticated %}
-                <li class="dropdown">
+                <li class="nav-item dropdown">
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                     <span class="glyphicon glyphicon-user"></span> Profile <span class="caret"></span>
                   </a>
@@ -79,16 +70,19 @@
                   </ul>
                 </li>
               {% else %}
-                <li><a href="{% url 'huntserver:create_account' %}">
-                  <span class="glyphicon glyphicon-user"></span> Sign Up
-                </a></li>
-                <li><a href="{% url 'huntserver:login_selection' %}">
-                  <span class="glyphicon glyphicon-log-in"></span> Login
-                </a></li>
+                <li class="nav-item">
+									<a class="nav-link" href="{% url 'huntserver:create_account' %}">
+	                  <span class="glyphicon glyphicon-user"></span> Sign Up
+                	</a>
+								</li>
+                <li class="nav-item">
+									<a class="nav-link" href="{% url 'huntserver:login_selection' %}">
+	                  <span class="glyphicon glyphicon-log-in"></span> Login
+                	</a>
+								</li>
               {% endif %}
             {% endblock %}
-          </ul>
-        </div><!-- /.navbar-collapse -->
+          	</ul>
       </div><!-- /.container-fluid -->
     </nav>
 

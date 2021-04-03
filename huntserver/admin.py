@@ -23,33 +23,6 @@ def short_team_name(teamable_object):
 short_team_name.short_description = "Team name"
 
 
-class HintAdmin(admin.ModelAdmin):
-    list_display = [short_team_name, 'puzzle', 'request_time', 'has_been_answered']
-
-    def has_been_answered(self, hint):
-        return hint.response != ""
-
-    has_been_answered.boolean = True
-    has_been_answered.short_description = "Answered?"
-
-
-class HintUnlockPlanForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(HintUnlockPlanForm, self).__init__(*args, **kwargs)
-        self.fields['unlock_parameter'].help_text = ("Exact time: Number of minutes after hunt "
-                                                     "start</br>Interval: Number of minutes in the "
-                                                     "unlock interval</br> Solves: Number of "
-                                                     "puzzles to unlock a hint.")
-
-
-class HintUnlockPLanInline(admin.TabularInline):
-    model = models.HintUnlockPlan
-    extra = 2
-    form = HintUnlockPlanForm
-    fields = ['unlock_type', 'unlock_parameter']
-    radio_fields = {"unlock_type": admin.VERTICAL}
-
-
 class HuntAdminForm(forms.ModelForm):
     model = models.Hunt
 
@@ -61,27 +34,15 @@ class HuntAdminForm(forms.ModelForm):
 
 class HuntAdmin(admin.ModelAdmin):
     form = HuntAdminForm
-    inlines = (HintUnlockPLanInline,)
     fieldsets = (
-        ('Basic Info', {'fields': ('hunt_name', 'hunt_number', 'team_size', 'location',
+        ('Basic Info', {'fields': ('hunt_name', 'hunt_number', 'team_size',
                         ('start_date', 'display_start_date'), ('end_date', 'display_end_date'),
                         'is_current_hunt')}),
-        ('Hunt Behaviour', {'fields': ('points_per_minute', 'hint_lockout')}),
+        ('Hunt Behaviour', {'fields': ('points_per_minute',)}),
         ('Resources/Template', {'fields': ('resource_file', 'extra_data', 'template')}),
     )
 
     list_display = ['hunt_name', 'team_size', 'start_date', 'is_current_hunt']
-
-
-class MessageAdmin(admin.ModelAdmin):
-    list_display = [short_team_name, 'short_message']
-    search_fields = ['text']
-    autocomplete_fields = ['team']
-
-    def short_message(self, message):
-        return truncatechars(message.text, 60)
-
-    short_message.short_description = "Message"
 
 
 class PersonAdmin(admin.ModelAdmin):
@@ -122,13 +83,7 @@ class PrepuzzleAdmin(admin.ModelAdmin):
 
     def puzzle_url(self, obj):
         puzzle_url_str = "http://" + self.request.get_host() + "/prepuzzle/" + str(obj.pk) + "/"
-        html = "<script> function myFunction() { "
-        html += "var copyText = document.getElementById('puzzleURL'); "
-        html += "copyText.select(); "
-        html += "document.execCommand('copy'); } </script>"
-        html += "<input style='width: 400px;' type=\"text\""
-        html += "value=\"" + puzzle_url_str + "\" id=\"puzzleURL\">"
-        html += "<button onclick=\"myFunction()\" type=\"button\">Copy Puzzle URL</button>"
+        html = puzzle_url_str + '<button class="clipboard-btn" data-clipboard-text="' + puzzle_url_str + '" type="button">Copy Puzzle URL</button>'
         return mark_safe(html)
 
     puzzle_url.short_description = 'Puzzle URL: (Not editable)'
@@ -153,8 +108,8 @@ class UnlockInline(admin.TabularInline):
         return super(UnlockInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-class ResponseInline(admin.TabularInline):
-    model = models.Response
+class EurekaInline(admin.TabularInline):
+    model = models.Eureka
     extra = 1
 
 
@@ -205,7 +160,7 @@ class PuzzleAdmin(admin.ModelAdmin):
     list_display = ['combined_id', 'puzzle_name', 'hunt', 'is_meta']
     list_display_links = ['combined_id', 'puzzle_name']
     ordering = ['-hunt', 'puzzle_number']
-    inlines = (ResponseInline,)
+    inlines = (EurekaInline,)
     radio_fields = {"unlock_type": admin.VERTICAL}
     fieldsets = (
         (None, {
@@ -230,7 +185,7 @@ class PuzzleAdmin(admin.ModelAdmin):
     combined_id.short_description = "ID"
 
 
-class ResponseAdmin(admin.ModelAdmin):
+class EurekaAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'puzzle_just_name']
     search_fields = ['regex', 'text']
     ordering = ['-puzzle']
@@ -241,7 +196,7 @@ class ResponseAdmin(admin.ModelAdmin):
     puzzle_just_name.short_description = "Puzzle"
 
 
-class SolveAdmin(admin.ModelAdmin):
+class PuzzleSolveAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'solve_time']
     autocomplete_fields = ['team', 'submission']
 
@@ -269,9 +224,8 @@ class TeamAdminForm(forms.ModelForm):
 
     class Meta:
         model = models.Team
-        fields = ['team_name', 'hunt', 'location', 'join_code', 'playtester', 'playtest_start_date',
-                  'playtest_end_date', 'num_available_hints', 'num_unlock_points', 'unlockables',
-                  'num_unlock_points']
+        fields = ['team_name', 'hunt',  'join_code', 'playtester', 'playtest_start_date',
+                  'playtest_end_date', 'num_unlock_points', 'unlockables']
 
     def __init__(self, *args, **kwargs):
         super(TeamAdminForm, self).__init__(*args, **kwargs)
@@ -295,7 +249,7 @@ class TeamAdminForm(forms.ModelForm):
 class TeamAdmin(admin.ModelAdmin):
     form = TeamAdminForm
     search_fields = ['team_name']
-    list_display = ['short_team_name', 'location', 'hunt', 'playtester']
+    list_display = ['short_team_name', 'hunt', 'playtester']
     list_filter = ['hunt']
 
     def short_team_name(self, team):
@@ -304,7 +258,7 @@ class TeamAdmin(admin.ModelAdmin):
     short_team_name.short_description = "Team name"
 
 
-class UnlockAdmin(admin.ModelAdmin):
+class PuzzleUnlockAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'time']
     autocomplete_fields = ['team']
 
@@ -371,17 +325,15 @@ admin.site.unregister(Group)
 admin.site.unregister(Site)
 admin.site.unregister(FlatPage)
 
-admin.site.register(models.Hint,       HintAdmin)
 admin.site.register(models.Hunt,       HuntAdmin)
-admin.site.register(models.Message,    MessageAdmin)
 admin.site.register(models.Person,     PersonAdmin)
 admin.site.register(models.Prepuzzle,  PrepuzzleAdmin)
 admin.site.register(models.Puzzle,     PuzzleAdmin)
-admin.site.register(models.Response,   ResponseAdmin)
-admin.site.register(models.Solve,      SolveAdmin)
+admin.site.register(models.Eureka,     EurekaAdmin)
+admin.site.register(models.PuzzleSolve,PuzzleSolveAdmin)
 admin.site.register(models.Submission, SubmissionAdmin)
 admin.site.register(models.Team,       TeamAdmin)
 admin.site.register(models.Unlockable)
-admin.site.register(models.Unlock,     UnlockAdmin)
+admin.site.register(models.PuzzleUnlock, PuzzleUnlockAdmin)
 admin.site.register(UserProxyObject,   UserProxyAdmin)
 admin.site.register(FlatPageProxyObject, FlatPageProxyAdmin)

@@ -12,7 +12,7 @@ codecs.register(lambda name: codecs.lookup('utf8') if name == 'utf8mb4' else Non
 BASE_DIR = dirname(dirname(dirname(abspath(__file__))))
 
 # Application definition
-SITE_TITLE = "Puzzlehunt CMU"
+SITE_TITLE = "MindBreakers"
 
 INSTALLED_APPS = (
     'bootstrap_admin',

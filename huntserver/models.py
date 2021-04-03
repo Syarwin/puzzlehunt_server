@@ -85,9 +85,6 @@ class Hunt(models.Model):
         help_text="The start date/time displayed to users")
     display_end_date = models.DateTimeField(
         help_text="The end date/time displayed to users")
-    location = models.CharField(
-        max_length=100,
-        help_text="Starting location of the puzzlehunt")
     resource_file = models.FileField(
         upload_to=get_hunt_file_path,
         storage=PuzzleOverwriteStorage(),
@@ -102,9 +99,6 @@ class Hunt(models.Model):
     template = models.TextField(
         default="",
         help_text="The template string to be rendered to HTML on the hunt page")
-    hint_lockout = models.IntegerField(
-        default=settings.DEFAULT_HINT_LOCKOUT,
-        help_text="The number of minutes before a hint can be used on a newly unlocked puzzle")
     points_per_minute = models.IntegerField(
         default=0,
         help_text="The number of points granted per minute during the hunt")
@@ -436,13 +430,13 @@ class Team(models.Model):
         Puzzle,
         blank=True,
         related_name='solved_for',
-        through="Solve",
+        through="PuzzleSolve",
         help_text="The puzzles the team has solved")
     unlocked = models.ManyToManyField(
         Puzzle,
         blank=True,
         related_name='unlocked_for',
-        through="Unlock",
+        through="PuzzleUnlock",
         help_text="The puzzles the team has unlocked")
     unlockables = models.ManyToManyField(
         "Unlockable",
@@ -452,10 +446,6 @@ class Team(models.Model):
         Hunt,
         on_delete=models.CASCADE,
         help_text="The hunt that the team is a part of")
-    location = models.CharField(
-        max_length=80,
-        blank=True,
-        help_text="The physical location that the team is solving at")
     join_code = models.CharField(
         max_length=5,
         help_text="The 5 character random alphanumeric password needed for a user to join a team")
@@ -473,9 +463,6 @@ class Team(models.Model):
     num_waiting_messages = models.IntegerField(
         default=0,
         help_text="The number of unseen messages a team has waiting")
-    num_available_hints = models.IntegerField(
-        default=0,
-        help_text="The number of hints the team has available to use")
     num_unlock_points = models.IntegerField(
         default=0,
         help_text="The number of points the team has earned")
@@ -524,18 +511,6 @@ class Team(models.Model):
         """ The number of people on the team """
         return self.person_set.count()
 
-    def hints_open_for_puzzle(self, puzzle):
-        """ Takes a puzzle and returns whether or not the team may use hints on the puzzle """
-        if(self.num_available_hints > 0 or self.hint_set.count() > 0):
-            try:
-                unlock = Unlock.objects.get(team=self, puzzle=puzzle)
-            except Unlock.DoesNotExist:
-                return False
-
-            return (timezone.now() - unlock.time).total_seconds() > 60 * self.hunt.hint_lockout
-        else:
-            return False
-
     def unlock_puzzles(self):
         """ Unlocks all puzzles a team is currently supposed to have unlocked """
         puzzles = self.hunt.puzzle_set.all().order_by('puzzle_number')
@@ -559,31 +534,19 @@ class Team(models.Model):
             if(puzzle.unlock_type == Puzzle.SOLVES_UNLOCK and s_unlock):
                 logger.info("Team %s unlocked puzzle %s with solves" % (str(self.team_name),
                             str(puzzle.puzzle_id)))
-                Unlock.objects.create(team=self, puzzle=puzzle, time=timezone.now())
+                PuzzleUnlock.objects.create(team=self, puzzle=puzzle, time=timezone.now())
             elif(puzzle.unlock_type == Puzzle.POINTS_UNLOCK and p_unlock):
                 logger.info("Team %s unlocked puzzle %s with points" % (str(self.team_name),
                             str(puzzle.puzzle_id)))
-                Unlock.objects.create(team=self, puzzle=puzzle, time=timezone.now())
+                PuzzleUnlock.objects.create(team=self, puzzle=puzzle, time=timezone.now())
             elif(puzzle.unlock_type == Puzzle.EITHER_UNLOCK and (s_unlock or p_unlock)):
                 logger.info("Team %s unlocked puzzle %s with either" % (str(self.team_name),
                             str(puzzle.puzzle_id)))
-                Unlock.objects.create(team=self, puzzle=puzzle, time=timezone.now())
+                PuzzleUnlock.objects.create(team=self, puzzle=puzzle, time=timezone.now())
             elif(puzzle.unlock_type == Puzzle.BOTH_UNLOCK and (s_unlock and p_unlock)):
                 logger.info("Team %s unlocked puzzle %s with both" % (str(self.team_name),
                             str(puzzle.puzzle_id)))
-                Unlock.objects.create(team=self, puzzle=puzzle, time=timezone.now())
-
-    def unlock_hints(self):
-        """ Gives teams the appropriate number of hints based on "Solves" HintUnlockPlans """
-        # The way this works currently sucks, it should only be called once per solve
-        # Right now that one place is Submission.respond()
-        # It also only does # of solves based unlocks. Time based unlocks are done in run_updates
-        num_solved = self.solved.count()
-        plans = self.hunt.hintunlockplan_set
-        num_hints = plans.filter(unlock_type=HintUnlockPlan.SOLVES_UNLOCK,
-                                 unlock_parameter=num_solved).count()
-        self.num_available_hints = models.F('num_available_hints') + num_hints
-        self.save()
+                PuzzleUnlock.objects.create(team=self, puzzle=puzzle, time=timezone.now())
 
     def reset(self):
         """ Resets/deletes all of the team's progress """
@@ -592,7 +555,6 @@ class Team(models.Model):
         self.solve_set.all().delete()
         self.solved.clear()
         self.submission_set.all().delete()
-        self.num_available_hints = 0
         self.num_unlock_points = 0
         self.save()
 
@@ -620,14 +582,6 @@ class Person(models.Model):
         User,
         on_delete=models.CASCADE,
         help_text="The corresponding user to this person")
-    phone = models.CharField(
-        max_length=20,
-        blank=True,
-        help_text="Person's phone number, no particular formatting")
-    allergies = models.CharField(
-        max_length=400,
-        blank=True,
-        help_text="Allergy information for the person")
     comments = models.CharField(
         max_length=400,
         blank=True,
@@ -647,14 +601,6 @@ class Person(models.Model):
             return "Anonymous User"
         else:
             return name
-
-    @property
-    def formatted_phone_number(self):
-        match = re.match("(?:\\+?1 ?-?)?\\(?([0-9]{3})\\)?-? ?([0-9]{3})-? ?([0-9]{4})", self.phone)
-        if(match):
-            return match.expand("(\\1)-\\2-\\3")
-        return self.phone
-
 
 @python_2_unicode_compatible
 class Submission(models.Model):
@@ -705,7 +651,7 @@ class Submission(models.Model):
 
     def create_solve(self):
         """ Creates a solve based on this submission """
-        Solve.objects.create(puzzle=self.puzzle, team=self.team, submission=self)
+        PuzzleSolve.objects.create(puzzle=self.puzzle, team=self.team, submission=self)
         logger.info("Team %s correctly solved puzzle %s" % (str(self.team.team_name),
                                                             str(self.puzzle.puzzle_id)))
 
@@ -729,7 +675,7 @@ class Submission(models.Model):
                     t.unlock_hints()  # The one and only place to call unlock hints
 
         # Check against regexes
-        for resp in self.puzzle.response_set.all():
+        for resp in self.puzzle.eureka_set.all():
             if(re.match(resp.regex, self.submission_text, re.IGNORECASE)):
                 response = resp.text
                 break
@@ -757,7 +703,7 @@ class Submission(models.Model):
 
 
 @python_2_unicode_compatible
-class Solve(models.Model):
+class PuzzleSolve(models.Model):
     """ A class that links a team and a puzzle to indicate that the team has solved the puzzle """
 
     puzzle = models.ForeignKey(
@@ -793,7 +739,7 @@ class Solve(models.Model):
 
 
 @python_2_unicode_compatible
-class Unlock(models.Model):
+class PuzzleUnlock(models.Model):
     """ A class that links a team and a puzzle to indicate that the team has unlocked the puzzle """
 
     puzzle = models.ForeignKey(
@@ -820,26 +766,6 @@ class Unlock(models.Model):
 
     def __str__(self):
         return self.team.short_name + ": " + self.puzzle.puzzle_name
-
-
-@python_2_unicode_compatible
-class Message(models.Model):
-    """ A class that represents a message sent using the chat functionality """
-
-    team = models.ForeignKey(
-        Team,
-        on_delete=models.CASCADE,
-        help_text="The team that this message is being sent to/from")
-    is_response = models.BooleanField(
-        help_text="A boolean representing whether or not the message is from the staff")
-    text = models.CharField(
-        max_length=400,
-        help_text="Message text")
-    time = models.DateTimeField(
-        help_text="Message send time")
-
-    def __str__(self):
-        return self.team.short_name + ": " + self.text
 
 
 @python_2_unicode_compatible
@@ -870,7 +796,7 @@ class Unlockable(models.Model):
 
 
 @python_2_unicode_compatible
-class Response(models.Model):
+class Eureka(models.Model):
     """ A class to represent an automated response regex """
 
     puzzle = models.ForeignKey(
@@ -886,81 +812,6 @@ class Response(models.Model):
 
     def __str__(self):
         return self.regex + " => " + self.text
-
-
-@python_2_unicode_compatible
-class Hint(models.Model):
-    """ A class to represent a hint to a puzzle """
-
-    puzzle = models.ForeignKey(
-        Puzzle,
-        on_delete=models.CASCADE,
-        help_text="The puzzle that this hint is related to")
-    team = models.ForeignKey(
-        Team,
-        on_delete=models.CASCADE,
-        help_text="The team that requested the hint")
-    request = models.TextField(
-        max_length=1000,
-        help_text="The text of the request for the hint")
-    request_time = models.DateTimeField(
-        help_text="Hint request time")
-    response = models.TextField(
-        max_length=1000,
-        blank=True,
-        help_text="The text of the response to the hint request")
-    response_time = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="Hint response time")
-    last_modified_time = models.DateTimeField(
-        help_text="Last time of modification")
-
-    def __str__(self):
-        return (self.team.short_name + ": " + self.puzzle.puzzle_name +
-                " (" + str(self.request_time) + ")")
-
-
-@python_2_unicode_compatible
-class HintUnlockPlan(models.Model):
-    """ A class to represent when Teams are given hints """
-    hunt = models.ForeignKey(
-        Hunt,
-        on_delete=models.CASCADE,
-        help_text="The hunt that this hint unlock plan refers to")
-
-    TIMED_UNLOCK = 'TIM'
-    INTERVAL_UNLOCK = 'INT'
-    SOLVES_UNLOCK = 'SOL'
-
-    hint_unlock_type_choices = [
-        (TIMED_UNLOCK, 'Exact Time Unlock'),
-        (INTERVAL_UNLOCK, 'Interval Based Unlock'),
-        (SOLVES_UNLOCK, 'Solves Based Unlock'),
-    ]
-
-    unlock_type = models.CharField(
-        max_length=3,
-        choices=hint_unlock_type_choices,
-        default=TIMED_UNLOCK,
-        blank=False,
-        help_text="The type of hint unlock plan"
-    )
-
-    unlock_parameter = models.IntegerField(
-        help_text="Parameter (Time / Interval / Solves)")
-
-    num_triggered = models.IntegerField(
-        default=0,
-        help_text="Number of times this Unlock Plan has given a hint")
-
-    def reset_plan(self):
-        """ Resets the HintUnlockPlan """
-        self.num_triggered = 0
-
-    def __str__(self):
-        return "Nope"
-
 
 class OverwriteStorage(FileSystemStorage):
     """ A custom storage class that just overwrites existing files rather than erroring """

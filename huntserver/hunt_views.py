@@ -17,7 +17,7 @@ import json
 import os
 import re
 
-from .models import Puzzle, Hunt, Submission, Message, Unlockable, Prepuzzle, Hint
+from .models import Puzzle, Hunt, Submission, Unlockable, Prepuzzle
 from .forms import AnswerForm, HintRequestForm
 
 import logging

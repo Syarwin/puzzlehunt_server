@@ -5,7 +5,7 @@ from huey import crontab
 from huey.contrib.djhuey import db_periodic_task
 from django.core.cache import cache
 
-from .models import Hunt, HintUnlockPlan
+from .models import Hunt
 
 
 import logging
@@ -34,18 +34,6 @@ def parse_attributes(META):
             if required:
                 error = True
     return shib_attrs, error
-
-
-def check_hints(hunt):
-    num_min = (timezone.now() - hunt.start_date).seconds / 60
-    for hup in hunt.hintunlockplan_set.exclude(unlock_type=HintUnlockPlan.SOLVES_UNLOCK):
-        if((hup.unlock_type == hup.TIMED_UNLOCK and
-           hup.num_triggered < 1 and num_min > hup.unlock_parameter) or
-           (hup.unlock_type == hup.INTERVAL_UNLOCK and
-           num_min / hup.unlock_parameter > hup.num_triggered)):
-            hunt.team_set.all().update(num_available_hints=F('num_available_hints') + 1)
-            hup.num_triggered = hup.num_triggered + 1
-            hup.save()
 
 
 def check_puzzles(hunt, new_points, teams, team_is_list=False):
