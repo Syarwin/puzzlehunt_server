@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.core.validators import MinValueValidator
 from django.utils.dateformat import DateFormat
 from django.utils.encoding import python_2_unicode_compatible
 from dateutil import tz
@@ -12,6 +13,7 @@ import os
 import re
 import zipfile
 import shutil
+from datetime import timedelta
 
 import logging
 logger = logging.getLogger(__name__)
@@ -812,6 +814,72 @@ class Eureka(models.Model):
 
     def __str__(self):
         return self.regex + " => " + self.text
+
+
+@python_2_unicode_compatible
+class EurekaUnlock(models.Model):
+    """ A class that links a team and a eureka to indicate that the team has unlocked the eureka """
+
+    eureka = models.ForeignKey(
+        Eureka,
+        on_delete=models.CASCADE,
+        help_text="The eureka unlocked")
+    team = models.ForeignKey(
+        Team,
+        on_delete=models.CASCADE,
+        help_text="The team that this unlocked puzzle is for")
+    time = models.DateTimeField(
+        help_text="The time this puzzle was unlocked for this team")
+
+    class Meta:
+        unique_together = ('eureka', 'team',)
+
+    def serialize_for_ajax(self):
+        """ Serializes the puzzle, team, and status fields for ajax transmission """
+        message = dict()
+        message['eureka'] = self.eureka.pk
+        message['team_pk'] = self.team.pk
+        message['status_type'] = "unlock"
+        return message
+
+    def __str__(self):
+        return self.team.short_name + ": " + self.eureka.text
+
+
+@python_2_unicode_compatible
+class Hint(models.Model):
+    """ A class to represent an hint """
+
+    puzzle = models.ForeignKey(
+        Puzzle,
+        on_delete=models.CASCADE,
+        help_text="The puzzle that this automated response is related to")
+    text = models.CharField(
+        max_length=400,
+        help_text="The text to display")
+    time = models.DurationField(
+        verbose_name='Delay',
+        help_text=('Time after anyone on the team first loads the puzzle'),
+        validators=(MinValueValidator(timedelta(seconds=0)),),
+    )
+    eurekas = models.ManyToManyField(
+        'Eureka',
+        verbose_name='Eureka conditions',
+        blank=True,
+        help_text="Eurekas that are a prerequisite for shorter time"
+    )
+    short_time =  models.DurationField(
+        verbose_name='Shorter Delay',
+        help_text=('Time after all the associated Eurekas were found'),
+        validators=(MinValueValidator(timedelta(seconds=0)),),
+    )
+
+    def __str__(self):
+        return str(self.time) + " => " + self.text
+
+
+
+
 
 class OverwriteStorage(FileSystemStorage):
     """ A custom storage class that just overwrites existing files rather than erroring """

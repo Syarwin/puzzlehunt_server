@@ -112,6 +112,10 @@ class EurekaInline(admin.TabularInline):
     model = models.Eureka
     extra = 1
 
+class HintInline(admin.TabularInline):
+    model = models.Hint
+    extra = 1
+
 
 class PuzzleAdminForm(forms.ModelForm):
     reverse_unlocks = forms.ModelMultipleChoiceField(
@@ -137,8 +141,8 @@ class PuzzleAdminForm(forms.ModelForm):
 
     def clean_answer(self):
         data = self.cleaned_data.get('answer')
-        if(re.fullmatch(r"[a-zA-Z]+", data.upper()) is None):
-            raise forms.ValidationError("Answer must only contain the characters A-Z.")
+        if(re.fullmatch(r"[a-zA-Z0-9]+", data.upper()) is None):
+            raise forms.ValidationError("Answer must only contain the characters A-Z and digits.")
         return data
 
     class Meta:
@@ -160,7 +164,7 @@ class PuzzleAdmin(admin.ModelAdmin):
     list_display = ['combined_id', 'puzzle_name', 'hunt', 'is_meta']
     list_display_links = ['combined_id', 'puzzle_name']
     ordering = ['-hunt', 'puzzle_number']
-    inlines = (EurekaInline,)
+    inlines = (EurekaInline,HintInline,)
     radio_fields = {"unlock_type": admin.VERTICAL}
     fieldsets = (
         (None, {
@@ -188,6 +192,17 @@ class PuzzleAdmin(admin.ModelAdmin):
 class EurekaAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'puzzle_just_name']
     search_fields = ['regex', 'text']
+    ordering = ['-puzzle']
+
+    def puzzle_just_name(self, response):
+        return response.puzzle.puzzle_name
+
+    puzzle_just_name.short_description = "Puzzle"
+
+class HintAdmin(admin.ModelAdmin):
+    list_display = ['puzzle_just_name', 'text', 'time', 'short_time']
+    list_display_links = ['text']
+    search_fields = ['text']
     ordering = ['-puzzle']
 
     def puzzle_just_name(self, response):
@@ -327,13 +342,14 @@ admin.site.unregister(FlatPage)
 
 admin.site.register(models.Hunt,       HuntAdmin)
 admin.site.register(models.Person,     PersonAdmin)
-admin.site.register(models.Prepuzzle,  PrepuzzleAdmin)
+#admin.site.register(models.Prepuzzle,  PrepuzzleAdmin)
 admin.site.register(models.Puzzle,     PuzzleAdmin)
 admin.site.register(models.Eureka,     EurekaAdmin)
+admin.site.register(models.Hint,       HintAdmin)
 admin.site.register(models.PuzzleSolve,PuzzleSolveAdmin)
 admin.site.register(models.Submission, SubmissionAdmin)
 admin.site.register(models.Team,       TeamAdmin)
-admin.site.register(models.Unlockable)
+#admin.site.register(models.Unlockable)
 admin.site.register(models.PuzzleUnlock, PuzzleUnlockAdmin)
 admin.site.register(UserProxyObject,   UserProxyAdmin)
 admin.site.register(FlatPageProxyObject, FlatPageProxyAdmin)
