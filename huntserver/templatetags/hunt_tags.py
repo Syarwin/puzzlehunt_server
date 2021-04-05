@@ -65,24 +65,3 @@ class HuntFromContextEventNode(template.Node):
         else:
             context['tmpl_hunt'] = Hunt.objects.get(is_current_hunt=True)
             return ''
-
-
-@register.simple_tag()
-def hints_open(team, puzzle):
-    if(team is None or puzzle is None):
-        return False
-    return team.hints_open_for_puzzle(puzzle)
-
-
-@register.simple_tag(takes_context=True)
-def shib_login_url(context, entityID, next_path):
-    if(context['request'].is_secure()):
-        protocol = "https://"
-    else:
-        protocol = "http://"
-    shib_str = "https://" + settings.SHIB_DOMAIN + "/Shibboleth.sso/Login"
-    entity_str = "entityID=" + entityID
-    target_str = "target=" + protocol + context['request'].get_host() + "/shib/login"
-    next_str = "next=" + next_path
-
-    return shib_str + "?" + entity_str + "&" + target_str + "?" + next_str

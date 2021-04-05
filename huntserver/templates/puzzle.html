@@ -49,13 +49,6 @@
                 No solution available
             </a>
           {% endif %}
-        {% else %}
-          {% hints_open team puzzle as show_hint_link %}
-          {% if show_hint_link %}
-            <a class="btn btn-default" href='/hints/{{ puzzle.puzzle_id }}/'>
-                Request a hint
-            </a>
-          {% endif %}
         {% endif %}
         </div>
       </div>

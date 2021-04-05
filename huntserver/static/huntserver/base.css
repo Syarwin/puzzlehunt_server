@@ -13,3 +13,13 @@ main {
 section.vfill {
   flex-grow: 1;
 }
+
+
+h1 {
+  color:white;
+}
+
+.light-section {
+  background-color:#CCE6CA;
+  color:black;
+}
