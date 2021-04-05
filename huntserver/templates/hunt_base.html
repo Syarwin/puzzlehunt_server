@@ -7,28 +7,12 @@
 
 {% block left-header %}
   {% set_hunt_from_context %}
-	<li class='{% active_page request "current_hunt" %}'>
-    <a href="{% url 'huntserver:hunt' tmpl_hunt.hunt_number %}"> Puzzles </a>
+	<li class='nav-item {% active_page request "current_hunt" %}'>
+    <a class="nav-link" href="{% url 'huntserver:hunt' tmpl_hunt.hunt_number %}"> Puzzles </a>
   </li>
-  {% if not tmpl_hunt.is_public %}
-    <!-- Kinda weird to include this here, but better than running the template tag twice -->
-    <script src="{{ STATIC_URL }}huntserver/chat_poll.js"></script>
-    <li class='{% active_page request "chat" %}'>
-      <a href="{% url 'huntserver:chat' %}">
-        Chat
-        {% if team %}
-          {% if team.num_waiting_messages %}
-            <span id="num_messages" class="badge" style="background-color: indianred">
-              {{team.num_waiting_messages}}
-            </span>
-          {% else %}
-            <span id="num_messages" class="badge">0</span>
-          {% endif %}
-        {% endif %}
-      </a>
-    </li>
-  {% endif %}
-  <li><a href="{% url 'huntserver:current_hunt_info' %}"> Hunt Info </a></li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'huntserver:current_hunt_info' %}"> Hunt Info </a>
+  </li>
 {% endblock %}
 
 {% block content_wrapper %}
@@ -43,4 +27,3 @@
 {% endif %}
 {% block content %} {% endblock content %}
 {% endblock content_wrapper %}
-

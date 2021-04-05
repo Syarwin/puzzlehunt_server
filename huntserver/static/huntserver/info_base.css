@@ -2,8 +2,7 @@
 .container { font-family: Helvetica, Verdana, Arial, sans-serif; }
 
 body {
-    background: url(/static/huntserver/background1.jpg);
-    background-size: 2000px 2000px;
+  background: #09814A;
 }
 
 .container:not(.no_outline){

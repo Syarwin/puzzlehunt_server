@@ -11,7 +11,7 @@
       <hr style="border-width:2px; border-color: black;">
       <h2>You aren't signed in!</h2>
         Head over to our <a href="{% url 'huntserver:login_selection' %}?next=/registration/">sign in page.</a>
-        Once you sign in you'll be redirected back here to join or make a team. 
+        Once you sign in you'll be redirected back here to join or make a team.
       </p>
     </div>
   {% elif registered_team %}
@@ -81,24 +81,6 @@
               <input type="hidden" name="form_type" value="new_team">
               Please enter a new team name:
               <input class="form-control" name="team_name" type="text">
-              <br>
-              {% if not curr_hunt.in_reg_lockdown %}
-              Does your team need a room for the hunt?
-              <select id="room_select" class="form-control" name="need_room">
-                <option value="need_a_room">Yes</option>
-                <option value="has_a_room">Our team has a room</option>
-                <option value="off_campus">Our team is off-campus</option>
-              </select>
-              {% else %}
-              Rooms have already been assigned for this hunt.
-              <br>
-              Please indicate if you are solving remotely:
-              <br>
-              <select id="room_select" class="form-control" name="need_room">
-                <option value="has_a_room">Our team is on campus and has a room</option>
-                <option value="off_campus">Our team is off-campus</option>
-              </select>
-              {% endif %}
               <br>
               <input class="btn btn-primary" type="submit" value="Create and Join Team">
             </form>

@@ -350,50 +350,6 @@ def puzzle_answer(l):
     l.locust.poller.reset_time_iter()
 
 
-def chat_main_page(l):
-    # Load main chat page and store ajax value in locust object
-    response = url_all(l, better_get(l, "/chat/"))
-
-    search_results = re.search(r"last_pk = (.*);", response.text)
-    if(search_results):
-        last_pk = search_results.group(1)
-    else:
-        sys.stdout.write("chat_main_page could not find ajax: %s" % str(response.text))
-        sys.stdout.flush()
-        last_pk = ""
-    set_ajax_args(l, "chat", {'last_pk': last_pk})
-
-    search_results = re.search(r"curr_team = (.*);", response.text)
-    if(search_results):
-        curr_team = search_results.group(1)
-    else:
-        curr_team = ""
-    l.locust.team_pk = curr_team
-
-
-def chat_ajax(l):
-    # Make ajax request with current ajax value and store new value
-    response = better_get(l, "/chat/?last_pk=" + str(get_ajax_args(l, "chat")['last_pk']),
-                          headers=ajax_headers, name="/chat/ AJAX")
-    try:
-        set_ajax_args(l, "chat", {'last_pk': response.json()["last_pk"]})
-    except:
-        sys.stdout.write("chat_ajax could not find ajax: %s" % str(response.text))
-        sys.stdout.flush()
-        pass
-
-
-def chat_new_message(l):
-    # Make POST request to create a new chat message, store ajax value
-    message_data = {
-        "team_pk": int(l.locust.team_pk),
-        "message": random_string(40),
-        "is_response": False,
-        "is_announcement": False
-    }
-    store_CSRF(l, CSRF_post(l, "/chat/", message_data))
-
-
 def info_main_page(l):
     # Load info page
     url_all(l, better_get(l, "/hunt-info/"))
@@ -454,50 +410,6 @@ def user_profile(l):
 
 
 # ========== STAFF PAGE VIEW FUNCTIONS ==========
-
-def staff_chat_main_page(l):
-    # Load main chat page and store ajax value in locust object
-    response = url_all(l, better_get(l, "/staff/chat/"))
-
-    search_results = re.search(r"last_pk = (.*);", response.text)
-    if(search_results):
-        last_pk = search_results.group(1)
-    else:
-        sys.stdout.write("staff_chat_main_page could not find ajax: %s" % str(response.text))
-        sys.stdout.flush()
-        last_pk = ""
-    set_ajax_args(l, "staff_chat", {'last_pk': last_pk})
-
-    search_results = re.findall(r"data-id='(.*)' ", response.text)
-    if(search_results):
-        l.locust.staff_chat_teams = search_results
-    else:
-        l.locust.staff_chat_teams = None
-
-
-def staff_chat_new_message(l):
-    # Make POST request to create a new chat message, store ajax value
-    if(l.locust.staff_chat_teams):
-        message_data = {
-            "team_pk": int(random.choice(l.locust.staff_chat_teams)),
-            "message": random_string(40),
-            "is_response": True,
-            "is_announcement": False
-        }
-        store_CSRF(l, CSRF_post(l, "/staff/chat/", message_data))
-
-
-def staff_chat_ajax(l):
-    # Make ajax request with current ajax value and store new value
-    response = better_get(l, "/staff/chat/?last_pk=" + str(get_ajax_args(l, "staff_chat")['last_pk']),
-                          headers=ajax_headers, name="/staff/chat/ AJAX")
-    try:
-        set_ajax_args(l, "staff_chat", {'last_pk': response.json()["last_pk"]})
-    except:
-        sys.stdout.write("staff_chat_ajax could not find ajax: %s" % str(response.text))
-        sys.stdout.flush()
-        pass
-
 
 def progress_main_page(l):
     response = url_all(l, better_get(l, "/staff/progress/"))

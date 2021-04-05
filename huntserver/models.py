@@ -104,6 +104,10 @@ class Hunt(models.Model):
     points_per_minute = models.IntegerField(
         default=0,
         help_text="The number of points granted per minute during the hunt")
+    eureka_feedback = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="The default feedback message sent when an eureka is found")
 
     def clean(self, *args, **kwargs):
         """ Overrides the standard clean method to ensure that only one hunt is the current hunt """
@@ -167,7 +171,7 @@ class Hunt(models.Model):
 
     @property
     def dummy_team(self):
-        """ The dummy team for the hunt """
+        """ The dummy team for the hunt, useful once the hunt is over """
         try:
             team = self.team_set.get(location="DUMMY")
         except Team.DoesNotExist:
@@ -231,9 +235,9 @@ class Puzzle(models.Model):
     puzzle_number = models.IntegerField(
         help_text="The number of the puzzle within the hunt, for sorting purposes")
     puzzle_id = models.CharField(
-        max_length=8,
+        max_length=12,
         unique=True,  # hex only please
-        help_text="A 3-5 character hex string that uniquely identifies the puzzle")
+        help_text="A 3-12 character hex string that uniquely identifies the puzzle")
     answer = models.CharField(
         max_length=100,
         help_text="The answer to the puzzle, not case sensitive")
@@ -428,6 +432,10 @@ class Team(models.Model):
     team_name = models.CharField(
         max_length=200,
         help_text="The team name as it will be shown to hunt participants")
+    location = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text="The country the members of the team are from")
     solved = models.ManyToManyField(
         Puzzle,
         blank=True,
@@ -592,8 +600,6 @@ class Person(models.Model):
         Team,
         blank=True,
         help_text="Teams that the person is on")
-    is_shib_acct = models.BooleanField(
-        help_text="A boolean to indicate if the person uses shibboleth authentication for login")
 
     objects = PersonManager()
 
@@ -808,9 +814,13 @@ class Eureka(models.Model):
     regex = models.CharField(
         max_length=400,
         help_text="The python-style regex that will be checked against the user's response")
-    text = models.CharField(
+    answer = models.CharField(
         max_length=400,
         help_text="The text to use in the submission response if the regex matched")
+    feedback = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="The feedback message sent when this eureka is found - if blank, use the default feedback of the hunt")
 
     def __str__(self):
         return self.regex + " => " + self.text

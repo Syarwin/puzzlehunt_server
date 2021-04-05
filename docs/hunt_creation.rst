@@ -30,7 +30,7 @@ Create the Hunt Object
 ======================
 
 You aren't going to get very far without a hunt object to attach all of this
-data to, so sign in with your staff account and navigate over to 
+data to, so sign in with your staff account and navigate over to
 ``{server URL}/staff``. You should be greeted with a page like the one below:
 
 .. image:: images/main_1.png
@@ -48,7 +48,7 @@ Start by filling out everything in the "Basic Info" section.
    visible on the front page of the website. Only do so if all of the public
    facing details (everything in the "Basic Info" section) are correct.
 
-.. Important:: **There are two start and end dates.** 
+.. Important:: **There are two start and end dates.**
 
    "Start Date" and "End date" are for internal use and will control things
    like when the puzzles become available to the players, when teams start
@@ -71,7 +71,7 @@ template field and then skip to "Hint Unlock Plans" below.
 Editing the Hunt Template
 -------------------------
 This is where we give the hunt its look and feel. Before this point, navigating
-to the hunt page would just give you a blank page. 
+to the hunt page would just give you a blank page.
 
 Basic Information
 ^^^^^^^^^^^^^^^^^
@@ -107,7 +107,7 @@ the appropriate hunt on the Hunt Management page. After the resources have been
 downloaded, they will be accessible through the use of a special template tag.
 
 The ``{% hunt static %}`` template tag will insert the URL to the current hunt's
-resource directory. For example, putting the text 
+resource directory. For example, putting the text
 ``{% hunt static %}myimage.png`` in the template would insert the URL to the
 file ``myimage.png``.
 
@@ -126,7 +126,7 @@ It is recommended to start your template out with the following code:
 
 The above code inherits the
 `hunt_base.html <https://github.com/dlareau/puzzlehunt_server/blob/master/huntserver/templates/hunt_base.html>`_
-template, which in turns inherits the 
+template, which in turns inherits the
 `base.html <https://github.com/dlareau/puzzlehunt_server/blob/master/huntserver/templates/base.html>`_
 template. You don't need to know the contents of those two files, just that they
 provide the basic functionality like the site header and they define the
@@ -148,7 +148,7 @@ following blocks that you can override for additional custom behavior:
 
 {% block footer %}
   This block controls what content will be inserted at the bottom of the page.
-  The default value is links to our social media and bridge page. 
+  The default value is links to our social media and bridge page.
 
 You can read more about Django template inheritance and blocks here:
 https://docs.djangoproject.com/en/2.2/ref/templates/language/#template-inheritance
@@ -171,7 +171,7 @@ rounds.
 
   {% extends "hunt_base.html" %}
   {% block title %}Puzzles!{% endblock title %}
-  
+
   {% block base_includes %}
   <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}huntserver/hunt_base.css">
   <style>
@@ -182,7 +182,7 @@ rounds.
   }
   </style>
   {% endblock base_includes %}
-  
+
   {% block content %}
   <div class="container" >
     <div class="row" >
@@ -225,7 +225,6 @@ rounds.
             </tbody>
           </table>
         </div>
-        <p> Feeling stuck? <a href="/chat/">Chat</a> with us</p>
       </div>
     </div>
   </div>
@@ -239,7 +238,7 @@ That should be enough to get you started with template writing. Don't forget to
 download resources each time you update them and save often when editing the
 template as it won't save if you close or leave the page for any reason.
 
-.. Tip:: You can use ctrl-s/cmd-s to save the page and continue working 
+.. Tip:: You can use ctrl-s/cmd-s to save the page and continue working
 
 
 Hint Unlock Plans
@@ -282,7 +281,7 @@ plans will trigger independently of each other.
 .. Danger::
    Changing a hint unlock plan after the hunt has started can have unexpected
    results. Please take extra care to make sure that the hint plans are correct
-   before the hunt starts. 
+   before the hunt starts.
 
 Hunt object creation wrap up
 ----------------------------
@@ -295,7 +294,7 @@ Create Puzzle Objects
 =====================
 
 Great, now we have a hunt template and we can view our hunt, but that's not good
-without any puzzles, so let's add some. 
+without any puzzles, so let's add some.
 
 Start by going to the "Puzzles" section using the side navbar and clicking the
 blue "+" button in the upper right-hand corner to be brought to the puzzle
@@ -312,7 +311,7 @@ name and an answer.
 Next, the puzzle must be given both a number and an ID. The number is for
 ordering within the hunt, and controls the order of puzzle objects passed into
 the hunt template. The ID used as a unique identifier across all puzzles is used
-in the URL for the puzzle. 
+in the URL for the puzzle.
 
 .. Note::
    The current trend for ID's is to have the same 3 digit prefix for all puzzles
@@ -349,7 +348,7 @@ Puzzle content is controlled by the following three links:
 "Resource link"
   The link to a publicly accessible ZIP file of the puzzle contents if the
   puzzle is an HTML puzzle. The ZIP file must contain a file named "index.html".
-  All links from the index file to other files in the ZIP file should be 
+  All links from the index file to other files in the ZIP file should be
   relative links, as the base URL of the final contents is not guaranteed.
 
 "Solution link"
@@ -399,7 +398,7 @@ At the moment, whenever a user submits a correct answer, the server will
 respond with "Correct!" and whenever the user submits a wrong answer the server
 will respond with "Wrong Answer". Often you will want additional customized
 responses that can do things like tell the user how they are wrong or to tell
-them to "Keep going!". 
+them to "Keep going!".
 
 To create automatic responses, use the "Responses" section at the bottom of the
 puzzle creation form. The "Regex" field is a python-style regex checked against
@@ -407,7 +406,7 @@ the answer and the "Text" field is the text that will be returned to the team.
 The regexes are not applied in any specific order, so answers that match more
 than one regex will result in undefined behavior.
 
-.. Tip:: Response text can contain links using markdown style format: 
+.. Tip:: Response text can contain links using markdown style format:
    [foo](https://link.to.foo)
 
 Puzzle Wrapup
@@ -450,24 +449,24 @@ Answer:
   The answer to the puzzle, not case sensitive.
 Template:
   See the "Prepuzzle Templating" section below
-Resource link: 
+Resource link:
   Allows the optional inclusion of static files for the prepuzzle, must be a
   link to a publicly accessible ZIP file. See the "Prepuzzle Templating" section
   for details on how to reference the files.
 Response string:
   The string that the server sends back to the prepuzzle page when the puzzle is
   solved. In the simple example, this string is just displayed to the user, but
-  more complex templates could do anything they desire with this string. 
+  more complex templates could do anything they desire with this string.
 Puzzle URL:
   This isn't really a field but rather an easy way to copy out the prepuzzle URL
-  because it isn't currently accessible from anywhere on the site. 
+  because it isn't currently accessible from anywhere on the site.
 
 Prepuzzle Templating
 --------------------
 
 As with the hunt "Template" field, everything typed into the "Template" form on
 the prepuzzle editing page will be run through Django's templating engine and
-rendered as HTML. 
+rendered as HTML.
 
 Again, more information about Django's templating language is available here:
 https://docs.djangoproject.com/en/2.2/ref/templates/language/.

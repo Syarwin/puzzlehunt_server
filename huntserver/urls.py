@@ -33,7 +33,6 @@ urlpatterns = [
     # Auth and Accounts
     url(r'^accounts/create/$', auth_views.create_account, name='create_account'),
     url(r'^login-selection/$', auth_views.login_selection, name='login_selection'),
-    url(r'^shib/login$', auth_views.shib_login, name='new_shib_account'),
     url(r'^logout/$', auth_views.account_logout, name='account_logout'),
 
     # Info Pages
@@ -43,17 +42,14 @@ urlpatterns = [
     url(r'^user-profile/$', info_views.user_profile, name='user_profile'),
 
     # Hunt Pages
-    url(r'^puzzle/(?P<puzzle_id>[0-9a-fA-F]{3,5})/$', hunt_views.puzzle_view, name='puzzle'),
-    url(r'^hints/(?P<puzzle_id>[0-9a-fA-F]{3,5})/$', hunt_views.puzzle_hint, name='puzzle_hint'),
+    url(r'^puzzle/(?P<puzzle_id>[0-9a-zA-Z]{3,12})/$', hunt_views.puzzle_view, name='puzzle'),
     url(r'^hunt/(?P<hunt_num>[0-9]+)/$', hunt_views.hunt, name='hunt'),
     url(r'^hunt/current/$', hunt_views.current_hunt, name='current_hunt'),
-    url(r'^hunt/(?P<hunt_num>[0-9]+)/prepuzzle/$', hunt_views.hunt_prepuzzle,
-        name='hunt_prepuzzle'),
-    url(r'^prepuzzle/(?P<prepuzzle_num>[0-9]+)/$', hunt_views.prepuzzle, name='prepuzzle'),
-    url(r'^hunt/current/prepuzzle/$', hunt_views.current_prepuzzle, name='current_prepuzzle'),
-    url(r'^chat/$', hunt_views.chat, name='chat'),
-    url(r'^chat/status/$', hunt_views.chat_status, name='chat_status'),
-    url(r'^objects/$', hunt_views.unlockables, name='unlockables'),
+    #url(r'^hunt/(?P<hunt_num>[0-9]+)/prepuzzle/$', hunt_views.hunt_prepuzzle,
+    #    name='hunt_prepuzzle'),
+    #url(r'^prepuzzle/(?P<prepuzzle_num>[0-9]+)/$', hunt_views.prepuzzle, name='prepuzzle'),
+    #url(r'^hunt/current/prepuzzle/$', hunt_views.current_prepuzzle, name='current_prepuzzle'),
+    #url(r'^objects/$', hunt_views.unlockables, name='unlockables'),
     url(r'^protected/(?P<file_path>.+)$', hunt_views.protected_static, name='protected_static'),
 
     # Staff pages
@@ -61,19 +57,12 @@ urlpatterns = [
         url(r'^queue/$', staff_views.queue, name='queue'),
         url(r'^progress/$', staff_views.progress, name='progress'),
         url(r'^charts/$', staff_views.charts, name='charts'),
-        url(r'^chat/$', staff_views.admin_chat, name='admin_chat'),
         url(r'^control/$', staff_views.control, name='control'),
         url(r'^teams/$', RedirectView.as_view(url='/admin/huntserver/team/', permanent=False)),
         url(r'^puzzles/$', RedirectView.as_view(url='/admin/huntserver/puzzle/', permanent=False)),
         url(r'^emails/$', staff_views.emails, name='emails'),
         url(r'^management/$', staff_views.hunt_management, name='hunt_management'),
-        url(r'^hints/$', staff_views.staff_hints_text, name='staff_hints_text'),
-        url(r'^hints/control/$', staff_views.staff_hints_control, name='staff_hints_control'),
         url(r'^info/$', staff_views.hunt_info, name='hunt_info'),
         url(r'^lookup/$', staff_views.lookup, name='lookup'),
     ])),
-
-    url(r'^Shibboleth.sso/Logout', base_auth_views.LogoutView.as_view(), name='logout',
-        kwargs={'next_page': '/'}),
-    url(r'^Shibboleth.sso/Login', base_auth_views.LoginView.as_view()),
 ]

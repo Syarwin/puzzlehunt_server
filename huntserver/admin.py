@@ -46,7 +46,7 @@ class HuntAdmin(admin.ModelAdmin):
 
 
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ['user_full_name', 'user_username', 'is_shib_acct']
+    list_display = ['user_full_name', 'user_username']
     search_fields = ['user__email', 'user__username', 'user__first_name', 'user__last_name']
     filter_horizontal = ['teams']
 

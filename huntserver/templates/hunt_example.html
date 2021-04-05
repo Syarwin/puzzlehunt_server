@@ -1,29 +1,29 @@
 {% extends "hunt_base.html" %}
 {% load hunt_tags %}
 
-<!-- 
+<!--
 This is a sample template for a hunt. There are some things to note:
-- PLEASE DON'T EDIT THIS FILE. Make a copy and edit that. the server will 
-  automatically look for a file named "hunt#.html" where # is the current hunt 
+- PLEASE DON'T EDIT THIS FILE. Make a copy and edit that. the server will
+  automatically look for a file named "hunt#.html" where # is the current hunt
   number.
 
 - You almost certainly want to keep the line {% extends "hunt_base.html" %} at
   the top. It is what provides various css/js files as well as the navbar at
-  the top of the page. 
+  the top of the page.
 
 - The title is just what is displayed in the browser tab, change it if you want.
 
 - Put all of the page content inside the content block tags or you wont see it.
 
-- If you want to add more CSS, source the file in a block named "includes" see 
+- If you want to add more CSS, source the file in a block named "includes" see
   the title block (or django docs) for syntax of a block.
 
-- If you want to remove the current CSS for the page, create an empty block 
+- If you want to remove the current CSS for the page, create an empty block
   named "base_includes".
 
-- This template is passed a sorted list of puzzles (sorted by puzzle number), 
-  the team that is currently logged in, and a list of puzzles that the team 
-  has solved.  
+- This template is passed a sorted list of puzzles (sorted by puzzle number),
+  the team that is currently logged in, and a list of puzzles that the team
+  has solved.
 -->
 
 {% block title %}Puzzles!{% endblock title %}
@@ -33,8 +33,8 @@ This is a sample template for a hunt. There are some things to note:
   <div class="row">
     <div class="content col-md-6">
       <h1 class="title">Unlocked Puzzles</h1>
-      <a href='/objects/' > 
-        <p style="margin-top: -5px;"> Click here for unlocked objects </p> 
+      <a href='/objects/' >
+        <p style="margin-top: -5px;"> Click here for unlocked objects </p>
       </a>
       <div id="puzzles">
         <table>
@@ -70,8 +70,6 @@ This is a sample template for a hunt. There are some things to note:
           </tbody>
         </table>
       </div>
-      <p>For assistance, email <a href="mailto:{% contact_email %}">
-      {% contact_email %}</a> or try our new <a href="/chat/"> Chat Feature</a>.</p>
     </div>
     <div class="content col-md-5">
       <div id='plot'>

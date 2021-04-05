@@ -399,29 +399,6 @@ class HuntTests(TestCase):
                                     post_context)
         self.assertEqual(response.status_code, 403)
 
-    def test_chat_normal(self):
-        "Test the basic chat view"
-        login(self, 'user6')
-        response = get_and_check_page(self, 'huntserver:chat', 200)
-        self.assertTemplateUsed(response, 'access_error.html')
-
-        login(self, 'user1')
-        response = get_and_check_page(self, 'huntserver:chat', 200)
-
-        post_context = {'team_pk': "2", 'is_announcement': "false",
-                        'is_response': "false", 'message': "my simple message"}
-        response = self.client.post(reverse('huntserver:chat'), post_context)
-        response = self.client.post(reverse('huntserver:chat'), post_context)
-        self.assertEqual(response.status_code, 200)
-
-        post_context = {'team_pk': "", 'is_announcement': "true",
-                        'is_response': "false", 'message': "my simple message"}
-        response = self.client.post(reverse('huntserver:chat'), post_context)
-        self.assertEqual(response.status_code, 200)
-
-        response = ajax_and_check_page(self, 'huntserver:chat', 200, {'last_pk': '0'})
-        response = get_and_check_page(self, 'huntserver:chat', 200)
-
     def test_unlockables(self):
         "Test the unlockables view"
         login(self, 'user1')
@@ -647,38 +624,6 @@ class StaffTests(TestCase):
         "Test the staff info view"
         login(self, 'admin')
         get_and_check_page(self, 'huntserver:hunt_info', 200)
-
-    def test_staff_chat(self):
-        "Test the staff progress view"
-        login(self, 'admin')
-        ajax_args = {'last_pk': '0'}
-        response = ajax_and_check_page(self, 'huntserver:admin_chat', 200, ajax_args)
-
-        response = get_and_check_page(self, 'huntserver:admin_chat', 200)
-
-        post_context = {'team_pk': "", 'is_announcement': "false",
-                        'is_response': "true", 'message': "my simple message"}
-        response = self.client.post(reverse('huntserver:admin_chat'), post_context)
-        self.assertEqual(response.status_code, 400)
-
-        post_context = {'team_pk': "2", 'is_announcement': "true",
-                        'is_response': "true", 'message': "my simple message"}
-        response = self.client.post(reverse('huntserver:admin_chat'), post_context)
-        self.assertEqual(response.status_code, 200)
-
-        post_context = {'team_pk': "2", 'is_announcement': "false",
-                        'is_response': "true", 'message': "my simple message"}
-        response = self.client.post(reverse('huntserver:admin_chat'), post_context)
-        self.assertEqual(response.status_code, 200)
-
-        login(self, 'user1')
-        post_context = {'team_pk': "2", 'is_announcement': "false",
-                        'is_response': "false", 'message': "my simple message"}
-        response = self.client.post(reverse('huntserver:chat'), post_context)
-        self.assertEqual(response.status_code, 200)
-
-        login(self, 'admin')
-        response = ajax_and_check_page(self, 'huntserver:admin_chat', 200, ajax_args)
 
     def test_admin_pages(self):
         "Test the admin page for team objects"
