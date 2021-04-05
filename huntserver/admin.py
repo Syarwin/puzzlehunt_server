@@ -190,8 +190,9 @@ class PuzzleAdmin(admin.ModelAdmin):
 
 
 class EurekaAdmin(admin.ModelAdmin):
-    list_display = ['__str__', 'puzzle_just_name']
-    search_fields = ['regex', 'text']
+    list_display = ['puzzle_just_name', 'answer', 'regex', 'feedback']
+    list_display_links = ['answer', 'regex', 'feedback']
+    search_fields = ['answer', 'regex', 'feedback']
     ordering = ['-puzzle']
 
     def puzzle_just_name(self, response):

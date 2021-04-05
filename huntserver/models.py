@@ -823,7 +823,7 @@ class Eureka(models.Model):
         help_text="The feedback message sent when this eureka is found - if blank, use the default feedback of the hunt")
 
     def __str__(self):
-        return self.regex + " => " + self.text
+        return self.answer + " (" + self.regex + ")=> " + self.feedback
 
 
 @python_2_unicode_compatible
