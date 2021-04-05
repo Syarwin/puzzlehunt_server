@@ -93,11 +93,9 @@ class nonWebTests(TestCase):
 
         models.Submission.objects.create(team=team, submission_time=timezone.now(), puzzle=puzzle,
                                          submission_text="foobar", modified_date=timezone.now())
-        models.Solve.objects.create(puzzle=puzzle, team=team,
+        models.PuzzleSolve.objects.create(puzzle=puzzle, team=team,
                                     submission=models.Submission.objects.all()[0])
-        models.Unlock.objects.create(puzzle=puzzle, team=team, time=timezone.now())
-        models.Message.objects.create(team=team, is_response=False, text="foobar",
-                                      time=timezone.now())
+        models.PuzzleUnlock.objects.create(puzzle=puzzle, team=team, time=timezone.now())
         models.Unlockable.objects.create(puzzle=puzzle, content_type="TXT", content="foobar")
 
     def test_unicode(self):
@@ -106,11 +104,10 @@ class nonWebTests(TestCase):
         str(models.Person.objects.all()[0])
         # str(models.Person.objects.all()[-1])
         str(models.Submission.objects.all()[0])
-        str(models.Solve.objects.all()[0])
-        str(models.Unlock.objects.all()[0])
-        str(models.Message.objects.all()[0])
+        str(models.PuzzleSolve.objects.all()[0])
+        str(models.PuzzleUnlock.objects.all()[0])
         str(models.Unlockable.objects.all()[0])
-        str(models.Response.objects.all()[0])
+        str(models.Eureka.objects.all()[0])
         # str(models.HuntAssetFile.objects.all()[0])
 
     def test_hunt_cleaning(self):
@@ -273,7 +270,7 @@ class InfoTests(TestCase):
         "Test the user profile page"
         login(self, 'user4')
         response = get_and_check_page(self, 'huntserver:user_profile', 200)
-        self.assertTrue(isinstance(response.context['user_form'], forms.ShibUserForm))
+        self.assertTrue(isinstance(response.context['user_form'], forms.UserForm))
         self.assertTrue(isinstance(response.context['person_form'], forms.PersonForm))
 
     def test_user_profile_post_update(self):
@@ -281,8 +278,7 @@ class InfoTests(TestCase):
         login(self, 'user4')
         user = User.objects.get(username="user4")
         post_context = {'first_name': user.first_name, 'last_name': user.last_name,
-                        'username': user.username, 'email': 'test@test.com',
-                        'phone': user.person.phone, 'allergies': user.person.allergies}
+                        'username': user.username, 'email': 'test@test.com'}
         response = self.client.post(reverse('huntserver:user_profile'), post_context)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['user'].email, "test@test.com")
@@ -292,8 +288,7 @@ class InfoTests(TestCase):
         login(self, 'user4')
         user = User.objects.get(username="user4")
         post_context = {'first_name': user.first_name, 'last_name': user.last_name,
-                        'username': user.username, 'email': 'user3@example.com',
-                        'phone': user.person.phone, 'allergies': user.person.allergies}
+                        'username': user.username, 'email': 'user3@example.com'}
         response = self.client.post(reverse('huntserver:user_profile'), post_context)
         self.assertEqual(response.status_code, 200)
 
@@ -417,8 +412,8 @@ class AuthTests(TestCase):
         response = get_and_check_page(self, 'huntserver:create_account', 200)
         post_context = {'user-first_name': "first", 'user-last_name': "last",
                         'user-username': "user7",
-                        'user-email': 'user7@example.com', 'person-phone': "777-777-7777",
-                        'person-allergies': "something", 'user-password': "password",
+                        'user-email': 'user7@example.com',
+                        'user-password': "password",
                         'user-confirm_password': "password"}
 
         post_context['user-email'] = "user6@example.com"
@@ -452,59 +447,6 @@ class AuthTests(TestCase):
         login(self, 'user1')
         response = self.client.get(reverse('huntserver:account_logout'), {'next': '/'})
         self.assertEqual(response.status_code, 200)
-
-    def test_shib_login(self):
-        "Test the shib login view"
-        # No HTTP_META data, should fail
-        response = self.client.get(reverse('huntserver:new_shib_account'))
-        self.assertTemplateUsed(response, 'attribute_error.html')
-
-        # Username is empty, should fail
-        META = {"Shib-Identity-Provider": 'https://login.cmu.edu/idp/shibboleth',
-                "eppn": "", "givenName": "Test",
-                "sn": "User"}
-        response = self.client.get(reverse('huntserver:new_shib_account'), **META)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'attribute_error.html')
-
-        # Bad shib setup, should fail
-        META = {"Shib-Identity-Provider": 'https://login.cmu.edu/idp/shibboleth',
-                "givenName": "Test", "sn": "User"}
-        response = self.client.get(reverse('huntserver:new_shib_account'), **META)
-        self.assertTemplateUsed(response, 'attribute_error.html')
-        self.assertEqual(response.status_code, 200)
-
-        # Missing name, should be fine
-        META = {"Shib-Identity-Provider": 'https://login.cmu.edu/idp/shibboleth',
-                "eppn": "user@andrew.cmu.edu", "givenName": "", "sn": "User"}
-        response = self.client.get(reverse('huntserver:new_shib_account'), **META)
-        self.assertEqual(response.status_code, 200)
-
-        # Proper shib response, should succeed
-        META = {"Shib-Identity-Provider": 'https://login.cmu.edu/idp/shibboleth',
-                "eppn": "user@andrew.cmu.edu", "givenName": "Test",
-                "sn": "User"}
-        response = self.client.get(reverse('huntserver:new_shib_account'), **META)
-        self.assertEqual(response.status_code, 200)
-
-        # Username is empty, should fail
-        post_context = {'first_name': "Test", 'last_name': "User",
-                        'username': "",
-                        'email': 'user@andrew.cmu.edu',
-                        'phone': "777-777-7777",
-                        'allergies': "something"}
-        response = self.client.post(reverse('huntserver:new_shib_account'), post_context, **META)
-        self.assertEqual(response.status_code, 200)
-
-        # Proper post request, should succeed
-        post_context = {'first_name': "Test", 'last_name': "User",
-                        'username': "user@andrew.cmu.edu",
-                        'email': 'user@andrew.cmu.edu',
-                        'phone': "777-777-7777",
-                        'allergies': "something"}
-        response = self.client.post(reverse('huntserver:new_shib_account') + "?next=// ",
-                                    post_context, **META)
-        self.assertEqual(response.status_code, 302)
 
 
 @override_settings(RATELIMIT_ENABLE=False)

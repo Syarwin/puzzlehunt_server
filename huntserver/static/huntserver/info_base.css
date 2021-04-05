@@ -5,22 +5,19 @@ body {
   background: #09814A;
 }
 
-.container:not(.no_outline){
-    background: white;
-    padding: 20px 40px;
-    margin: 10px auto;
-    border: 5px solid black;
-    border-radius: 10px;
-}
-.container.no_outline {
-    padding-left: 0px;
-    padding-right: 0px;
-}
-
 #phlogo {
     width: 50%;
 }
 
+
+h1 {
+  color:white;
+}
+
+.light-section {
+  background-color:#388C66;
+  color:white;
+}
 
 /* Registration/forms */
 .title {

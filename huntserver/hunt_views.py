@@ -18,7 +18,7 @@ import os
 import re
 
 from .models import Puzzle, Hunt, Submission, Unlockable, Prepuzzle
-from .forms import AnswerForm, HintRequestForm
+from .forms import AnswerForm
 
 import logging
 logger = logging.getLogger(__name__)

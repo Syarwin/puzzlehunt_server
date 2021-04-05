@@ -61,7 +61,7 @@
                   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                     <span class="glyphicon glyphicon-user"></span> Profile <span class="caret"></span>
                   </a>
-                  <ul class="dropdown-menu">
+                  <ul class="dropdown-menu dropdown-menu-end">
                     <li class="dropdown-header">{{request.user.username}}</li>
                     <li><a class="dropdown-item" href="{% url 'huntserver:user_profile' %}">Edit Profile</a></li>
                     <li><a class="dropdown-item" href="{% url 'huntserver:registration' %}">Join/Manage Team</a></li>
@@ -108,7 +108,9 @@
     {% endif %}
 
     {% block content_wrapper %}
+    <main>
     {% block content %} {% endblock content %}
+    </main>
     {% endblock content_wrapper %}
     {% block footer %}
     {% endblock footer %}

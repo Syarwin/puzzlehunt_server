@@ -7,7 +7,7 @@ from huntserver.utils import parse_attributes
 from huntserver.info_views import index
 
 from .models import Hunt
-from .forms import UserForm, PersonForm, ShibUserForm
+from .forms import UserForm, PersonForm
 
 import logging
 logger = logging.getLogger(__name__)
@@ -44,7 +44,6 @@ def create_account(request):
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             user.save()
             person = pf.save(commit=False)
-            person.is_shib_acct = False
             person.user = user
             person.save()
             login(request, user)

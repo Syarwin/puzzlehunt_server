@@ -560,9 +560,8 @@ class Team(models.Model):
 
     def reset(self):
         """ Resets/deletes all of the team's progress """
-        self.unlock_set.all().delete()
         self.unlocked.clear()
-        self.solve_set.all().delete()
+        self.puzzlesolve_set.all().delete()
         self.solved.clear()
         self.submission_set.all().delete()
         self.num_unlock_points = 0
@@ -685,7 +684,7 @@ class Submission(models.Model):
         # Check against regexes
         for resp in self.puzzle.eureka_set.all():
             if(re.match(resp.regex, self.submission_text, re.IGNORECASE)):
-                response = resp.text
+                response = resp.feedback
                 break
         else:  # Give a default response if no regex matches
             if(self.is_correct):

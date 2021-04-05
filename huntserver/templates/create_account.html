@@ -7,13 +7,19 @@
 {% endblock includes %}
 
 {% block content %}
-  <div class="container">
+<section>
+  <div class="container py-5">
     <h1>Registration</h1>
-    <form method="POST" action="">
+  </div>
+</section>
+<section class="light-section vfill">
+  <div class="container">
+      <form method="POST" action="">
       {% csrf_token %}
       {{uf|crispy}}
       {{pf|crispy}}
       <input class="btn btn-primary" type="submit">
     </form>
   </div>
+</section>
 {% endblock content %}

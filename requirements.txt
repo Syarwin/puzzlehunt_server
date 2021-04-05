@@ -16,3 +16,4 @@ django-redis
 redis
 huey
 sentry-sdk==0.14.2
+crispy-bootstrap5

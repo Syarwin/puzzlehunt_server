@@ -1,2 +1,15 @@
-body {  }
-nav { padding-right: 10px; }
+html, body { height:100%; }
+body {
+    display:flex;
+    flex-flow:column;
+}
+
+main {
+  flex-grow: 1;
+  display: flex;
+  flex-flow:column;
+}
+
+section.vfill {
+  flex-grow: 1;
+}

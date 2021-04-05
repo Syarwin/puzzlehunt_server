@@ -19,7 +19,7 @@ from copy import deepcopy
 # from silk.profiling.profiler import silk_profile
 
 from .models import Submission, Hunt, Team, Puzzle, PuzzleUnlock, PuzzleSolve, Prepuzzle, Person
-from .forms import SubmissionForm, UnlockForm, EmailForm, HintResponseForm, LookupForm
+from .forms import SubmissionForm, UnlockForm, EmailForm, LookupForm
 
 DT_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
@@ -116,7 +116,7 @@ def progress(request):
                     t = Team.objects.get(pk=form.cleaned_data['team_id'])
                     p = Puzzle.objects.get(puzzle_id=form.cleaned_data['puzzle_id'])
                     if(p not in t.unlocked.all()):
-                        u = Unlock.objects.create(team=t, puzzle=p, time=timezone.now())
+                        u = PuzzleUnlock.objects.create(team=t, puzzle=p, time=timezone.now())
                         return HttpResponse(json.dumps(u.serialize_for_ajax()))
                     else:
                         return HttpResponse(status=200)
@@ -125,7 +125,7 @@ def progress(request):
                 response = []
                 for team in p.hunt.team_set.all():
                     if(p not in team.unlocked.all()):
-                        u = Unlock.objects.create(team=team, puzzle=p, time=timezone.now())
+                        u = PuzzleUnlock.objects.create(team=team, puzzle=p, time=timezone.now())
                         response.append(u.serialize_for_ajax())
                 return HttpResponse(json.dumps(response))
         return HttpResponse(status=400)
@@ -139,12 +139,12 @@ def progress(request):
         results = []
 
         last_solve_pk = request.GET.get("last_solve_pk")
-        solves = Solve.objects.filter(pk__gt=last_solve_pk)
+        solves = PuzzleSolve.objects.filter(pk__gt=last_solve_pk)
         for solve in solves:
             results.append(solve.serialize_for_ajax())
 
         last_unlock_pk = request.GET.get("last_unlock_pk")
-        unlocks = Unlock.objects.filter(pk__gt=last_unlock_pk)
+        unlocks = PuzzleUnlock.objects.filter(pk__gt=last_unlock_pk)
         for unlock in unlocks:
             results.append(unlock.serialize_for_ajax())
 
@@ -156,12 +156,12 @@ def progress(request):
 
         if(len(results) > 0):
             try:
-                last_solve_pk = Solve.objects.latest('id').id
-            except Solve.DoesNotExist:
+                last_solve_pk = PuzzleSolve.objects.latest('id').id
+            except PuzzleSolve.DoesNotExist:
                 last_solve_pk = 0
             try:
-                last_unlock_pk = Unlock.objects.latest('id').id
-            except Unlock.DoesNotExist:
+                last_unlock_pk = PuzzleUnlock.objects.latest('id').id
+            except PuzzleUnlock.DoesNotExist:
                 last_unlock_pk = 0
             try:
                 last_submission_pk = Submission.objects.latest('id').id
@@ -186,7 +186,7 @@ def progress(request):
         for team in teams:
             sol_dict[team.pk] = deepcopy(puzzle_dict)
 
-        data = Unlock.objects.filter(team__hunt=curr_hunt).exclude(team__location='DUMMY')
+        data = PuzzleUnlock.objects.filter(team__hunt=curr_hunt).exclude(team__location='DUMMY')
         data = data.values_list('team', 'puzzle').annotate(Max('time'))
 
         for point in data:
@@ -194,7 +194,7 @@ def progress(request):
 
         data = Submission.objects.filter(team__hunt=curr_hunt).exclude(team__location='DUMMY')
         data = data.values_list('team', 'puzzle').annotate(Max('submission_time'))
-        data = data.annotate(Count('solve'))
+        data = data.annotate(Count('puzzlesolve'))
 
         for point in data:
             if(point[3] == 0):
@@ -208,12 +208,12 @@ def progress(request):
                              'puzzles': puzzle_list})
 
         try:
-            last_solve_pk = Solve.objects.latest('id').id
-        except Solve.DoesNotExist:
+            last_solve_pk = PuzzleSolve.objects.latest('id').id
+        except PuzzleSolve.DoesNotExist:
             last_solve_pk = 0
         try:
-            last_unlock_pk = Unlock.objects.latest('id').id
-        except Unlock.DoesNotExist:
+            last_unlock_pk = PuzzleUnlock.objects.latest('id').id
+        except PuzzleUnlock.DoesNotExist:
             last_unlock_pk = 0
         try:
             last_submission_pk = Submission.objects.latest('id').id
@@ -242,9 +242,9 @@ def charts(request):
     puzzle_info_dict2 = []
     puzzle_info_dict7 = []
 
-    solves = puzzles.annotate(solved=Count('solve')).values_list('solved', flat=True)
+    solves = puzzles.annotate(solved=Count('puzzlesolve')).values_list('solved', flat=True)
     subs = puzzles.annotate(subs=Count('submission')).values_list('subs', flat=True)
-    unlocks = puzzles.annotate(unlocked=Count('unlock')).values_list('unlocked', flat=True)
+    unlocks = puzzles.annotate(unlocked=Count('puzzleunlock')).values_list('unlocked', flat=True)
     hints = puzzles.annotate(hints=Count('hint')).values_list('hints', flat=True)
     puzzle_data = zip(names, solves, subs, unlocks, hints)
     for puzzle in puzzle_data:
@@ -285,7 +285,7 @@ def charts(request):
 
     # Chart 4
     solve_hours = []
-    solves = Solve.objects.filter(puzzle__hunt=curr_hunt,
+    solves = PuzzleSolve.objects.filter(puzzle__hunt=curr_hunt,
                                   submission__submission_time__gte=curr_hunt.start_date,
                                   submission__submission_time__lte=curr_hunt.end_date)
     solves = solves.values_list('submission__submission_time__year',
@@ -333,7 +333,7 @@ def charts(request):
 
     # Chart 6
     solve_time_data = []
-    # sq1 = Unlock.objects.filter(puzzle=OuterRef('puzzle'), team=OuterRef('team'))
+    # sq1 = PuzzleUnlock.objects.filter(puzzle=OuterRef('puzzle'), team=OuterRef('team'))
     # sq1 = sq1.values('time')[:1]
     # sq2 = Solve.objects.filter(pk=OuterRef('pk')).values('submission__submission_time')[:1]
     # solves = Solve.objects.filter(puzzle__hunt=curr_hunt,
@@ -346,13 +346,13 @@ def charts(request):
 
     # Info Table
     # with silk_profile(name="Info Table"):
-    solves = Solve.objects.filter(team__hunt=curr_hunt)
+    solves = PuzzleSolve.objects.filter(team__hunt=curr_hunt)
     mins = solves.values_list('puzzle').annotate(m=Min('id')).values_list('m', flat=True)
-    results = Solve.objects.filter(pk__in=mins).values_list('puzzle__puzzle_id',
+    results = PuzzleSolve.objects.filter(pk__in=mins).values_list('puzzle__puzzle_id',
                                                             'puzzle__puzzle_name',
                                                             'team__team_name',
                                                             'submission__submission_time')
-    results = list(results.annotate(Count('puzzle__solve')).order_by('puzzle__puzzle_id'))
+    results = list(results.annotate(Count('puzzle__puzzlesolve')).order_by('puzzle__puzzle_id'))
 
     context = {'data1_list': puzzle_info_dict1, 'data2_list': puzzle_info_dict2,
                'data3_list': submission_hours, 'data4_list': solve_hours,
@@ -612,7 +612,7 @@ def lookup(request):
             team = Team.objects.get(pk=request.GET.get("team_pk"))
             team.latest_submissions = team.submission_set.values_list('puzzle')
             team.latest_submissions = team.latest_submissions.annotate(Max('submission_time'))
-            sq1 = Solve.objects.filter(team__pk=OuterRef('pk'), puzzle__is_meta=True).order_by()
+            sq1 = PuzzleSolve.objects.filter(team__pk=OuterRef('pk'), puzzle__is_meta=True).order_by()
             sq1 = sq1.values('team').annotate(c=Count('*')).values('c')
             sq1 = Subquery(sq1, output_field=PositiveIntegerField())
             all_teams = team.hunt.team_set.annotate(metas=sq1, solves=Count('solved'))

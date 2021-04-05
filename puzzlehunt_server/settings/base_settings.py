@@ -28,6 +28,7 @@ INSTALLED_APPS = (
     'huntserver',
     'crispy_forms',
     'huey.contrib.djhuey',
+    "crispy_bootstrap5",
 )
 
 SITE_ID = 1  # For flatpages
@@ -96,7 +97,8 @@ LOGIN_URL = 'huntserver:login_selection'
 
 # Random settings
 SILENCED_SYSTEM_CHECKS = ["urls.W005"]  # silences admin url override warning
-CRISPY_TEMPLATE_PACK = 'bootstrap3'
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
 BOOTSTRAP_ADMIN_SIDEBAR_MENU = True
 DEFAULT_HINT_LOCKOUT = 60  # 60 Minutes

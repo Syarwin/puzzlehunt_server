@@ -49,7 +49,7 @@ urlpatterns = [
     #    name='hunt_prepuzzle'),
     #url(r'^prepuzzle/(?P<prepuzzle_num>[0-9]+)/$', hunt_views.prepuzzle, name='prepuzzle'),
     #url(r'^hunt/current/prepuzzle/$', hunt_views.current_prepuzzle, name='current_prepuzzle'),
-    #url(r'^objects/$', hunt_views.unlockables, name='unlockables'),
+    url(r'^objects/$', hunt_views.unlockables, name='unlockables'),
     url(r'^protected/(?P<file_path>.+)$', hunt_views.protected_static, name='protected_static'),
 
     # Staff pages

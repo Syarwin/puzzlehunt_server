@@ -53,6 +53,10 @@ class PersonForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(PersonForm, self).__init__(*args, **kwargs)
 
+    class Meta:
+        model = Person
+        fields = ['comments']
+
 
 class UserForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -94,48 +98,9 @@ class UserForm(forms.ModelForm):
         }
 
 
-class ShibUserForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(ShibUserForm, self).__init__(*args, **kwargs)
-        self.fields['email'].required = True
-        self.fields['username'].widget.attrs['readonly'] = True
-        self.fields['username'].help_text = "You can't change this, we need it for authentication"
-
-    def clean_username(self):
-        instance = getattr(self, 'instance', None)
-        if instance and instance.id:
-            return instance.username
-        else:
-            return self.cleaned_data['username']
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        username = self.cleaned_data.get('username')
-        if email and User.objects.filter(email=email).exclude(username=username).exists():
-            raise forms.ValidationError('Someone is already using that email address.')
-        return email
-
-    class Meta:
-        model = User
-        fields = ['first_name', 'last_name', 'username', 'email']
-
-
 class EmailForm(forms.Form):
     subject = forms.CharField(label='Subject')
     message = forms.CharField(label='Message', widget=forms.Textarea)
-
-
-class HintRequestForm(forms.Form):
-    request = forms.CharField(max_length=1000, label='Hint Request Text', widget=forms.Textarea,
-                              help_text="Please describe your progress on the puzzle, and where "
-                                        "you feel you are stuck. Max length 1000 characters.")
-
-
-class HintResponseForm(forms.Form):
-    response = forms.CharField(max_length=1000, label='Hint Response Text',
-                               widget=forms.Textarea(attrs={'rows': 5, 'cols': 30}),
-                               help_text="Max length 1000 characters.")
-    hint_id = forms.CharField(label='hint_id', widget=forms.HiddenInput())
 
 
 class LookupForm(forms.Form):

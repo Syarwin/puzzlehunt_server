@@ -6,7 +6,7 @@ import random
 import re
 
 from .models import Hunt, Team
-from .forms import PersonForm, ShibUserForm
+from .forms import PersonForm, UserForm
 
 import logging
 logger = logging.getLogger(__name__)
@@ -102,7 +102,7 @@ def user_profile(request):
     """ A view to handle user information update POST data and render the user information form. """
 
     if request.method == 'POST':
-        uf = ShibUserForm(request.POST, instance=request.user)
+        uf = UserForm(request.POST, instance=request.user)
         pf = PersonForm(request.POST, instance=request.user.person)
         if uf.is_valid() and pf.is_valid():
             uf.save()
@@ -111,7 +111,7 @@ def user_profile(request):
         else:
             context = {'user_form': uf, 'person_form': pf}
             return render(request, "user_profile.html", context)
-    user_form = ShibUserForm(instance=request.user)
+    user_form = UserForm(instance=request.user)
     person_form = PersonForm(instance=request.user.person)
     context = {'user_form': user_form, 'person_form': person_form}
     return render(request, "user_profile.html", context)
