@@ -5,7 +5,6 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.validators import MinValueValidator
 from django.utils.dateformat import DateFormat
-from django.utils.encoding import python_2_unicode_compatible
 from dateutil import tz
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
