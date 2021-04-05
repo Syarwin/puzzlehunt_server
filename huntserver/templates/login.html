@@ -1,0 +1,26 @@
+{% extends "info_base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="form-centered text-center form-login">
+<form>
+  <img class="mb-4" src='/static/huntserver/mblogo.png' alt="" width="300" height="200">
+  <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
+
+  {{ form.non_field_errors }}
+
+  <div class="form-floating">
+    <input type="text" name="username" maxlength="150" class="form-control" placeholder="Mindbreakers" id="id_username" />
+    <label for="{{ form.username.id_for_label }}">Username:</label>
+    {{ form.username.errors }}
+  </div>
+  <div class="form-floating">
+    <input type="password" name="password"  class="form-control" placeholder="Password" id="id_password" />
+    <label for="{{ form.password.id_for_label }}">Password:</label>
+    {{ form.password.errors }}
+  </div>
+
+  <button class="w-100 btn btn-lg btn-primary" type="submit">Login</button>
+</form>
+</div>
+{% endblock %}

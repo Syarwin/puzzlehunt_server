@@ -24,7 +24,7 @@ def login_selection(request):
     if(settings.USE_SHIBBOLETH):
         return render(request, "login_selection.html", context)
     else:
-        return views.LoginView.as_view()(request)
+        return views.LoginView.as_view(template_name="login.html")(request)
 
 
 def create_account(request):

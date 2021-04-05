@@ -32,7 +32,7 @@ urlpatterns = [
 
     # Auth and Accounts
     url(r'^accounts/create/$', auth_views.create_account, name='create_account'),
-    url(r'^login-selection/$', auth_views.login_selection, name='login_selection'),
+    url(r'^login/$', auth_views.login_selection, name='login_selection'),
     url(r'^logout/$', auth_views.account_logout, name='account_logout'),
 
     # Info Pages
