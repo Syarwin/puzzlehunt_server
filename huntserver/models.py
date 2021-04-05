@@ -63,7 +63,7 @@ class PuzzleOverwriteStorage(FileSystemStorage):
         return rc
 
 
-@python_2_unicode_compatible
+
 class Hunt(models.Model):
     """ Base class for a hunt. Contains basic details about a puzzlehunt. """
 
@@ -193,7 +193,7 @@ class Hunt(models.Model):
         return teams[0] if (len(teams) > 0) else None
 
 
-@python_2_unicode_compatible
+
 class Puzzle(models.Model):
     """ A class representing a puzzle within a hunt """
 
@@ -364,7 +364,7 @@ class Puzzle(models.Model):
         return str(self.puzzle_number) + "-" + str(self.puzzle_id) + " " + self.puzzle_name
 
 
-@python_2_unicode_compatible
+
 class Prepuzzle(models.Model):
     """ A class representing a pre-puzzle within a hunt """
 
@@ -425,7 +425,7 @@ class TeamManager(models.Manager):
         return qs
 
 
-@python_2_unicode_compatible
+
 class Team(models.Model):
     """ A class representing a team within a hunt """
 
@@ -583,7 +583,7 @@ class PersonManager(models.Manager):
         return qs
 
 
-@python_2_unicode_compatible
+
 class Person(models.Model):
     """ A class to associate more personal information with the default django auth user class """
 
@@ -609,7 +609,7 @@ class Person(models.Model):
         else:
             return name
 
-@python_2_unicode_compatible
+
 class Submission(models.Model):
     """ A class representing a submission to a given puzzle from a given team """
 
@@ -709,7 +709,7 @@ class Submission(models.Model):
         return self.submission_text
 
 
-@python_2_unicode_compatible
+
 class PuzzleSolve(models.Model):
     """ A class that links a team and a puzzle to indicate that the team has solved the puzzle """
 
@@ -745,7 +745,7 @@ class PuzzleSolve(models.Model):
         return self.team.short_name + " => " + self.puzzle.puzzle_name
 
 
-@python_2_unicode_compatible
+
 class PuzzleUnlock(models.Model):
     """ A class that links a team and a puzzle to indicate that the team has unlocked the puzzle """
 
@@ -775,7 +775,7 @@ class PuzzleUnlock(models.Model):
         return self.team.short_name + ": " + self.puzzle.puzzle_name
 
 
-@python_2_unicode_compatible
+
 class Unlockable(models.Model):
     """ A class that represents an object to be unlocked after solving a puzzle """
 
@@ -802,7 +802,7 @@ class Unlockable(models.Model):
         return "%s (%s)" % (self.puzzle.puzzle_name, self.content_type)
 
 
-@python_2_unicode_compatible
+
 class Eureka(models.Model):
     """ A class to represent an automated response regex """
 
@@ -825,7 +825,7 @@ class Eureka(models.Model):
         return self.answer + " (" + self.regex + ")=> " + self.feedback
 
 
-@python_2_unicode_compatible
+
 class EurekaUnlock(models.Model):
     """ A class that links a team and a eureka to indicate that the team has unlocked the eureka """
 
@@ -855,7 +855,7 @@ class EurekaUnlock(models.Model):
         return self.team.short_name + ": " + self.eureka.text
 
 
-@python_2_unicode_compatible
+
 class Hint(models.Model):
     """ A class to represent an hint """
 
@@ -899,7 +899,7 @@ class OverwriteStorage(FileSystemStorage):
         return name
 
 
-@python_2_unicode_compatible
+
 class HuntAssetFile(models.Model):
     """ A class to represent an asset file for a puzzlehunt """
     file = models.FileField(upload_to='hunt/assets/', storage=OverwriteStorage())
