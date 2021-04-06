@@ -434,6 +434,7 @@ class Team(models.Model):
     location = models.CharField(
         max_length=80,
         blank=True,
+        null=True,
         help_text="The country the members of the team are from")
     solved = models.ManyToManyField(
         Puzzle,
@@ -567,7 +568,7 @@ class Team(models.Model):
         self.save()
 
     def __str__(self):
-        return str(self.size) + " (" + self.location + ") " + self.short_name
+        return str(self.size) + " (" + str(self.location) + ") " + self.short_name
 
 
 class PersonManager(models.Manager):
