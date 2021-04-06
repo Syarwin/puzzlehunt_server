@@ -19,4 +19,5 @@ debug.log
 /docker/volumes/shib-certs/
 /docker/volumes/redis_data/
 /docker/volumes/logs/
+/docker/volumes/db_data/
 *.env
