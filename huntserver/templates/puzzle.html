@@ -110,7 +110,7 @@
       </div>
     {% elif puzzle.puzzle_page_type == puzzle.WEB_PUZZLE %}
       <div class="col-md-12">
-        <iframe width="100%" height="1000px" src="{{ PROTECTED_URL }}puzzles/{{ puzzle.puzzle_id }}/index.html" title="Puzzle iframe"></iframe>
+        {{ puzzle.puzzle_id }}
       </div>
     {% endif %}
   </div>

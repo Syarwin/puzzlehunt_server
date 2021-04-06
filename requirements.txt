@@ -9,7 +9,8 @@ sphinx_rtd_theme
 django-ratelimit==1.1.0
 coverage
 django-crispy-forms==1.11.2
-gunicorn
+channels-redis
+daphne
 psycopg2
 dj-database-url
 django-redis
@@ -17,3 +18,4 @@ redis
 huey
 sentry-sdk==1.0.0
 crispy-bootstrap5
+asgiref==3.2.10

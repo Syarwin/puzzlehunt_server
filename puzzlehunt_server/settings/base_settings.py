@@ -89,6 +89,13 @@ HUEY = {
 
 
 WSGI_APPLICATION = 'puzzlehunt_server.wsgi.application'
+ASGI_APPLICATION = 'puzzlehunt_server.routing.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    },
+}
 
 # URL settings
 LOGIN_REDIRECT_URL = '/'
