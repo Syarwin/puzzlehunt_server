@@ -18,8 +18,8 @@ import json
 from copy import deepcopy
 # from silk.profiling.profiler import silk_profile
 
-from .models import Submission, Hunt, Team, Puzzle, PuzzleUnlock, PuzzleSolve, Prepuzzle, Person
-from .forms import SubmissionForm, UnlockForm, EmailForm, LookupForm
+from huntserver.models import Submission, Hunt, Team, Puzzle, PuzzleUnlock, PuzzleSolve, Prepuzzle, Person
+from huntserver.forms import SubmissionForm, UnlockForm, EmailForm, LookupForm
 
 DT_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 

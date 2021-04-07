@@ -1,31 +1,78 @@
-from django.contrib.auth.decorators import login_required
-from django.db.models.functions import Lower
-from django.shortcuts import render
+from django.conf import settings
 from django.contrib import messages
-import random
-import re
+from django.contrib.auth import logout, login, views
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from huntserver.utils import parse_attributes
+from django.views import View
+from . import info
 
-from .models import Hunt, Team
-from .forms import PersonForm, UserForm
+from huntserver.models import Hunt
+from huntserver.forms import UserForm, PersonForm
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-def index(request):
-    """ Main landing page view, mostly static with the exception of hunt info """
-    curr_hunt = Hunt.objects.get(is_current_hunt=True)
-    team = curr_hunt.team_from_user(request.user)
-    return render(request, "index.html", {'curr_hunt': curr_hunt, 'team': team})
 
 
-def previous_hunts(request):
-    """ A view to render the list of previous hunts, will show any hunt that is 'public' """
-    old_hunts = []
-    for hunt in Hunt.objects.all().order_by("hunt_number"):
-        if(hunt.is_public):
-            old_hunts.append(hunt)
-    return render(request, "previous_hunts.html", {'hunts': old_hunts})
+def login_selection(request):
+    """ A mostly static view to render the login selection. Next url parameter is preserved. """
+
+    if 'next' in request.GET:
+        context = {'next': request.GET['next']}
+    else:
+        context = {'next': "/"}
+
+    return views.LoginView.as_view(template_name="login.html")(request)
+
+
+
+class SignIn(View):
+    def get(self, request):
+        """
+        A view to create user and person objects from valid user POST data, as well as render
+        the account creation form.
+        """
+
+        uf = UserForm(prefix='user')
+        pf = PersonForm(prefix='person')
+        return render(request, "auth/signin.html", {'uf': uf, 'pf': pf})
+
+    def post(self, request):
+        uf = UserForm(request.POST, prefix='user')
+        pf = PersonForm(request.POST, prefix='person')
+        if uf.is_valid() and pf.is_valid():
+            user = uf.save()
+            user.set_password(user.password)
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
+            user.save()
+            person = pf.save(commit=False)
+            person.user = user
+            person.save()
+            login(request, user)
+            logger.info("User created: %s" % (str(person)))
+            return index(request)
+        else:
+            return render(request, "signin.html", {'uf': uf, 'pf': pf, 'teams': teams})
+
+
+
+def account_logout(request):
+    """ A view to logout the user and *hopefully* also logout out the shibboleth system. """
+
+    logout(request)
+    messages.success(request, "Logout successful")
+    if 'next' in request.GET:
+        additional_url = request.GET['next']
+    else:
+        additional_url = ""
+    if(settings.USE_SHIBBOLETH):
+        next_url = "https://" + request.get_host() + additional_url
+        return redirect("/Shibboleth.sso/Logout?return=" + next_url)
+    else:
+        return index(request)
 
 
 def registration(request):
@@ -98,7 +145,7 @@ def registration(request):
 
 
 @login_required
-def user_profile(request):
+def profile(request):
     """ A view to handle user information update POST data and render the user information form. """
 
     if request.method == 'POST':

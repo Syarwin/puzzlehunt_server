@@ -21,7 +21,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-fixed-top">
 			<div class="container-fluid">
           <a class="navbar-brand" href="/">
-            <img src='/static/huntserver/mbicon.png' alt="" width="30" height="24" class="d-inline-block align-text-top">
+            <img src='/static/huntserver/mbicon.png' alt="" width="30" height="24" class="d-inline-block align-text-top me-2">
             {% if debug %} Dev Server {% else %} {% site_title %} {% endif %}
           </a>
 					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-collapse-wrapper" aria-controls="navbar-collapse-wrapper" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,27 +29,18 @@
 					</button>
 					<div class="collapse navbar-collapse" id="navbar-collapse-wrapper">
 						<ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            {% block prev-hunts-header %}
-              {% set_hunts %}
-              {% if tmpl_hunts %}
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"> Previous Hunts <span class="caret"></span></a>
-                <ul class="dropdown-menu">
-                  <li class="dropdown-header"> Previous Hunts: </li>
-                  {% for hunt in tmpl_hunts %}
-                    <li>
-                      <a href="{% url 'huntserver:hunt' hunt.hunt_number %}">
-                        {{ hunt.hunt_name }} - {{ hunt.season.0 }}'{{ hunt.start_date|date:"y" }}
-                      </a>
-                    </li>
-                  {% endfor %}
-                  <li class='{% active_page request "previous_hunts" %}'>
-                    <a href="{% url 'huntserver:previous_hunts' %}"> ... Even older hunts </a>
-                  </li>
-                </ul>
+              <li class='nav-item'>
+                <a class='nav-link' href="/info-and-rules">
+                  <i class="bi bi-book me-1"></i>
+                  Info and rules
+                </a>
               </li>
-              {% endif %}
-            {% endblock %}
+              <li class='nav-item'>
+                <a class='nav-link' href="/hunt/current/">
+                  <i class="bi bi-play-circle-fill me-1"></i>
+                  Game
+                </a>
+              </li>
             {% block left-header %}
             {% endblock %}
 						</ul>
@@ -64,7 +55,7 @@
                      {{request.user.username}}
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="{% url 'huntserver:user_profile' %}">Edit Profile</a></li>
+                    <li><a class="dropdown-item" href="{% url 'huntserver:profile' %}">Edit Profile</a></li>
                     <li><a class="dropdown-item" href="{% url 'huntserver:registration' %}">Join/Manage Team</a></li>
                     <li role="separator" class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="/logout/">Log Out</a></li>
@@ -72,12 +63,12 @@
                 </li>
               {% else %}
                 <li class="nav-item">
-									<a class="nav-link" href="{% url 'huntserver:create_account' %}">
-	                  <span class="glyphicon glyphicon-user"></span> Sign Up
+									<a class="nav-link" href="{% url 'huntserver:signin' %}">
+	                  <span class="glyphicon glyphicon-user"></span> Sign-in
                 	</a>
 								</li>
                 <li class="nav-item">
-									<a class="nav-link" href="{% url 'huntserver:login_selection' %}">
+									<a class="nav-link" href="{% url 'huntserver:login' %}">
 	                  <span class="glyphicon glyphicon-log-in"></span> Login
                 	</a>
 								</li>
@@ -88,23 +79,21 @@
     </nav>
 
     {% if messages %}
-    <div class="col-xs-12 col-sm-6 col-sm-offset-3" style="position: absolute; z-index: 10;">
-      {% for message in messages %}
-      <div class="alert alert-dismissible
-      {% if message.level == DEFAULT_MESSAGE_LEVELS.INFO %}
-        alert-info
-      {% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
-        alert-success
-      {% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
-        alert-warning
-      {% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
-        alert-danger
-      {% endif %}
-      ">
-        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        {{ message }}
-      </div>
-      {% endfor %}
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 5">
+        {% for message in messages %}
+        <div class="alert alert-dismissible fade show {% if message.level == DEFAULT_MESSAGE_LEVELS.INFO %}
+          alert-info
+        {% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+          alert-success
+        {% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
+          alert-warning
+        {% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+          alert-danger
+        {% endif %}" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+       {% endfor %}
     </div>
     {% endif %}
 
@@ -115,15 +104,5 @@
     {% endblock content_wrapper %}
     {% block footer %}
     {% endblock footer %}
-    <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-      ga('create', 'UA-93459400-1', 'auto');
-      ga('send', 'pageview');
-
-    </script>
   </body>
 </html>

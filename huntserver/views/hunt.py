@@ -17,8 +17,8 @@ import json
 import os
 import re
 
-from .models import Puzzle, Hunt, Submission, Unlockable, Prepuzzle
-from .forms import AnswerForm
+from huntserver.models import Puzzle, Hunt, Submission, Unlockable, Prepuzzle
+from huntserver.forms import AnswerForm
 
 import logging
 logger = logging.getLogger(__name__)

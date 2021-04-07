@@ -41,6 +41,6 @@ Auth Views
 ==========
 
 .. autofunction:: huntserver.auth_views.login_selection(request)
-.. autofunction:: huntserver.auth_views.create_account(request)
+.. autofunction:: huntserver.auth_views.register(request)
 .. autofunction:: huntserver.auth_views.account_logout(request)
 .. autofunction:: huntserver.auth_views.shib_login(request)

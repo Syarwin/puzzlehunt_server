@@ -407,9 +407,9 @@ class HuntTests(TestCase):
 class AuthTests(TestCase):
     fixtures = ["basic_hunt"]
 
-    def test_create_account(self):
+    def test_register(self):
         "Test the account creation view"
-        response = get_and_check_page(self, 'huntserver:create_account', 200)
+        response = get_and_check_page(self, 'huntserver:register', 200)
         post_context = {'user-first_name': "first", 'user-last_name': "last",
                         'user-username': "user7",
                         'user-email': 'user7@example.com',
@@ -417,21 +417,21 @@ class AuthTests(TestCase):
                         'user-confirm_password': "password"}
 
         post_context['user-email'] = "user6@example.com"
-        response = self.client.post(reverse('huntserver:create_account'), post_context)
+        response = self.client.post(reverse('huntserver:register'), post_context)
         self.assertEqual(response.status_code, 200)
         post_context['user-email'] = "user7@example.com"
 
         post_context['user-username'] = "$$$"
-        response = self.client.post(reverse('huntserver:create_account'), post_context)
+        response = self.client.post(reverse('huntserver:register'), post_context)
         self.assertEqual(response.status_code, 200)
         post_context['user-username'] = "user7"
 
         post_context['user-confirm_password'] = "wordpass"
-        response = self.client.post(reverse('huntserver:create_account'), post_context)
+        response = self.client.post(reverse('huntserver:register'), post_context)
         self.assertEqual(response.status_code, 200)
         post_context['user-confirm_password'] = "password"
 
-        response = self.client.post(reverse('huntserver:create_account'), post_context)
+        response = self.client.post(reverse('huntserver:register'), post_context)
         self.assertEqual(response.status_code, 200)
 
     def test_login_selection(self):

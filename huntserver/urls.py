@@ -15,54 +15,54 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.urls import path
-from huntserver import hunt_views, auth_views, info_views, staff_views
 from django.contrib.auth import views as base_auth_views
 from django.views.generic.base import RedirectView
-from django.contrib.flatpages import views
+from django.contrib.flatpages import views as flatpage_views
+from . import views
 
 app_name = "huntserver"
 
 urlpatterns = [
     # Pages made with flatpages
-    path('hunt-info/', views.flatpage, {'url': '/hunt-info/'}, name='current_hunt_info'),
-    path('contact-us/', views.flatpage, {'url': '/contact-us/'}, name='contact_us'),
+    path('info-and-rules/', flatpage_views.flatpage, {'url': '/hunt-info/'}, name='current_hunt_info'),
+    #path('contact-us/', views.flatpage, {'url': '/contact-us/'}, name='contact_us'),
 
     # Info Flatpages
     path('info/', include('django.contrib.flatpages.urls')),
 
     # Auth and Accounts
-    url(r'^accounts/create/$', auth_views.create_account, name='create_account'),
-    url(r'^login/$', auth_views.login_selection, name='login_selection'),
-    url(r'^logout/$', auth_views.account_logout, name='account_logout'),
+    url(r'^signin/$', views.auth.SignIn.as_view(), name='signin'),
+    url(r'^login/$', views.auth.login, name='login'),
+    url(r'^logout/$', views.auth.account_logout, name='logout'),
+    url(r'^registration/$', views.auth.registration, name='registration'),
+    url(r'^profile/$', views.auth.profile, name='profile'),
 
     # Info Pages
-    url(r'^$', info_views.index, name='index'),
-    url(r'^previous-hunts/$', info_views.previous_hunts, name='previous_hunts'),
-    url(r'^registration/$', info_views.registration, name='registration'),
-    url(r'^user-profile/$', info_views.user_profile, name='user_profile'),
+    url(r'^$', views.info.index, name='index'),
+    url(r'^previous-hunts/$', views.info.previous_hunts, name='previous_hunts'),
 
     # Hunt Pages
-    url(r'^hunt/(?P<hunt_num>[0-9]+)/puzzle/(?P<puzzle_id>[0-9a-zA-Z]{3,12})/$', hunt_views.puzzle_view, name='puzzle'),
-    url(r'^hunt/(?P<hunt_num>[0-9]+)/$', hunt_views.hunt, name='hunt'),
-    url(r'^hunt/current/$', hunt_views.current_hunt, name='current_hunt'),
+    url(r'^hunt/(?P<hunt_num>[0-9]+)/puzzle/(?P<puzzle_id>[0-9a-zA-Z]{3,12})/$', views.hunt.puzzle_view, name='puzzle'),
+    url(r'^hunt/(?P<hunt_num>[0-9]+)/$', views.hunt.hunt, name='hunt'),
+    url(r'^hunt/current/$', views.hunt.current_hunt, name='current_hunt'),
     #url(r'^hunt/(?P<hunt_num>[0-9]+)/prepuzzle/$', hunt_views.hunt_prepuzzle,
     #    name='hunt_prepuzzle'),
     #url(r'^prepuzzle/(?P<prepuzzle_num>[0-9]+)/$', hunt_views.prepuzzle, name='prepuzzle'),
     #url(r'^hunt/current/prepuzzle/$', hunt_views.current_prepuzzle, name='current_prepuzzle'),
-    url(r'^objects/$', hunt_views.unlockables, name='unlockables'),
-    url(r'^protected/(?P<file_path>.+)$', hunt_views.protected_static, name='protected_static'),
+    #url(r'^objects/$', hunt_views.unlockables, name='unlockables'),
+    #url(r'^protected/(?P<file_path>.+)$', hunt_views.protected_static, name='protected_static'),
 
     # Staff pages
     url(r'^staff/', include([
-        url(r'^queue/$', staff_views.queue, name='queue'),
-        url(r'^progress/$', staff_views.progress, name='progress'),
-        url(r'^charts/$', staff_views.charts, name='charts'),
-        url(r'^control/$', staff_views.control, name='control'),
+        url(r'^queue/$', views.staff.queue, name='queue'),
+        url(r'^progress/$', views.staff.progress, name='progress'),
+        url(r'^charts/$', views.staff.charts, name='charts'),
+        url(r'^control/$', views.staff.control, name='control'),
         url(r'^teams/$', RedirectView.as_view(url='/admin/huntserver/team/', permanent=False)),
         url(r'^puzzles/$', RedirectView.as_view(url='/admin/huntserver/puzzle/', permanent=False)),
-        url(r'^emails/$', staff_views.emails, name='emails'),
-        url(r'^management/$', staff_views.hunt_management, name='hunt_management'),
-        url(r'^info/$', staff_views.hunt_info, name='hunt_info'),
-        url(r'^lookup/$', staff_views.lookup, name='lookup'),
+        url(r'^emails/$', views.staff.emails, name='emails'),
+        url(r'^management/$', views.staff.hunt_management, name='hunt_management'),
+        url(r'^info/$', views.staff.hunt_info, name='hunt_info'),
+        url(r'^lookup/$', views.staff.lookup, name='lookup'),
     ])),
 ]

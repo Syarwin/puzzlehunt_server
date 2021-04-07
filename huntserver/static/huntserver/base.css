@@ -2,7 +2,33 @@ html, body { height:100%; }
 body {
     display:flex;
     flex-flow:column;
+    background:radial-gradient(circle, rgb(8, 162, 91) 20%, rgb(17, 87, 55) 100%);
 }
+
+@font-face {
+  font-family: "Illusion";
+  src: url("../fonts/IllusionHollow.ttf");
+}
+
+@font-face {
+  font-family: "IllusionCondensed";
+  src: url("../fonts/IllusionHollow-Condensed.ttf");
+}
+
+
+.navbar {
+  box-shadow:0px 1px 5px 1px #2c392a;
+}
+
+.navbar-brand img {
+  transition: transform 1s;
+  transform-origin: 48% 50%;
+}
+
+.navbar-brand:hover img {
+  transform:rotate(180deg);
+}
+
 
 main {
   flex-grow: 1;
@@ -17,6 +43,7 @@ section.vfill {
 
 h1 {
   color:white;
+  font-family: "IllusionCondensed";
 }
 
 .light-section {
@@ -32,7 +59,6 @@ h1 {
     margin: auto;
 }
 
-
 .form-login input[type="text"] {
     margin-bottom: -1px;
     border-bottom-right-radius: 0;
@@ -43,4 +69,18 @@ h1 {
     margin-bottom: 10px;
     border-top-left-radius: 0;
     border-top-right-radius: 0;
+}
+
+
+.splash {
+  flex-grow:1;
+  display:flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.splash h1 {
+  text-align: center;
+  font-size: 100px;
+  color: black;
 }

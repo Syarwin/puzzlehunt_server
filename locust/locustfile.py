@@ -392,7 +392,7 @@ def previous_hunt(l):
     url_all(l, better_get(l, "/hunt/" + hunt_id))
 
 
-def create_account(l):
+def register(l):
     # Load the create account page
     url_all(l, better_get(l, "/accounts/create/"))
 
@@ -609,7 +609,7 @@ class WebsiteSet(TaskSet):
                           prev_hunt_fs):            6,
         info_main_page:                             27,
         resources:                                  9,
-        create_account:                             1,
+        register:                             1,
         contact:                                    1,
         user_profile:                               1,
         stop:                                       70

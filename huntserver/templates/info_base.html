@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'layout/base.html' %}
 {% load bootstrap_tags %}
 {% load hunt_tags %}
 {% load static %}
@@ -7,40 +7,3 @@
 {% block base_includes %}
 <link rel="stylesheet" type="text/css" href="{% static "huntserver/info_base.css" %}">
 {% endblock base_includes %}
-
-{% block left-header %}
-  {% get_flatpages '/extra/' as flatpages %}
-  <li class="dropdown nav-item">
-    <a href="#" id="informations-dropdown-link" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"> Information</a>
-    <ul class="dropdown-menu" aria-labelledby="informations-dropdown-link">
-      <li class='{% active_page request "current_hunt_info" %}'>
-        <a class='dropdown-item' href="{% url 'huntserver:current_hunt_info' %}"> Hunt Details </a>
-      </li>
-      {% for page in flatpages|dictsort:"url" %}
-        <li class='{% active_page request page.url %}'>
-          <a class='dropdown-item' href="/info{{ page.url }}"> {{ page.title }} </a>
-        </li>
-      {% endfor %}
-      <li class='{% active_page request "contact_us" %}'>
-        <a class='dropdown-item' href="{% url 'huntserver:contact_us' %}"> Contact Us </a>
-      </li>
-    </ul>
-  </li>
-
-  <li class='nav-item {% active_page request "current_hunt_info" %}'>
-    <a class='nav-link' href="{% url 'huntserver:current_hunt_info' %}"> Hunt Details </a>
-  </li>
-  {% for page in flatpages|dictsort:"url" %}
-    <li class='nav-item {% active_page request page.url %}'>
-      <a class='nav-link' href="/info{{ page.url }}"> {{ page.title }} </a>
-    </li>
-  {% endfor %}
-  <li class='nav-item {% active_page request "contact_us" %}'>
-    <a class='nav-link' href="{% url 'huntserver:contact_us' %}"> Contact Us </a>
-  </li>
-
-  <li class='nav-item {% active_page request "current_hunt" %}'>
-    {% set_curr_hunt %}
-    <a class='nav-link' href="{% url 'huntserver:current_hunt' %}"> Latest Hunt </a>
-  </li>
-{% endblock %}

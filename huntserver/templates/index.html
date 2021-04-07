@@ -7,11 +7,12 @@
 
 {% block content %}
 
-<div class="container">
+<div class="container splash">
   <div id='logos'>
     <p align="center">
-        <a href="{% url 'huntserver:registration' %}"> <img id="phlogo" src='/static/huntserver/mblogo.png'/></a>
+        <img style="height:40vh; width:auto" id="phlogo" src='/static/huntserver/mblogo.png'/>
     </p>
+    <h1>MindBreakers</h1>
     <p align="center"><strong>
       {% if curr_hunt.is_locked %}
         Our next hunt: <br>
