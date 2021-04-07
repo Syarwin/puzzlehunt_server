@@ -1,3 +1,52 @@
+function receivedNewHint(content) {
+  console.log(content);
+}
+
+function receivedError(content) {
+  throw content.error
+}
+
+
+function openEventSocket() {
+  const socketHandlers = {
+    'new_hint': receivedNewHint,
+    'error': receivedError,
+  }
+
+  var ws_scheme = (window.location.protocol == 'https:' ? 'wss' : 'ws') + '://'
+  var sock = new WebSocket(ws_scheme + window.location.host + '/ws' + window.location.pathname)
+  sock.onmessage = function(e) {
+    var data = JSON.parse(e.data)
+    lastUpdated = Date.now()
+
+    if (!(data.type in socketHandlers)) {
+      throw `Invalid message type: ${data.type}, content: ${data.content}`
+    } else {
+      var handler = socketHandlers[data.type]
+      handler(data.content)
+    }
+  }
+  sock.onerror = function() {
+    //TODO this message is ugly and disappears after a while
+    alert('Websocket is broken. You will not receive new information without refreshing the page.')
+  }
+  sock.onopen = function() {
+    /*
+    if (lastUpdated != undefined) {
+      sock.send(JSON.stringify({'type': 'guesses-plz', 'from': lastUpdated}))
+      sock.send(JSON.stringify({'type': 'hints-plz', 'from': lastUpdated}))
+      sock.send(JSON.stringify({'type': 'unlocks-plz'}))
+    } else {
+      sock.send(JSON.stringify({'type': 'guesses-plz', 'from': 'all'}))
+    }
+    */
+  }
+}
+
+
+
+
+/*
 jQuery(document).ready(function($) {
   function is_visible(){
     var stateKey, keys = {
@@ -123,3 +172,4 @@ jQuery(document).ready(function($) {
     }
   }
 });
+*/

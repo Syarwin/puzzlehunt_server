@@ -4,14 +4,7 @@
 {% block title %}Puzzle - {{ puzzle.puzzle_name }}{% endblock title %}
 
 {% block includes %}
-<script src="{{ STATIC_URL }}jquery.min.js"></script>
-{% if not puzzle.hunt.is_public %}
-<script type="text/javascript">
-    last_date = '{{last_date}}';
-    puzzle_url = '/puzzle/{{puzzle.puzzle_id}}/'
-</script>
 <script src="{{ STATIC_URL }}huntserver/puzzle.js"></script>
-{% endif %}
 {% endblock includes %}
 
 {% block content %}

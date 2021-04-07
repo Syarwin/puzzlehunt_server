@@ -887,6 +887,26 @@ class Hint(models.Model):
         return str(self.time) + " => " + self.text
 
 
+    @property
+    def compact_id(self):
+        return self.id
+
+    def unlocks_at(self, team, possible_guesses=None):
+        """Returns when the hint unlocks for the given team.
+
+        Parameters as for `unlocked_by`.
+        """
+        # TODO
+        return timezone.now() + self.time
+
+    def delay_for_team(self, team, possible_guesses=None):
+        """Returns how long until the hint unlocks for the given team.
+
+        Parameters as for `unlocked_by`.
+        """
+        unlocks_at = self.unlocks_at(team, possible_guesses)
+        return None if unlocks_at is None else unlocks_at - timezone.now()
+
 
 
 

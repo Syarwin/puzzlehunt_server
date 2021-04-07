@@ -119,7 +119,7 @@ def hunt(request, hunt_num):
 
 def current_hunt(request):
     """ A simple view that calls ``huntserver.hunt_views.hunt`` with the current hunt's number. """
-    return hunt(request, Hunt.objects.get(is_current_hunt=True).hunt_number)
+    return redirect(reverse('huntserver:hunt', kwargs={'hunt_num' : Hunt.objects.get(is_current_hunt=True).hunt_number}))
 
 
 def prepuzzle(request, prepuzzle_num):
@@ -179,7 +179,7 @@ def get_ratelimit_key(group, request):
     return request.ratelimit_key
 
 
-def puzzle_view(request, puzzle_id):
+def puzzle_view(request, hunt_num, puzzle_id):
     """
     A view to handle answer submissions via POST, handle response update requests via AJAX, and
     render the basic per-puzzle pages.
@@ -211,7 +211,7 @@ def puzzle_view(request, puzzle_id):
                 return HttpResponse('fail')
 
         form = AnswerForm(request.POST)
-        form.helper.form_action = reverse('huntserver:puzzle', kwargs={'puzzle_id': puzzle_id})
+        form.helper.form_action = reverse('huntserver:puzzle', kwargs={'hunt_num' : hunt_num, 'puzzle_id': puzzle_id})
 
         if form.is_valid():
             user_answer = form.cleaned_data['answer']
@@ -290,7 +290,7 @@ def puzzle_view(request, puzzle_id):
             submissions = None
             disable_form = False
         form = AnswerForm(disable_form=disable_form)
-        form.helper.form_action = reverse('huntserver:puzzle', kwargs={'puzzle_id': puzzle_id})
+        form.helper.form_action = reverse('huntserver:puzzle', kwargs={'hunt_num' : hunt_num, 'puzzle_id': puzzle_id})
         try:
             last_date = Submission.objects.latest('modified_date').modified_date.strftime(DT_FORMAT)
         except Submission.DoesNotExist:
