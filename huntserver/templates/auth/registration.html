@@ -1,114 +1,53 @@
 {% extends "info_base.html" %}
 
-{% block includes %}
-  <script src="{{ STATIC_URL }}jquery.min.js"></script>
-{% endblock includes %}
-
 {% block content %}
-  <div class="container">
-    <h1> Team Registration</h1>
-  {% if not user.is_authenticated %}
-      <hr style="border-width:2px; border-color: black;">
-      <h2>You aren't signed in!</h2>
-        Head over to our <a href="{% url 'huntserver:login_selection' %}?next=/registration/">sign in page.</a>
-        Once you sign in you'll be redirected back here to join or make a team.
-      </p>
-    </div>
-  {% elif registered_team %}
-    <p>
-      You seem to already be registered for a team.
-    </p>
-    <h3>The code to join this team is <b>{{registered_team.join_code}}</b></h3>
-    <p>
-      <div>
-        <span> <b> Team Name: </b> {{ registered_team.team_name }} </span>
-        {% if not curr_hunt.in_reg_lockdown %}
-        <a href='#' class='edit_button'>[Change Name]</a>
-        <form method="Post" class="" style="display: none;">
-          {% csrf_token %}
-          <input type="hidden" name="form_type" value="new_name">
-          <b> Team Name: </b>
-          <input name="team_name" value="{{ registered_team.team_name }}" type="text">
-          <input type="submit" value="Change Name">
-        </form>
-        {% endif %}
+<div class="splash">
+  <div class="card-grouped">
+    <div class="card">
+      <div class="card-header">
+        Create new team
       </div>
-      <br>
-      <div>
-        <span> <b> Team Location: </b> {{ registered_team.location }} </span>
-        <a href='#' class='edit_button'>[Change Location]</a>
-        <form method="Post" style="display: none;">
+      <div class="card-body">
+        <form method="POST" action="">
           {% csrf_token %}
-          <input type="hidden" name="form_type" value="new_location">
-          <b> Team Location: </b>
-          <input name="team_location" value="{{ registered_team.location }}" type="text">
-          <input type="submit" value="Change Location">
+          <input type="hidden" name="form_type" value="create_team" />
+          Please enter a new team name:
+         <input class="form-control" name="team_name" type="text">
+
+         <br />
+          <div class="text-center">
+            <input class="btn btn-primary btn-lg" type="submit" value="Create and Join Team"/>
+          </div>
         </form>
       </div>
-      <br>
-      <b> Team Members: </b>
-      <ul>
-        {% for person in registered_team.person_set.all %}
-          <li>{{ person.user.first_name }} {{ person.user.last_name }}</li>
-        {% endfor %}
-      </ul>
-      <br>
-      <br>
-      <form method="Post">
-        {% csrf_token %}
-        <input type="hidden" name="form_type" value="leave_team">
-        <input class="btn btn-danger" type="submit" value="Remove me from this team" onclick="return confirm('Are you sure?')">
-      </form>
-    </p>
-    <script type="text/javascript">
-      $(document).delegate('.edit_button', 'click', function() {
-        $(this).siblings('form').show();
-        $(this).siblings('span').hide();
-        $(this).hide();
-        return false;
-      });
-    </script>
-  {% else %}
     </div>
-    <div class="container no_outline">
-      <div class="row">
-        <div class="col-md-6">
-          <div class="container col-md-12" style="height:350px">
-            <h2>Create New Team</h2>
-            <hr style="border-width:2px; border-color: black;">
-            <form method="Post">
-              {% csrf_token %}
-              <input type="hidden" name="form_type" value="new_team">
-              Please enter a new team name:
-              <input class="form-control" name="team_name" type="text">
-              <br>
-              <input class="btn btn-primary" type="submit" value="Create and Join Team">
-            </form>
+
+    <div class="card">
+      <div class="card-header">
+        Join existing team
+      </div>
+      <div class="card-body">
+        <form method="POST" action="">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="join_team" />
+          Select a team to join:
+          <select class="form-control" name="team_name" style="width: 200px;">
+            {% for team in teams %}
+              <option value="{{team.team_name}}">{{team.short_name}}</option>
+            {% endfor %}
+          </select>
+          <br>
+          Enter the team join code:
+          <input class="form-control" name="join_code" type="text" style="width:100px;" maxlength="5">
+          <br>
+
+          <div class="text-center">
+            <input class="btn btn-primary btn-lg" type="submit" value="Join Team"/>
           </div>
-        </div>
-        <div class="col-md-6">
-          <div class="container col-md-12" style="height:330px">
-            <h2>Join Existing Team</h2>
-            <hr style="border-width:2px; border-color: black;">
-            <form method="Post">
-              {% csrf_token %}
-              <input type="hidden" name="form_type" value="join_team">
-              Select a team to join:
-              <select class="form-control" name="team_name" style="width: 200px;">
-                {% for team in teams %}
-                  <option value="{{team.team_name}}">{{team.short_name}}</option>
-                {% endfor %}
-              </select>
-              <br>
-              Enter the team join code:
-              <input class="form-control" name="join_code" type="text" style="width:100px;" maxlength="5">
-              <br>
-              <input class="btn btn-primary" type="submit" value="Join Team">
-            </form>
-          </div>
-        </div>
+        </form>
       </div>
     </div>
-  {% endif %}
+  </div>
+</div>
 {% endblock content %}
 {% block footer %}{% endblock %}

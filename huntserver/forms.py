@@ -62,8 +62,6 @@ class UserForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(UserForm, self).__init__(*args, **kwargs)
         self.fields['email'].required = True
-        self.fields['first_name'].required = True
-        self.fields['last_name'].required = True
         self.fields['password'].widget = forms.PasswordInput()
 
     required_css_class = 'required'
@@ -92,7 +90,7 @@ class UserForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'username', 'password']
+        fields = ['username', 'email', 'password']
         help_texts = {
             'username': "Required. 30 characters or fewer. Letters, digits and '-' or '_' only.",
         }

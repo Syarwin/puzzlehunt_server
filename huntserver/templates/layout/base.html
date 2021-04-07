@@ -63,8 +63,8 @@
                 </li>
               {% else %}
                 <li class="nav-item">
-									<a class="nav-link" href="{% url 'huntserver:signin' %}">
-	                  <span class="glyphicon glyphicon-user"></span> Sign-in
+									<a class="nav-link" href="{% url 'huntserver:signup' %}">
+	                  <span class="glyphicon glyphicon-user"></span> Sign-up
                 	</a>
 								</li>
                 <li class="nav-item">
@@ -79,7 +79,7 @@
     </nav>
 
     {% if messages %}
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 5">
+    <div class="container py-3" style="z-index: 5">
         {% for message in messages %}
         <div class="alert alert-dismissible fade show {% if message.level == DEFAULT_MESSAGE_LEVELS.INFO %}
           alert-info

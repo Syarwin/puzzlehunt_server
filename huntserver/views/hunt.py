@@ -78,6 +78,9 @@ def hunt(request, hunt_num):
 
     hunt = get_object_or_404(Hunt, hunt_number=hunt_num)
     team = hunt.team_from_user(request.user)
+    if team is None:
+        return redirect(reverse('huntserver:registration'))
+
 
     # Admins get all access, wrong teams/early lookers get an error page
     # real teams get appropriate puzzles, and puzzles from past hunts are public

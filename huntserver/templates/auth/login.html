@@ -5,9 +5,7 @@
 <div class="form-centered text-center form-login">
 <form method="post">
   {% csrf_token %}
-  <img class="mb-4" src='/static/huntserver/mblogo.png' alt="" width="300" height="200">
-  <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
-
+  <img class="mb-5" src='/static/huntserver/mblogo.png' alt="" width="300" height="250">
   {{ form.non_field_errors }}
 
   <div class="form-floating">

@@ -3,12 +3,15 @@ from django.contrib import messages
 from django.contrib.auth import logout, login, views
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, reverse
 from huntserver.utils import parse_attributes
+from django.db.models.functions import Lower
 from django.views import View
 from . import info
+import random
+import re
 
-from huntserver.models import Hunt
+from huntserver.models import Hunt, Person, Team
 from huntserver.forms import UserForm, PersonForm
 
 import logging
@@ -17,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 
-def login_selection(request):
+def account_login(request):
     """ A mostly static view to render the login selection. Next url parameter is preserved. """
 
     if 'next' in request.GET:
@@ -25,11 +28,11 @@ def login_selection(request):
     else:
         context = {'next': "/"}
 
-    return views.LoginView.as_view(template_name="login.html")(request)
+    return views.LoginView.as_view(template_name="auth/login.html")(request)
 
 
 
-class SignIn(View):
+class SignUp(View):
     def get(self, request):
         """
         A view to create user and person objects from valid user POST data, as well as render
@@ -37,30 +40,28 @@ class SignIn(View):
         """
 
         uf = UserForm(prefix='user')
-        pf = PersonForm(prefix='person')
-        return render(request, "auth/signin.html", {'uf': uf, 'pf': pf})
+        return render(request, "auth/signup.html", {'uf': uf})
 
     def post(self, request):
         uf = UserForm(request.POST, prefix='user')
-        pf = PersonForm(request.POST, prefix='person')
-        if uf.is_valid() and pf.is_valid():
+        if uf.is_valid():
             user = uf.save()
             user.set_password(user.password)
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             user.save()
-            person = pf.save(commit=False)
+            person = Person()
             person.user = user
             person.save()
             login(request, user)
             logger.info("User created: %s" % (str(person)))
-            return index(request)
+            return redirect(reverse('huntserver:current_hunt'))
         else:
-            return render(request, "signin.html", {'uf': uf, 'pf': pf, 'teams': teams})
+            return render(request, "auth/signup.html", {'uf': uf})
 
 
 
 def account_logout(request):
-    """ A view to logout the user and *hopefully* also logout out the shibboleth system. """
+    """ A view to logout the user. """
 
     logout(request)
     messages.success(request, "Logout successful")
@@ -68,36 +69,43 @@ def account_logout(request):
         additional_url = request.GET['next']
     else:
         additional_url = ""
-    if(settings.USE_SHIBBOLETH):
-        next_url = "https://" + request.get_host() + additional_url
-        return redirect("/Shibboleth.sso/Logout?return=" + next_url)
-    else:
-        return index(request)
+    return redirect(reverse('huntserver:index'))
 
 
-def registration(request):
+
+class Registration(View):
     """
     The view that handles team registration. Mostly deals with creating the team object from the
     post request. The rendered page is nearly entirely static.
     """
 
-    curr_hunt = Hunt.objects.get(is_current_hunt=True)
-    team = curr_hunt.team_from_user(request.user)
-    if(request.method == 'POST' and "form_type" in request.POST):
-        if(request.POST["form_type"] == "new_team" and team is None):
+    def get(self, request):
+        curr_hunt = Hunt.objects.get(is_current_hunt=True)
+        team = curr_hunt.team_from_user(request.user)
+
+        if(team is not None):
+            return redirect(reverse('huntserver:manage-team'))
+        else:
+            teams = curr_hunt.real_teams.order_by(Lower('team_name'))
+            return render(request, "auth/registration.html",
+                          {'teams': teams, 'curr_hunt': curr_hunt})
+
+    def post(self, request):
+        curr_hunt = Hunt.objects.get(is_current_hunt=True)
+
+        if(request.POST["form_type"] == "create_team"):
             if(curr_hunt.team_set.filter(team_name__iexact=request.POST.get("team_name")).exists()):
                 messages.error(request, "The team name you have provided already exists.")
             elif(re.match(".*[A-Za-z0-9].*", request.POST.get("team_name"))):
                 join_code = ''.join(random.choice("ACDEFGHJKMNPRSTUVWXYZ2345679") for _ in range(5))
-                team = Team.objects.create(team_name=request.POST.get("team_name"), hunt=curr_hunt,
-                                           location=request.POST.get("need_room"),
-                                           join_code=join_code)
+                team = Team.objects.create(team_name=request.POST.get("team_name"), hunt=curr_hunt, join_code=join_code)
                 request.user.person.teams.add(team)
                 logger.info("User %s created team %s" % (str(request.user), str(team)))
+                return redirect(reverse('huntserver:current_hunt'))
             else:
-                messages.error(request,
-                               "Your team name must contain at least one alphanumeric character.")
-        elif(request.POST["form_type"] == "join_team" and team is None):
+                messages.error(request, "Your team name must contain at least one alphanumeric character.")
+
+        elif(request.POST["form_type"] == "join_team"):
             team = curr_hunt.team_set.get(team_name=request.POST.get("team_name"))
             if(len(team.person_set.all()) >= team.hunt.team_size):
                 messages.error(request, "The team you have tried to join is already full.")
@@ -108,40 +116,81 @@ def registration(request):
             else:
                 request.user.person.teams.add(team)
                 logger.info("User %s joined team %s" % (str(request.user), str(team)))
-        elif(request.POST["form_type"] == "leave_team"):
-            request.user.person.teams.remove(team)
-            logger.info("User %s left team %s" % (str(request.user), str(team)))
-            if(team.person_set.count() == 0 and team.hunt.is_locked):
-                logger.info("Team %s was deleted because it was empty." % (str(team)))
-                team.delete()
-            team = None
-            messages.success(request, "You have successfully left the team.")
-        elif(request.POST["form_type"] == "new_location" and team is not None):
-            old_location = team.location
-            team.location = request.POST.get("team_location")
-            team.save()
-            logger.info("User %s changed the location for team %s from %s to %s" %
-                        (str(request.user), str(team.team_name), old_location, team.location))
-            messages.success(request, "Location successfully updated")
-        elif(request.POST["form_type"] == "new_name" and team is not None and
-                not team.hunt.in_reg_lockdown):
-            if(curr_hunt.team_set.filter(team_name__iexact=request.POST.get("team_name")).exists()):
-                messages.error(request, "The team name you have provided already exists.")
-            else:
-                old_name = team.team_name
-                team.team_name = request.POST.get("team_name")
-                team.save()
-                logger.info("User %s renamed team %s to %s" %
-                            (str(request.user), old_name, team.team_name))
-                messages.success(request, "Team name successfully updated")
 
-    if(team is not None):
-        return render(request, "registration.html",
-                      {'registered_team': team, 'curr_hunt': curr_hunt})
-    else:
         teams = curr_hunt.real_teams.order_by(Lower('team_name'))
-        return render(request, "registration.html",
+        return render(request, "auth/registration.html",
                       {'teams': teams, 'curr_hunt': curr_hunt})
+
+
+class ManageTeam(View):
+    """
+    The view that handles team registration. Mostly deals with creating the team object from the
+    post request. The rendered page is nearly entirely static.
+    """
+
+    def get(self, request):
+        curr_hunt = Hunt.objects.get(is_current_hunt=True)
+        team = curr_hunt.team_from_user(request.user)
+
+        if(team is not None):
+            return render(request, "auth/manage-team.html",
+                          {'registered_team': team, 'curr_hunt': curr_hunt})
+        else:
+            return redirect(reverse('huntserver:registration'))
+
+
+    def post(self, request):
+        if("form_type" in request.POST):
+            if(request.POST["form_type"] == "new_team" and team is None):
+                if(curr_hunt.team_set.filter(team_name__iexact=request.POST.get("team_name")).exists()):
+                    messages.error(request, "The team name you have provided already exists.")
+                elif(re.match(".*[A-Za-z0-9].*", request.POST.get("team_name"))):
+                    join_code = ''.join(random.choice("ACDEFGHJKMNPRSTUVWXYZ2345679") for _ in range(5))
+                    team = Team.objects.create(team_name=request.POST.get("team_name"), hunt=curr_hunt,
+                                               location=request.POST.get("need_room"),
+                                               join_code=join_code)
+                    request.user.person.teams.add(team)
+                    logger.info("User %s created team %s" % (str(request.user), str(team)))
+                else:
+                    messages.error(request,
+                                   "Your team name must contain at least one alphanumeric character.")
+            elif(request.POST["form_type"] == "join_team" and team is None):
+                team = curr_hunt.team_set.get(team_name=request.POST.get("team_name"))
+                if(len(team.person_set.all()) >= team.hunt.team_size):
+                    messages.error(request, "The team you have tried to join is already full.")
+                    team = None
+                elif(team.join_code.lower() != request.POST.get("join_code").lower()):
+                    messages.error(request, "The team join code you have entered is incorrect.")
+                    team = None
+                else:
+                    request.user.person.teams.add(team)
+                    logger.info("User %s joined team %s" % (str(request.user), str(team)))
+            elif(request.POST["form_type"] == "leave_team"):
+                request.user.person.teams.remove(team)
+                logger.info("User %s left team %s" % (str(request.user), str(team)))
+                if(team.person_set.count() == 0 and team.hunt.is_locked):
+                    logger.info("Team %s was deleted because it was empty." % (str(team)))
+                    team.delete()
+                team = None
+                messages.success(request, "You have successfully left the team.")
+            elif(request.POST["form_type"] == "new_location" and team is not None):
+                old_location = team.location
+                team.location = request.POST.get("team_location")
+                team.save()
+                logger.info("User %s changed the location for team %s from %s to %s" %
+                            (str(request.user), str(team.team_name), old_location, team.location))
+                messages.success(request, "Location successfully updated")
+            elif(request.POST["form_type"] == "new_name" and team is not None and
+                    not team.hunt.in_reg_lockdown):
+                if(curr_hunt.team_set.filter(team_name__iexact=request.POST.get("team_name")).exists()):
+                    messages.error(request, "The team name you have provided already exists.")
+                else:
+                    old_name = team.team_name
+                    team.team_name = request.POST.get("team_name")
+                    team.save()
+                    logger.info("User %s renamed team %s to %s" %
+                                (str(request.user), old_name, team.team_name))
+                    messages.success(request, "Team name successfully updated")
 
 
 @login_required

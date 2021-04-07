@@ -100,7 +100,7 @@ CHANNEL_LAYERS = {
 # URL settings
 LOGIN_REDIRECT_URL = '/'
 PROTECTED_URL = '/protected/'
-LOGIN_URL = 'huntserver:login_selection'
+LOGIN_URL = 'huntserver:login'
 
 # Random settings
 SILENCED_SYSTEM_CHECKS = ["urls.W005"]  # silences admin url override warning

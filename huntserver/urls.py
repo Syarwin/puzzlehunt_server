@@ -31,10 +31,11 @@ urlpatterns = [
     path('info/', include('django.contrib.flatpages.urls')),
 
     # Auth and Accounts
-    url(r'^signin/$', views.auth.SignIn.as_view(), name='signin'),
-    url(r'^login/$', views.auth.login, name='login'),
+    url(r'^signup/$', views.auth.SignUp.as_view(), name='signup'),
+    url(r'^login/$', views.auth.account_login, name='login'),
     url(r'^logout/$', views.auth.account_logout, name='logout'),
-    url(r'^registration/$', views.auth.registration, name='registration'),
+    url(r'^registration/$', views.auth.Registration.as_view(), name='registration'),
+    url(r'^manage-team/$', views.auth.ManageTeam.as_view(), name='manage-team'),
     url(r'^profile/$', views.auth.profile, name='profile'),
 
     # Info Pages
