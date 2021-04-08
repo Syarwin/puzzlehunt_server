@@ -141,32 +141,11 @@ class ManageTeam(View):
 
 
     def post(self, request):
+        curr_hunt = Hunt.objects.get(is_current_hunt=True)
+        team = curr_hunt.team_from_user(request.user)
+
         if("form_type" in request.POST):
-            if(request.POST["form_type"] == "new_team" and team is None):
-                if(curr_hunt.team_set.filter(team_name__iexact=request.POST.get("team_name")).exists()):
-                    messages.error(request, "The team name you have provided already exists.")
-                elif(re.match(".*[A-Za-z0-9].*", request.POST.get("team_name"))):
-                    join_code = ''.join(random.choice("ACDEFGHJKMNPRSTUVWXYZ2345679") for _ in range(5))
-                    team = Team.objects.create(team_name=request.POST.get("team_name"), hunt=curr_hunt,
-                                               location=request.POST.get("need_room"),
-                                               join_code=join_code)
-                    request.user.person.teams.add(team)
-                    logger.info("User %s created team %s" % (str(request.user), str(team)))
-                else:
-                    messages.error(request,
-                                   "Your team name must contain at least one alphanumeric character.")
-            elif(request.POST["form_type"] == "join_team" and team is None):
-                team = curr_hunt.team_set.get(team_name=request.POST.get("team_name"))
-                if(len(team.person_set.all()) >= team.hunt.team_size):
-                    messages.error(request, "The team you have tried to join is already full.")
-                    team = None
-                elif(team.join_code.lower() != request.POST.get("join_code").lower()):
-                    messages.error(request, "The team join code you have entered is incorrect.")
-                    team = None
-                else:
-                    request.user.person.teams.add(team)
-                    logger.info("User %s joined team %s" % (str(request.user), str(team)))
-            elif(request.POST["form_type"] == "leave_team"):
+            if(request.POST["form_type"] == "leave_team"):
                 request.user.person.teams.remove(team)
                 logger.info("User %s left team %s" % (str(request.user), str(team)))
                 if(team.person_set.count() == 0 and team.hunt.is_locked):
@@ -192,6 +171,9 @@ class ManageTeam(View):
                     logger.info("User %s renamed team %s to %s" %
                                 (str(request.user), old_name, team.team_name))
                     messages.success(request, "Team name successfully updated")
+
+        return render(request, "auth/manage-team.html",
+                      {'registered_team': team, 'curr_hunt': curr_hunt})
 
 
 @login_required

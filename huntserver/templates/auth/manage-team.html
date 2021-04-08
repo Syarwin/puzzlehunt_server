@@ -1,6 +1,79 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="splash">
+  <div class="card">
+    <div class="card-header">
+      Your team
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col col-auto">
+          <div id="team-wrapper">
+            <i class="bi bi-people-fill"></i>
+            {{ registered_team.team_name }}
+          </div>
+        </div>
 
+        <div class="col">
+          <ul class="list-group">
+            {% for person in registered_team.person_set.all %}
+            <li class="list-group-item">{{ person.user.username }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="card-body colored">
+      <h3 class="mb-0">The code to join this team is <b>{{registered_team.join_code}}</b></h3>
+    </div>
+
+    <ul class="list-group list-group-flush">
+      {% if not curr_hunt.in_reg_lockdown %}
+      <li class="list-group-item">
+        <a href='#' class='edit_button'>[Change Name]</a>
+        <form method="Post" class="" style="display: none;">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="new_name">
+          <b> Team Name: </b>
+          <input name="team_name" value="{{ registered_team.team_name }}" type="text">
+          <input type="submit" value="Change Name">
+        </form>
+      </li>
+      {% endif %}
+
+      <li class="list-group-item">
+        <span> <b> Team Location: </b> {{ registered_team.location }} </span>
+        <a href='#' class='edit_button'>[Change Location]</a>
+        <form method="Post" style="display: none;">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="new_location">
+          <b> Team Location: </b>
+          <input name="team_location" value="{{ registered_team.location }}" type="text">
+          <input type="submit" value="Change Location">
+        </form>
+      </li>
+
+      <li class="list-group-item text-center">
+        <form method="Post">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="leave_team">
+          <input class="btn btn-danger" type="submit" value="Remove me from this team" onclick="return confirm('Are you sure?')">
+        </form>
+      </li>
+    </ul>
+  </div>
+</div>
+
+ <script type="text/javascript">
+   $(document).delegate('.edit_button', 'click', function() {
+     $(this).siblings('form').show();
+     $(this).siblings('span').hide();
+     $(this).hide();
+     return false;
+   });
+ </script>
 {% endblock content %}
 {% block footer %}{% endblock %}

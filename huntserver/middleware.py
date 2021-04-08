@@ -14,11 +14,10 @@ class HuntMiddleware(object):
     def process_view(self, request, view_func, view_args, view_kwargs):
         request.hunt = None
         try:
-            if request.user.is_authenticated:
-                if 'hunt_num' in view_kwargs:
-                    request.hunt = Hunt.objects.get(hunt_number=view_kwargs['hunt_num'])
-                else:
-                    request.hunt = Hunt.objects.get(is_current_hunt=True)
+            if 'hunt_num' in view_kwargs:
+                request.hunt = Hunt.objects.get(hunt_number=view_kwargs['hunt_num'])
+            else:
+                request.hunt = Hunt.objects.get(is_current_hunt=True)
         except Hunt.DoesNotExist:
             request.hunt = None
 
