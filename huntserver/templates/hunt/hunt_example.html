@@ -1,79 +1,53 @@
-{% extends "hunt_base.html" %}
+{% extends "hunt/hunt_base.html" %}
 {% load hunt_tags %}
 
-<!--
-This is a sample template for a hunt. There are some things to note:
-- PLEASE DON'T EDIT THIS FILE. Make a copy and edit that. the server will
-  automatically look for a file named "hunt#.html" where # is the current hunt
-  number.
-
-- You almost certainly want to keep the line {% extends "hunt_base.html" %} at
-  the top. It is what provides various css/js files as well as the navbar at
-  the top of the page.
-
-- The title is just what is displayed in the browser tab, change it if you want.
-
-- Put all of the page content inside the content block tags or you wont see it.
-
-- If you want to add more CSS, source the file in a block named "includes" see
-  the title block (or django docs) for syntax of a block.
-
-- If you want to remove the current CSS for the page, create an empty block
-  named "base_includes".
-
-- This template is passed a sorted list of puzzles (sorted by puzzle number),
-  the team that is currently logged in, and a list of puzzles that the team
-  has solved.
--->
+{% block includes %}
+<script type="text/javascript">
+$(function() {
+  // Sidebar toggle behavior
+  $('#sidebar-collapse').on('click', function() {
+    $('#sidebar').toggleClass('active');
+  });
+});
+</script>
+{% endblock includes %}
 
 {% block title %}Puzzles!{% endblock title %}
 
 {% block content %}
-<div class="container">
-  <div class="row">
-    <div class="content col-md-6">
-      <h1 class="title">Unlocked Puzzles</h1>
-      <a href='/objects/' >
-        <p style="margin-top: -5px;"> Click here for unlocked objects </p>
+<div id="sidebar" class="vertical-nav active">
+  <div id="sidebar-collapse">
+    <i class="bi bi-puzzle"></i>
+  </div>
+
+  <h2>{{ hunt.hunt_name }}</h2>
+
+
+  {% for episode in episodes %}
+    <h3 class="episode-header">
+      <a data-bs-toggle="collapse" href="#collapse-episode-{{ episode.ep_number }}" role="button" aria-expanded="true" aria-controls="collapseExample">
+      {{ episode.ep_name }}
       </a>
-      <div id="puzzles">
-        <table>
-          <thead>
-            <tr>
-              <th style='width: 80px;'>Solved?</th>
-              <th style='width: 100px;'>Answer</th>
-              <th style='width: 320px;'>Puzzle Name/Link</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for puzzle in puzzles %}
-              <tr id='puzzle{{ puzzle.puzzle_number }}' class='puzzle'>
-                <td>
-                  {% if puzzle in solved %}
-                  <img src="{{ STATIC_URL }}huntserver/checkmark.png" alt="Solved"></img>
-                  {% else %}
-                  <img src="{{ STATIC_URL }}huntserver/red_x.png" alt="Solved"></img>
-                  {% endif %}
-                </td>
-                <td>
-                  {% if puzzle in solved %}
-                    {{ puzzle.answer|upper }}
-                  {% endif %}
-                </td>
-                <td>
-                <a href='/puzzle/{{ puzzle.puzzle_id }}/' >
-                  <p class="puzzle-name">P{{puzzle.puzzle_number}} - {{ puzzle.puzzle_name }}</p>
-                </a>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+    </h3>
+    <div id="collapse-episode-{{ episode.ep_number }}" class="list-group flex-column mb-0">
+      {% for puzzle in episode.puzzle_set.all %}
+          <a href="{% url 'huntserver:puzzle' puzzle_id=puzzle.puzzle_id %}" class="list-group-item">
+            {{ puzzle.puzzle_name }}
+          </a>
+      {% endfor %}
     </div>
-    <div class="content col-md-5">
-      <div id='plot'>
-        No plot written yet!
+  {% endfor %}
+</div>
+
+<div class="side-content">
+  <div class="splash">
+
+    <div class="card">
+      <div class="card-header">
+        Hunt
+      </div>
+      <div class="card-body">
+        Coucou
       </div>
     </div>
   </div>

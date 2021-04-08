@@ -191,6 +191,30 @@ class Hunt(models.Model):
         teams = get_object_or_404(Person, user=user).teams.filter(hunt=self)
         return teams[0] if (len(teams) > 0) else None
 
+    def can_access(self, user, team):
+        return self.is_public or user.is_staff or (team and team.is_playtester_team and team.playtest_started)
+
+    def get_episodes(self, user, team):
+        if (self.is_public or user.is_staff):
+            episode_list = self.episode_set.all()
+        else:
+            episode_list = self.episode_set.filter(episode__start_date__lte=timezone.now())
+
+        return episode_list
+
+
+"""
+        if (hunt.is_public or request.user.is_staff):
+            puzzle_list = hunt.puzzle_set.all()
+
+        elif(team and team.is_playtester_team and team.playtest_started):
+            puzzle_list = team.unlocked.filter(hunt=hunt)
+
+        # Hunt has not yet started
+            else:
+                puzzle_list = team.unlocked.filter(hunt=hunt)
+"""
+
 
 
 class Episode(models.Model):
@@ -226,6 +250,22 @@ class Episode(models.Model):
 
     def __str__(self):
         return self.ep_name
+
+"""
+            if (hunt.is_public or request.user.is_staff):
+                puzzle_list = hunt.puzzle_set.all()
+
+            elif(team and team.is_playtester_team and team.playtest_started):
+                puzzle_list = team.unlocked.filter(hunt=hunt)
+
+            # Hunt has not yet started
+            elif(hunt.is_locked):
+                if(hunt.is_day_of_hunt):
+                    return render(request, 'access_error.html', {'reason': "hunt"})
+                else:
+                    return hunt_prepuzzle(request, hunt_num)
+"""
+
 
 
 

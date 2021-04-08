@@ -1,19 +1,8 @@
 {% extends 'base.html' %}
-{% load bootstrap_tags %}
 
 {% block base_includes %}
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}huntserver/hunt_base.css">
 {% endblock base_includes %}
-
-{% block left-header %}
-  {% set_hunt_from_context %}
-	<li class='nav-item {% active_page request "current_hunt" %}'>
-    <a class="nav-link" href="{% url 'huntserver:hunt' tmpl_hunt.hunt_number %}"> Puzzles </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{% url 'huntserver:current_hunt_info' %}"> Hunt Info </a>
-  </li>
-{% endblock %}
 
 {% block content_wrapper %}
 {% if hunt.is_public or puzzle.hunt.is_public %}
@@ -25,5 +14,7 @@
   </div>
 </div>
 {% endif %}
+<main class="split-hor">
 {% block content %} {% endblock content %}
+</main>
 {% endblock content_wrapper %}

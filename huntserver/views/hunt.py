@@ -72,56 +72,33 @@ def protected_static(request, file_path):
     return HttpResponseNotFound('<h1>Page not found</h1>')
 
 
-class HuntIndex(RequiredTeamMixin, View):
+def current_hunt(request):
+    """ A simple view that calls ``huntserver.hunt_views.hunt`` with the current hunt's number. """
+    return redirect(reverse('huntserver:hunt', kwargs={'hunt_num' : Hunt.objects.get(is_current_hunt=True).hunt_number}))
+
+
+class HuntIndex(View):
     def get(self, request, hunt_num):
         """
         The main view to render hunt templates. Does various permission checks to determine the set
         of puzzles to display and then renders the string in the hunt's "template" field to HTML.
         """
+        user = request.user
         hunt = request.hunt # Populated by middleware
-        team = request.team # Populated by middleware, enforced by mixin
+        team = request.team # Populated by middleware
 
         # Admins get all access, wrong teams/early lookers get an error page
         # real teams get appropriate puzzles, and puzzles from past hunts are public
-        if (hunt.is_public or request.user.is_staff):
-            puzzle_list = hunt.puzzle_set.all()
+        if not hunt.can_access(user, team):
+            if(hunt.is_locked):
+                return redirect(reverse("huntserver:index"))
+            if(hunt.is_open):
+                return redirect(reverse('huntserver:registration'))
 
-        elif(team and team.is_playtester_team and team.playtest_started):
-            puzzle_list = team.unlocked.filter(hunt=hunt)
-
-        # Hunt has not yet started
-        elif(hunt.is_locked):
-            if(hunt.is_day_of_hunt):
-                return render(request, 'access_error.html', {'reason': "hunt"})
-            else:
-                return hunt_prepuzzle(request, hunt_num)
-
-        # Hunt has started
-        elif(hunt.is_open):
-            # see if the team does not belong to the hunt being accessed
-            if (not request.user.is_authenticated):
-                return redirect('%s?next=%s' % (reverse_lazy(settings.LOGIN_URL), request.path))
-
-            elif(team is None or (team.hunt != hunt)):
-                return render(request, 'access_error.html', {'reason': "team"})
-            else:
-                puzzle_list = team.unlocked.filter(hunt=hunt)
-
-            # No else case, all 3 possible hunt states have been checked.
-
-        puzzles = sorted(puzzle_list, key=lambda p: p.puzzle_number)
-        if(team is None):
-            solved = []
-        else:
-            solved = team.solved.all()
-        context = {'hunt': hunt, 'puzzles': puzzles, 'team': team, 'solved': solved}
-
-        return HttpResponse(Template(hunt.template).render(RequestContext(request, context)))
-
-
-def current_hunt(request):
-    """ A simple view that calls ``huntserver.hunt_views.hunt`` with the current hunt's number. """
-    return redirect(reverse('huntserver:hunt', kwargs={'hunt_num' : Hunt.objects.get(is_current_hunt=True).hunt_number}))
+        episodes = sorted(hunt.get_episodes(user, team), key=lambda p: p.ep_number)
+        context = {'hunt': hunt, 'episodes': episodes, 'team': team}
+        return render(request, 'hunt/hunt_example.html', context)
+        #return HttpResponse(Template(hunt.template).render(RequestContext(request, context)))
 
 
 def prepuzzle(request, prepuzzle_num):

@@ -1,81 +1,85 @@
-body {
-    background: #09814A;
+main.split-hor {
+  flex-flow:row;
+  overflow: hidden;
 }
 
-#footer {
-    text-align: center;
-    padding-top: 10px;
-    margin-bottom: 10px;
-    font-size: 90%;
+
+.vertical-nav {
+  background:#4a4949;
+  color:#919191;
+  min-width: 17rem;
+  width: 17rem;
+  height: 100vh;
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+  transition:margin 0.8s;
+  margin-left:-17rem;
+  position:relative;
+  padding-top:1rem;
+}
+.vertical-nav.active {
+  margin-left:0rem;
 }
 
-.content {
-    font-family: verdana;
-    font-size: 14px;
-    padding: 10px;
-    padding-top: 0px;
-    margin-right: 10px;
-    margin-bottom: 10px;
-    background: white;
-    border: 3px solid black;
+#sidebar-collapse {
+  position: absolute;
+  left: 17rem;
+  top:0;
+  background: #4a4949;
+  font-size: 32px;
+  padding: 0.1rem 0.5rem;
+  border-bottom-right-radius: 25%;
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+  cursor:pointer;
 }
 
-th {
-    text-align: left;
+.vertical-nav h2 {
+  text-align: center;
+  margin-bottom: 1rem;
 }
 
-#plot {
-    margin-top: 10px;
+h3.episode-header {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color:#AAA;
+  font-size:90%;
+  border-top: 1px solid #6865659c;
+  margin: 0.5rem;
 }
 
-.puzzle td img{
-    margin-left: 15px;
-    width: 30px;
-    height: 30px;
+h3.episode-header a {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+  text-indent: 6px;
+  padding: 0.5rem;
+  position:relative;
 }
 
-/*for puzzle page*/
-.puzzle, .info {
-    overflow: auto;
+h3.episode-header a::after {
+  content: '▼';
+  display: block;
+  position: absolute;
+  right: 2px;
+  top: 6px;
+  transition:transform 0.5s;
+  text-indent:0;
+}
+h3.episode-header a.collapsed::after {
+  transform:rotate(180deg);
 }
 
-.leftinfo {
-    float: left;
+.vertical-nav div.list-group {
+  margin:0 1rem;
 }
 
-.puzzle .info a {
-    margin-right: 10px;
-    margin-bottom: 10px;
+.vertical-nav .list-group-item {
+  background: rgba(225, 225, 225, 0.24);
+  color: #353535;
 }
 
-.puzzle fieldset {
-    margin: 10px;
-}
-
-.puzzle fieldset td,th {
-    padding-right: 10px;
-}
-
-.puzzle #puzzleimg {
-    width: 100%;
-    max-width: 900px;
-    border: 1px solid black;
-}
-
-.helptext {
-    font-size: 10px;
-    color: gray;
-}
-
-.hint_table > tr > td {
-    vertical-align: middle;
-}
-
-/* Override bootstrap's xs and sm inline form behavior */
-@media (max-width: 767px) {
-  .form-inline .form-control {
-    display: inline-block;
-    width: auto;
-    vertical-align: middle;
-  }
+.side-content {
+  flex-grow: 1;
+  display:flex;
+  justify-content: center;
+  align-items: center;
 }
