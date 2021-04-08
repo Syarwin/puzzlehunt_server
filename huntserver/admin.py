@@ -22,6 +22,21 @@ def short_team_name(teamable_object):
 
 short_team_name.short_description = "Team name"
 
+class PersonAdmin(admin.ModelAdmin):
+    list_display = ['user_full_name', 'user_username']
+    search_fields = ['user__email', 'user__username', 'user__first_name', 'user__last_name']
+    filter_horizontal = ['teams']
+
+    def user_full_name(self, person):
+        return person.user.first_name + " " + person.user.last_name
+
+    def user_username(self, person):
+        return person.user.username
+
+    user_full_name.short_description = "Name"
+    user_username.short_description = "Username"
+
+
 
 class HuntAdminForm(forms.ModelForm):
     model = models.Hunt
@@ -45,19 +60,15 @@ class HuntAdmin(admin.ModelAdmin):
     list_display = ['hunt_name', 'team_size', 'start_date', 'is_current_hunt']
 
 
-class PersonAdmin(admin.ModelAdmin):
-    list_display = ['user_full_name', 'user_username']
-    search_fields = ['user__email', 'user__username', 'user__first_name', 'user__last_name']
-    filter_horizontal = ['teams']
+class EpisodeAdminForm(forms.ModelForm):
+    class Meta:
+        model = models.Episode
+        fields = ['hunt', 'ep_name', 'start_date']
 
-    def user_full_name(self, person):
-        return person.user.first_name + " " + person.user.last_name
+class EpisodeAdmin(admin.ModelAdmin):
+    form = EpisodeAdminForm
+    list_display = ['ep_name', 'start_date']
 
-    def user_username(self, person):
-        return person.user.username
-
-    user_full_name.short_description = "Name"
-    user_username.short_description = "Username"
 
 
 class PrepuzzleAdminForm(forms.ModelForm):
@@ -147,7 +158,7 @@ class PuzzleAdminForm(forms.ModelForm):
 
     class Meta:
         model = models.Puzzle
-        fields = ('hunt', 'puzzle_name', 'puzzle_number', 'puzzle_id', 'answer', 'is_meta',
+        fields = ('episode', 'puzzle_name', 'puzzle_number', 'puzzle_id', 'answer', 'is_meta',
                   'doesnt_count', 'puzzle_page_type', 'puzzle_file', 'resource_file',
                   'solution_file', 'extra_data', 'num_required_to_unlock', 'unlock_type',
                   'points_cost', 'points_value', 'solution_is_webpage', 'solution_resource_file')
@@ -159,16 +170,16 @@ class PuzzleAdmin(admin.ModelAdmin):
 
     form = PuzzleAdminForm
 
-    list_filter = ('hunt',)
+    list_filter = ('episode',)
     search_fields = ['puzzle_id', 'puzzle_name']
-    list_display = ['combined_id', 'puzzle_name', 'hunt', 'is_meta']
+    list_display = ['combined_id', 'puzzle_name', 'episode', 'is_meta']
     list_display_links = ['combined_id', 'puzzle_name']
-    ordering = ['-hunt', 'puzzle_number']
+    ordering = ['-episode', 'puzzle_number']
     inlines = (EurekaInline,HintInline,)
     radio_fields = {"unlock_type": admin.VERTICAL}
     fieldsets = (
         (None, {
-            'fields': ('hunt', 'puzzle_name', 'answer', 'puzzle_number', 'puzzle_id', 'is_meta',
+            'fields': ('episode', 'puzzle_name', 'answer', 'puzzle_number', 'puzzle_id', 'is_meta',
                        'doesnt_count', 'puzzle_page_type', 'puzzle_file', 'resource_file',
                        'solution_is_webpage', 'solution_file', 'solution_resource_file',
                        'extra_data', 'unlock_type')
@@ -341,8 +352,9 @@ admin.site.unregister(Group)
 admin.site.unregister(Site)
 admin.site.unregister(FlatPage)
 
-admin.site.register(models.Hunt,       HuntAdmin)
 admin.site.register(models.Person,     PersonAdmin)
+admin.site.register(models.Hunt,       HuntAdmin)
+admin.site.register(models.Episode,    EpisodeAdmin)
 #admin.site.register(models.Prepuzzle,  PrepuzzleAdmin)
 admin.site.register(models.Puzzle,     PuzzleAdmin)
 admin.site.register(models.Eureka,     EurekaAdmin)

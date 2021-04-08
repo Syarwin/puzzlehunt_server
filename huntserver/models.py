@@ -193,6 +193,42 @@ class Hunt(models.Model):
 
 
 
+class Episode(models.Model):
+    """ Base class for a set of puzzle """
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['ep_number']),
+        ]
+
+    hunt = models.ForeignKey(
+        Hunt,
+        on_delete=models.CASCADE,
+        help_text="The hunt that this episode is a part of")
+    ep_name = models.CharField(
+        max_length=200,
+        help_text="The name of the episode as the public will see it")
+    ep_number = models.IntegerField(
+        unique=True,
+        help_text="A number used internally for hunt sorting, must be unique")
+    start_date = models.DateTimeField(
+        help_text="The date/time at which a hunt will become visible to registered users")
+
+    @property
+    def is_locked(self):
+        """ A boolean indicating whether or not the ep is locked """
+        return timezone.now() < self.start_date
+
+    @property
+    def is_open(self):
+        """ A boolean indicating whether or not the ep is open"""
+        return timezone.now() >= self.start_date
+
+    def __str__(self):
+        return self.ep_name
+
+
+
 class Puzzle(models.Model):
     """ A class representing a puzzle within a hunt """
 
@@ -200,7 +236,7 @@ class Puzzle(models.Model):
         indexes = [
             models.Index(fields=['puzzle_id']),
         ]
-        ordering = ['-hunt', 'puzzle_number']
+        ordering = ['-episode', 'puzzle_number']
 
     SOLVES_UNLOCK = 'SOL'
     POINTS_UNLOCK = 'POT'
@@ -224,10 +260,10 @@ class Puzzle(models.Model):
         (WEB_PUZZLE, 'Puzzle page displays a webpage'),
     ]
 
-    hunt = models.ForeignKey(
-        Hunt,
+    episode = models.ForeignKey(
+        Episode,
         on_delete=models.CASCADE,
-        help_text="The hunt that this puzzle is a part of")
+        help_text="The episode that this puzzle is a part of")
     puzzle_name = models.CharField(
         max_length=200,
         help_text="The name of the puzzle as it will be seen by hunt participants")
