@@ -16,7 +16,7 @@ class HuntMiddleware(object):
         try:
             if request.user.is_authenticated:
                 if 'hunt_num' in view_kwargs:
-                    request.hunt = Hunt.objects.get(pk=view_kwargs['hunt_num'])
+                    request.hunt = Hunt.objects.get(hunt_number=view_kwargs['hunt_num'])
                 else:
                     request.hunt = Hunt.objects.get(is_current_hunt=True)
         except Hunt.DoesNotExist:
