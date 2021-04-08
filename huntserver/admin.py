@@ -63,7 +63,7 @@ class HuntAdmin(admin.ModelAdmin):
 class EpisodeAdminForm(forms.ModelForm):
     class Meta:
         model = models.Episode
-        fields = ['hunt', 'ep_name', 'start_date']
+        fields = ['hunt', 'ep_name', 'ep_number', 'start_date']
 
 class EpisodeAdmin(admin.ModelAdmin):
     form = EpisodeAdminForm
@@ -140,7 +140,7 @@ class PuzzleAdminForm(forms.ModelForm):
         super(PuzzleAdminForm, self).__init__(*args, **kwargs)
         if self.instance.pk:
             self.initial['reverse_unlocks'] = self.instance.puzzle_set.values_list('pk', flat=True)
-            choices = self.instance.hunt.puzzle_set.values_list('pk', 'puzzle_name')
+            choices = self.instance.episode.puzzle_set.values_list('pk', 'puzzle_name')
             self.fields['reverse_unlocks'].choices = choices
 
     def save(self, *args, **kwargs):
@@ -180,9 +180,12 @@ class PuzzleAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': ('episode', 'puzzle_name', 'answer', 'puzzle_number', 'puzzle_id', 'is_meta',
-                       'doesnt_count', 'puzzle_page_type', 'puzzle_file', 'resource_file',
-                       'solution_is_webpage', 'solution_file', 'solution_resource_file',
-                       'extra_data', 'unlock_type')
+                       'doesnt_count', 'extra_data', 'unlock_type')
+        }),
+        ('Resources', {
+            'classes': ('formset_border', 'resources'),
+            'fields': ('puzzle_page_type', 'puzzle_file', 'resource_file', 'template',
+                   'solution_is_webpage', 'solution_file', 'solution_resource_file',)
         }),
         ('Solve Unlocking', {
             'classes': ('formset_border', 'solve_unlocking'),

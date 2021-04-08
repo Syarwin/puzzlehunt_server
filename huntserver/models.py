@@ -268,7 +268,7 @@ class Puzzle(models.Model):
         max_length=200,
         help_text="The name of the puzzle as it will be seen by hunt participants")
     puzzle_number = models.IntegerField(
-        help_text="The number of the puzzle within the hunt, for sorting purposes")
+        help_text="The number of the puzzle within the episode, for sorting purposes")
     puzzle_id = models.CharField(
         max_length=12,
         unique=True,  # hex only please
@@ -300,6 +300,9 @@ class Puzzle(models.Model):
         storage=PuzzleOverwriteStorage(),
         blank=True,
         help_text="Puzzle resources, MUST BE A ZIP FILE.")
+    template = models.TextField(
+        default="",
+        help_text="The template string to be rendered to HTML on the puzzle page")
     solution_is_webpage = models.BooleanField(
         default=False,
         help_text="Is this solution an html webpage?")
