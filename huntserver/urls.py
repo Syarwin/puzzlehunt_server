@@ -40,7 +40,7 @@ urlpatterns = [
     # Hunt Pages
     url(r'^hunt/current/$', views.hunt.current_hunt, name='current_hunt'),
     url(r'^hunt/(?P<hunt_num>[0-9]+)/$', views.hunt.HuntIndex.as_view(), name='hunt'),
-    url(r'^puzzle/(?P<puzzle_id>[0-9a-zA-Z]{3,12})/$', views.hunt.puzzle_view, name='puzzle'),
+    url(r'^puzzle/(?P<puzzle_id>[0-9a-zA-Z]{3,12})/$', views.hunt.PuzzleView.as_view(), name='puzzle'),
     #url(r'^hunt/(?P<hunt_num>[0-9]+)/prepuzzle/$', hunt_views.hunt_prepuzzle, name='hunt_prepuzzle'),
     #url(r'^prepuzzle/(?P<prepuzzle_num>[0-9]+)/$', hunt_views.prepuzzle, name='prepuzzle'),
     #url(r'^objects/$', hunt_views.unlockables, name='unlockables'),

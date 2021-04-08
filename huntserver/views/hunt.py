@@ -158,30 +158,52 @@ def get_ratelimit_key(group, request):
     return request.ratelimit_key
 
 
-def puzzle_view(request, hunt_num, puzzle_id):
+class PuzzleView(View):
     """
     A view to handle answer submissions via POST, handle response update requests via AJAX, and
     render the basic per-puzzle pages.
     """
-    puzzle = get_object_or_404(Puzzle, puzzle_id__iexact=puzzle_id)
-    team = puzzle.hunt.team_from_user(request.user)
 
-    if(team is not None):
-        request.ratelimit_key = team.team_name
+    def check_rate(self,request, puzzle_id):
+        request.puzzle = get_object_or_404(Puzzle, puzzle_id__iexact=puzzle_id)
+        request.hunt = request.puzzle.episode.hunt
+        request.team = request.hunt.team_from_user(request.user)
 
-        is_ratelimited(request, fn=puzzle_view, key='user', rate='2/10s', method='POST',
-                       increment=True)
-    if(not puzzle.hunt.is_public):
-        is_ratelimited(request, fn=puzzle_view, key=get_ratelimit_key, rate='5/m', method='POST',
-                       increment=True)
+        if(request.team is not None):
+            request.ratelimit_key = request.team.team_name
 
-    if(getattr(request, 'limited', False)):
-        logger.info("User %s rate-limited for puzzle %s" % (str(request.user), puzzle_id))
-        return HttpResponseForbidden()
+            is_ratelimited(request, fn=PuzzleView.as_view(), key='user', rate='1/3s', method='POST',
+                           increment=True)
+        if(not request.hunt.is_public):
+            is_ratelimited(request, fn=PuzzleView.as_view(), key=get_ratelimit_key, rate='5/m', method='POST',
+                           increment=True)
 
-    # Dealing with answer submissions, proper procedure is to create a submission
-    # object and then rely on Submission.respond for automatic responses.
-    if request.method == 'POST':
+        if(getattr(request, 'limited', False)):
+            logger.info("User %s rate-limited for puzzle %s" % (str(request.user), puzzle_id))
+            return HttpResponseForbidden()
+
+    def get(self, request, puzzle_id):
+        self.check_rate(request, puzzle_id)
+
+        # Only allowed access if the hunt is public or if unlocked by team
+        if(not request.hunt.is_public):
+            if(not request.user.is_authenticated):
+                return redirect('%s?next=%s' % (reverse_lazy(settings.LOGIN_URL), request.path))
+
+            if (not request.user.is_staff):
+                if(request.team is None or request.puzzle not in request.team.unlocked.all()):
+                    return redirect(reverse('huntserver:hunt', kwargs={'hunt_num' : request.hunt.hunt_number }))
+
+        template = Template(request.puzzle.template).render(RequestContext(request, {'URL' : settings.PROTECTED_URL + "puzzles/" + request.puzzle.puzzle_id }))
+        episodes = sorted(request.hunt.get_episodes(request.user, request.team), key=lambda p: p.ep_number)
+        context = {'hunt': request.hunt, 'episodes': episodes, 'puzzle': request.puzzle, 'team': request.team,
+            'template':template, 'PROTECTED_URL': settings.PROTECTED_URL}
+        return render(request, 'hunt/puzzle.html', context)
+
+
+    def post(self, request, puzzle_id):
+        # Dealing with answer submissions, proper procedure is to create a submission
+        # object and then rely on Submission.respond for automatic responses.
         if(team is None):
             if(puzzle.hunt.is_public):
                 team = puzzle.hunt.dummy_team
@@ -228,8 +250,10 @@ def puzzle_view(request, hunt_num, puzzle_id):
         context = {'submission_list': submission_list, 'last_date': last_date}
         return HttpResponse(json.dumps(context))
 
-    # Will return HTML rows for all submissions the user does not yet have
-    elif request.is_ajax():
+
+
+    def ajax(self, request, puzzle_id):
+        # Will return HTML rows for all submissions the user does not yet have
         if(team is None):
             return HttpResponseNotFound('access denied')
 
@@ -248,35 +272,6 @@ def puzzle_view(request, hunt_num, puzzle_id):
 
         context = {'submission_list': submission_list, 'last_date': last_date}
         return HttpResponse(json.dumps(context))
-
-    else:
-        # Only allowed access if the hunt is public or if unlocked by team
-        if(not puzzle.hunt.is_public):
-            if(not request.user.is_authenticated):
-                return redirect('%s?next=%s' % (reverse_lazy(settings.LOGIN_URL), request.path))
-
-            if (not request.user.is_staff):
-                if(team is None or puzzle not in team.unlocked.all()):
-                    return render(request, 'access_error.html', {'reason': "puzzle"})
-
-        # The logic above is negated to weed out edge cases, so here is a summary:
-        # If we've made it here, the hunt is public OR the user is staff OR
-        # the user 1) is signed in, 2) not staff, 3) is on a team, and 4) has access
-        if(team is not None):
-            submissions = puzzle.submission_set.filter(team=team).order_by('pk')
-            disable_form = puzzle in team.solved.all()
-        else:
-            submissions = None
-            disable_form = False
-        form = AnswerForm(disable_form=disable_form)
-        form.helper.form_action = reverse('huntserver:puzzle', kwargs={'hunt_num' : hunt_num, 'puzzle_id': puzzle_id})
-        try:
-            last_date = Submission.objects.latest('modified_date').modified_date.strftime(DT_FORMAT)
-        except Submission.DoesNotExist:
-            last_date = timezone.now().strftime(DT_FORMAT)
-        context = {'form': form, 'submission_list': submissions, 'puzzle': puzzle,
-                   'PROTECTED_URL': settings.PROTECTED_URL, 'last_date': last_date, 'team': team}
-        return render(request, 'puzzle.html', context)
 
 
 @login_required

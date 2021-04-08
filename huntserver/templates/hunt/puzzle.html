@@ -1,4 +1,4 @@
-{% extends "hunt_base.html" %}
+{% extends "hunt/hunt_base.html" %}
 {% load hunt_tags %}
 {% load crispy_forms_tags %}
 {% block title %}Puzzle - {{ puzzle.puzzle_name }}{% endblock title %}
@@ -8,104 +8,64 @@
 {% endblock includes %}
 
 {% block content %}
-<div class="container">
-  <div class="row puzzle content">
-    <div class='col-md-12 info'>
-      <div class='leftinfo'>
-        <h1> P{{ puzzle.puzzle_number }} - {{ puzzle.puzzle_name}} </h1>
-        <h4> {{ puzzle.solved_for.count }} teams have solved this puzzle so far.</h4>
-        <div>
-        {% if puzzle.puzzle_page_type == puzzle.LINK_PUZZLE %}
-          <a class="btn btn-default" href='{{ PROTECTED_URL }}puzzles/{{ puzzle.puzzle_id }}/index.html'>
-            Go to puzzle
-          </a>
-        {% elif puzzle.puzzle_page_type == puzzle.PDF_PUZZLE %}
-          <a class="btn btn-default" href='{{ PROTECTED_URL }}puzzles/{{ puzzle.puzzle_id }}.pdf' target="_blank">
-            Download PDF
-          </a>
-        {% elif puzzle.puzzle_page_type == puzzle.WEB_PUZZLE %}
-          <a class="btn btn-default" href='{{ PROTECTED_URL }}puzzles/{{ puzzle.puzzle_id }}/index.html' target="_blank">
-            Open as separate page
-          </a>
-        {% endif %}
-        {% if puzzle.hunt.is_public %}
-          {% if puzzle.solution_is_webpage and puzzle.solution_resource_file != "" %}
-            <a class="btn btn-default" href='{{ PROTECTED_URL }}solutions/{{ puzzle.puzzle_id }}_sol/index.html'>
-                View solution
-            </a>
-          {% elif not puzzle.solution_is_webpage and puzzle.solution_file != "" %}
-            <a class="btn btn-default" href='{{ PROTECTED_URL }}solutions/{{ puzzle.puzzle_id }}_sol.pdf'>
-                View solution
-            </a>
-          {% else %}
-            <a class="btn btn-default disabled" href='#'>
-                No solution available
-            </a>
-          {% endif %}
-        {% endif %}
-        </div>
-      </div>
-    </div>
-    <div class='col-md-12'><br></div>
-    <div id='submit_container' class="col-md-5">
-      <legend>Submit an answer</legend>
-      {% crispy form %}
-      <br>
-    </div>
-    <div id='answer_container' class="col-md-5 col-md-offset-1">
-    {% if puzzle.hunt.is_public %}
-      <p style="width: 80%; margin: auto;"> We are sorry, previous guess viewing is not available in old puzzlehunts </p>
-      <br>
-      {% if response %}
-      <div style='width: 80%; height: auto; line-height: 40px;
-                  text-align: center; margin: auto;
-                  {% if is_correct %}
-                    background-color: lightgreen;'>
-                  {% elif response != "Wrong Answer." %}
-                    background-color: gold;'>
-                  {% else %}
-                    background-color: indianred;'>
-                  {% endif %}
-        {{response}}
-      </div>
-      {% endif %}
-    {% else %}
-      <legend>Past answers (auto-updating)</legend>
-      <table class="table table-condensed">
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Answer</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id='sub_table'>
-          {% for submission in submission_list reversed%}
-          {% include "puzzle_sub_row.html" %}
-         {% endfor %}
-       </tbody>
-     </table>
-    {% endif %}
-    </div>
-    <div class='col-md-12'><br></div>
+{% include 'hunt/hunt_sidebar.html' with episodes=episodes hunt=hunt %}
+<div class="puzzle-container">
+  <div class="puzzle-title">
+    {{ puzzle.puzzle_name }}
+  </div>
+  <div class="puzzle-holder">
     {% if puzzle.puzzle_page_type == puzzle.LINK_PUZZLE %}
-      <div style="text-align: center;" class="col-md-10 col-md-offset-1">
         <h4>
-          <br>
-          <br>
           This puzzle is a web-based puzzle:
           <a href="{{ PROTECTED_URL }}puzzles/{{ puzzle.puzzle_id }}/index.html">Click here to go to the puzzle.</a>
         </h4>
-      </div>
     {% elif puzzle.puzzle_page_type == puzzle.PDF_PUZZLE %}
-      <div class="col-md-12">
         <embed width="100%" height="1000px" src="{{ PROTECTED_URL }}puzzles/{{ puzzle.puzzle_id }}.pdf" type="application/pdf"></embed>
-      </div>
     {% elif puzzle.puzzle_page_type == puzzle.WEB_PUZZLE %}
-      <div class="col-md-12">
-        {{ puzzle.puzzle_id }}
-      </div>
+        {{ template }}
     {% endif %}
   </div>
+
+  <div id="submission-bar">
+    <div class="input-group input-group-lg">
+      <input type="text" class="form-control" placeholder="Guess" aria-label="Your guess">
+      <button class="btn btn-primary" type="button">Submit</button>
+    </div>
+  </div>
 </div>
+
+<div id="right-bar" class="vertical-nav">
+  <div class="right-block">
+    <h3>Hints</h3>
+    <ul id="hints"></ul>
+  </div>
+
+  <div class="right-block">
+    <h3>Milestones</h3>
+    <ul id="eurekas"></ul>
+  </div>
+
+  <div class="right-block">
+    <h3>Guesses</h3>
+    <ul id="guesses"></ul>
+  </div>
+</div>
+
+
+{% if puzzle.hunt.is_public %}
+  {% if puzzle.solution_is_webpage and puzzle.solution_resource_file != "" %}
+    <a class="btn btn-default" href='{{ PROTECTED_URL }}solutions/{{ puzzle.puzzle_id }}_sol/index.html'>
+        View solution
+    </a>
+  {% elif not puzzle.solution_is_webpage and puzzle.solution_file != "" %}
+    <a class="btn btn-default" href='{{ PROTECTED_URL }}solutions/{{ puzzle.puzzle_id }}_sol.pdf'>
+        View solution
+    </a>
+  {% else %}
+    <a class="btn btn-default disabled" href='#'>
+        No solution available
+    </a>
+  {% endif %}
+{% endif %}
+
 {% endblock content %}
