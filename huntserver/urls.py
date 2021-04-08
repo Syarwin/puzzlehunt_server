@@ -23,13 +23,6 @@ from . import views
 app_name = "huntserver"
 
 urlpatterns = [
-    # Pages made with flatpages
-    path('info-and-rules/', flatpage_views.flatpage, {'url': '/hunt-info/'}, name='current_hunt_info'),
-    #path('contact-us/', views.flatpage, {'url': '/contact-us/'}, name='contact_us'),
-
-    # Info Flatpages
-    path('info/', include('django.contrib.flatpages.urls')),
-
     # Auth and Accounts
     url(r'^signup/$', views.auth.SignUp.as_view(), name='signup'),
     url(r'^login/$', views.auth.account_login, name='login'),
@@ -40,16 +33,16 @@ urlpatterns = [
 
     # Info Pages
     url(r'^$', views.info.index, name='index'),
-    url(r'^previous-hunts/$', views.info.previous_hunts, name='previous_hunts'),
+    #url(r'^previous-hunts/$', views.info.previous_hunts, name='previous_hunts'),
+    path('info/', include('django.contrib.flatpages.urls')),
+    path('info-and-rules/', flatpage_views.flatpage, {'url': '/hunt-info/'}, name='current_hunt_info'),
 
     # Hunt Pages
-    url(r'^hunt/(?P<hunt_num>[0-9]+)/puzzle/(?P<puzzle_id>[0-9a-zA-Z]{3,12})/$', views.hunt.puzzle_view, name='puzzle'),
-    url(r'^hunt/(?P<hunt_num>[0-9]+)/$', views.hunt.hunt, name='hunt'),
     url(r'^hunt/current/$', views.hunt.current_hunt, name='current_hunt'),
-    #url(r'^hunt/(?P<hunt_num>[0-9]+)/prepuzzle/$', hunt_views.hunt_prepuzzle,
-    #    name='hunt_prepuzzle'),
+    url(r'^hunt/(?P<hunt_num>[0-9]+)/$', views.hunt.HuntIndex.as_view(), name='hunt'),
+    url(r'^puzzle/(?P<puzzle_id>[0-9a-zA-Z]{3,12})/$', views.hunt.puzzle_view, name='puzzle'),
+    #url(r'^hunt/(?P<hunt_num>[0-9]+)/prepuzzle/$', hunt_views.hunt_prepuzzle, name='hunt_prepuzzle'),
     #url(r'^prepuzzle/(?P<prepuzzle_num>[0-9]+)/$', hunt_views.prepuzzle, name='prepuzzle'),
-    #url(r'^hunt/current/prepuzzle/$', hunt_views.current_prepuzzle, name='current_prepuzzle'),
     #url(r'^objects/$', hunt_views.unlockables, name='unlockables'),
     #url(r'^protected/(?P<file_path>.+)$', hunt_views.protected_static, name='protected_static'),
 

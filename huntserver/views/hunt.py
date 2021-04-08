@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.template import Template, RequestContext
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.views import View
 from django.utils.encoding import smart_str
 from django.db.models import F
 from django.urls import reverse_lazy, reverse
@@ -19,6 +20,7 @@ import re
 
 from huntserver.models import Puzzle, Hunt, Submission, Unlockable, Prepuzzle
 from huntserver.forms import AnswerForm
+from .mixin import RequiredTeamMixin
 
 import logging
 logger = logging.getLogger(__name__)
@@ -70,54 +72,51 @@ def protected_static(request, file_path):
     return HttpResponseNotFound('<h1>Page not found</h1>')
 
 
-def hunt(request, hunt_num):
-    """
-    The main view to render hunt templates. Does various permission checks to determine the set
-    of puzzles to display and then renders the string in the hunt's "template" field to HTML.
-    """
+class HuntIndex(RequiredTeamMixin, View):
+    def get(self, request, hunt_num):
+        """
+        The main view to render hunt templates. Does various permission checks to determine the set
+        of puzzles to display and then renders the string in the hunt's "template" field to HTML.
+        """
+        hunt = request.hunt # Populated by middleware
+        team = request.team # Populated by middleware, enforced by mixin
 
-    hunt = get_object_or_404(Hunt, hunt_number=hunt_num)
-    team = hunt.team_from_user(request.user)
-    if team is None:
-        return redirect(reverse('huntserver:registration'))
+        # Admins get all access, wrong teams/early lookers get an error page
+        # real teams get appropriate puzzles, and puzzles from past hunts are public
+        if (hunt.is_public or request.user.is_staff):
+            puzzle_list = hunt.puzzle_set.all()
 
-
-    # Admins get all access, wrong teams/early lookers get an error page
-    # real teams get appropriate puzzles, and puzzles from past hunts are public
-    if (hunt.is_public or request.user.is_staff):
-        puzzle_list = hunt.puzzle_set.all()
-
-    elif(team and team.is_playtester_team and team.playtest_started):
-        puzzle_list = team.unlocked.filter(hunt=hunt)
-
-    # Hunt has not yet started
-    elif(hunt.is_locked):
-        if(hunt.is_day_of_hunt):
-            return render(request, 'access_error.html', {'reason': "hunt"})
-        else:
-            return hunt_prepuzzle(request, hunt_num)
-
-    # Hunt has started
-    elif(hunt.is_open):
-        # see if the team does not belong to the hunt being accessed
-        if (not request.user.is_authenticated):
-            return redirect('%s?next=%s' % (reverse_lazy(settings.LOGIN_URL), request.path))
-
-        elif(team is None or (team.hunt != hunt)):
-            return render(request, 'access_error.html', {'reason': "team"})
-        else:
+        elif(team and team.is_playtester_team and team.playtest_started):
             puzzle_list = team.unlocked.filter(hunt=hunt)
 
-        # No else case, all 3 possible hunt states have been checked.
+        # Hunt has not yet started
+        elif(hunt.is_locked):
+            if(hunt.is_day_of_hunt):
+                return render(request, 'access_error.html', {'reason': "hunt"})
+            else:
+                return hunt_prepuzzle(request, hunt_num)
 
-    puzzles = sorted(puzzle_list, key=lambda p: p.puzzle_number)
-    if(team is None):
-        solved = []
-    else:
-        solved = team.solved.all()
-    context = {'hunt': hunt, 'puzzles': puzzles, 'team': team, 'solved': solved}
+        # Hunt has started
+        elif(hunt.is_open):
+            # see if the team does not belong to the hunt being accessed
+            if (not request.user.is_authenticated):
+                return redirect('%s?next=%s' % (reverse_lazy(settings.LOGIN_URL), request.path))
 
-    return HttpResponse(Template(hunt.template).render(RequestContext(request, context)))
+            elif(team is None or (team.hunt != hunt)):
+                return render(request, 'access_error.html', {'reason': "team"})
+            else:
+                puzzle_list = team.unlocked.filter(hunt=hunt)
+
+            # No else case, all 3 possible hunt states have been checked.
+
+        puzzles = sorted(puzzle_list, key=lambda p: p.puzzle_number)
+        if(team is None):
+            solved = []
+        else:
+            solved = team.solved.all()
+        context = {'hunt': hunt, 'puzzles': puzzles, 'team': team, 'solved': solved}
+
+        return HttpResponse(Template(hunt.template).render(RequestContext(request, context)))
 
 
 def current_hunt(request):

@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, reverse
 from huntserver.utils import parse_attributes
 from django.db.models.functions import Lower
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from . import info
 import random
@@ -29,7 +30,6 @@ def account_login(request):
         context = {'next': "/"}
 
     return views.LoginView.as_view(template_name="auth/login.html")(request)
-
 
 
 class SignUp(View):
@@ -73,12 +73,13 @@ def account_logout(request):
 
 
 
-class Registration(View):
+class Registration(LoginRequiredMixin, View):
+    login_url = '/login/'
+
     """
     The view that handles team registration. Mostly deals with creating the team object from the
     post request. The rendered page is nearly entirely static.
     """
-
     def get(self, request):
         curr_hunt = Hunt.objects.get(is_current_hunt=True)
         team = curr_hunt.team_from_user(request.user)

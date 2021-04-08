@@ -1,7 +1,6 @@
-{% load bootstrap_tags %}
 {% load hunt_tags %}
-
 {% load static %}
+{% load flatpages %}
 <!DOCTYPE html>
 <html>
   <head>
@@ -30,13 +29,13 @@
 					<div class="collapse navbar-collapse" id="navbar-collapse-wrapper">
 						<ul class="navbar-nav me-auto mb-2 mb-lg-0">
               <li class='nav-item'>
-                <a class='nav-link' href="/info-and-rules">
+                <a class='nav-link' href="{% url 'huntserver:current_hunt_info' %}">
                   <i class="bi bi-book me-1"></i>
                   Info and rules
                 </a>
               </li>
               <li class='nav-item'>
-                <a class='nav-link' href="/hunt/current/">
+                <a class='nav-link' href="{% url 'huntserver:current_hunt' %}">
                   <i class="bi bi-play-circle-fill me-1"></i>
                   Game
                 </a>
@@ -64,12 +63,12 @@
               {% else %}
                 <li class="nav-item">
 									<a class="nav-link" href="{% url 'huntserver:signup' %}">
-	                  <span class="glyphicon glyphicon-user"></span> Sign-up
+	                  Sign-up
                 	</a>
 								</li>
                 <li class="nav-item">
 									<a class="nav-link" href="{% url 'huntserver:login' %}">
-	                  <span class="glyphicon glyphicon-log-in"></span> Login
+	                  Login
                 	</a>
 								</li>
               {% endif %}
