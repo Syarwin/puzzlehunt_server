@@ -47,7 +47,7 @@ def protected_static(request, file_path):
             return HttpResponseNotFound('<h1>Page not found</h1>')
 
         puzzle = get_object_or_404(Puzzle, puzzle_id=puzzle_id.group(0))
-        hunt = puzzle.hunt
+        hunt = puzzle.episode.hunt
         user = request.user
         disposition = 'filename="{}_{}"'.format(puzzle.safename, path.name)
         response['Content-Disposition'] = disposition
