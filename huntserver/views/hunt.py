@@ -180,9 +180,9 @@ class PuzzleView(View):
 
             limited = is_ratelimited(request, fn=PuzzleView.as_view(), key='user', rate='20/m', method='POST',
                            increment=True)
-        if (not limited and not request.hunt.is_public):
-            limited = is_ratelimited(request, fn=PuzzleView.as_view(), key=get_ratelimit_key, rate='5/m', method='POST',
-                           increment=True)
+        #if (not limited and not request.hunt.is_public):
+        #    limited = is_ratelimited(request, fn=PuzzleView.as_view(), key=get_ratelimit_key, rate='5/m', method='POST',
+        #                   increment=True)
 
 
         return limited or getattr(request, 'limited', False)

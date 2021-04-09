@@ -450,7 +450,10 @@ class Puzzle(models.Model):
             except PuzzleUnlock.DoesNotExist:
                 try:
                     guess = Guess.objects.filter(puzzle=self, team=team).order_by("guess_time").first()
-                    return guess.guess_time
+                    if guess is None:
+                       return episode.start_date
+                    else:
+                       return guess.guess_time
                 except Guess.DoesNotExist:
                     return episode.start_date
 
@@ -1014,10 +1017,13 @@ class Hint(models.Model):
         if team is None:
             return self.time
         else:
-            for eureka in self.eurekas.all():
-                if eureka not in team.eurekas.all():
-                    return self.time
-            return self.short_time
+            if self.eurekas.all().count() > 0:
+                for eureka in self.eurekas.all():
+                    if not eureka in team.eurekas.all():
+                        return self.time
+                return self.short_time
+            else:
+                return self.time
 
     def starting_time_for_team(self, team):
         return self.puzzle.starting_time_for_team(team)
