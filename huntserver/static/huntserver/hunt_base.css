@@ -14,7 +14,8 @@ main.split-hor {
   transition:margin 0.8s;
   margin-left:-17rem;
   position:relative;
-  padding-top:1rem;
+  display:flex;
+  flex-flow: column;
 }
 .vertical-nav.active {
   margin-left:0rem;
@@ -35,7 +36,9 @@ main.split-hor {
 
 .vertical-nav h2 {
   text-align: center;
-  margin-bottom: 1rem;
+  margin:0.7rem 0rem;
+  font-size:1.3rem;
+  flex-shrink: 0;
 }
 
 h3.episode-header {
@@ -44,7 +47,7 @@ h3.episode-header {
   color:#AAA;
   font-size:90%;
   border-top: 1px solid #6865659c;
-  margin: 0.5rem;
+  margin-bottom:0;
 }
 
 h3.episode-header a {
@@ -60,22 +63,29 @@ h3.episode-header a::after {
   content: '▼';
   display: block;
   position: absolute;
-  right: 2px;
-  top: 6px;
+  right: 8px;
+  top: 9px;
   transition:transform 0.5s;
   text-indent:0;
+  transform:rotate(180deg);
 }
 h3.episode-header a.collapsed::after {
-  transform:rotate(180deg);
+  transform:rotate(0deg);
 }
 
 .vertical-nav div.list-group {
-  margin:0 1rem;
+  overflow: auto;
 }
 
 .vertical-nav .list-group-item {
-  background: rgba(225, 225, 225, 0.24);
-  color: #353535;
+  background: #0d0c0c24;
+  color: #828282;
+  border-right: none;
+  border-left: none;
+  border-radius: 0;
+  padding: .3rem 1rem;
+  font-size: .9rem;
+  border-color: #595959;
 }
 
 .side-content {
@@ -88,13 +98,16 @@ h3.episode-header a.collapsed::after {
 
 .puzzle-container {
   flex-grow:1;
-  padding:1rem;
+  padding:1.5rem 2rem;
   display:flex;
   flex-flow:column;
+  color:white;
 }
 
 .puzzle-title {
   font-size:30px;
+  color:white;
+  font-weight: bold;
 }
 
 .puzzle-holder {
