@@ -84,6 +84,8 @@ class Registration(LoginRequiredMixin, View):
         curr_hunt = Hunt.objects.get(is_current_hunt=True)
         team = curr_hunt.team_from_user(request.user)
 
+        if(hunt.is_locked):
+            return redirect(reverse("huntserver:index"))
         if(team is not None):
             return redirect(reverse('huntserver:manage-team'))
         else:

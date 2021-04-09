@@ -96,7 +96,8 @@ class HuntIndex(View):
                 return redirect(reverse('huntserver:registration'))
 
         episodes = sorted(hunt.get_episodes(user, team), key=lambda p: p.ep_number)
-        context = {'hunt': hunt, 'episodes': episodes, 'team': team}
+        puzzles = hunt.get_puzzle_list(user, team)
+        context = {'hunt': hunt, 'episodes': episodes, 'team': team, 'puzzles':puzzles}
         return render(request, 'hunt/hunt_example.html', context)
         #return HttpResponse(Template(hunt.template).render(RequestContext(request, context)))
 
@@ -196,7 +197,8 @@ class PuzzleView(View):
 
         template = Template(request.puzzle.template).render(RequestContext(request, {'URL' : settings.PROTECTED_URL + "puzzles/" + request.puzzle.puzzle_id }))
         episodes = sorted(request.hunt.get_episodes(request.user, request.team), key=lambda p: p.ep_number)
-        context = {'hunt': request.hunt, 'episodes': episodes, 'puzzle': request.puzzle, 'team': request.team,
+        puzzles = request.hunt.get_puzzle_list(request.user, request.team)
+        context = {'hunt': request.hunt, 'episodes': episodes, 'puzzles' : puzzles, 'puzzle': request.puzzle, 'team': request.team,
             'template':template, 'PROTECTED_URL': settings.PROTECTED_URL}
         return render(request, 'hunt/puzzle.html', context)
 

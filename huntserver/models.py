@@ -198,22 +198,20 @@ class Hunt(models.Model):
         if (self.is_public or user.is_staff):
             episode_list = self.episode_set.all()
         else:
-            episode_list = self.episode_set.filter(episode__start_date__lte=timezone.now())
+            episode_list = self.episode_set.filter(start_date__lte=timezone.now())
 
         return episode_list
 
-
-"""
-        if (hunt.is_public or request.user.is_staff):
-            puzzle_list = hunt.puzzle_set.all()
+    def get_puzzle_list(self, user, team):
+        if (self.is_public or user.is_staff):
+            puzzle_list = [puzzle for episode in self.episode_set.all() for puzzle in episode.puzzle_set.all()]
 
         elif(team and team.is_playtester_team and team.playtest_started):
             puzzle_list = team.unlocked.filter(hunt=hunt)
+        else:
+            puzzle_list = ()
 
-        # Hunt has not yet started
-            else:
-                puzzle_list = team.unlocked.filter(hunt=hunt)
-"""
+        return puzzle_list
 
 
 

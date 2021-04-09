@@ -88,6 +88,13 @@ h3.episode-header a.collapsed::after {
   border-color: #595959;
 }
 
+.vertical-nav .list-group-item.active {
+  text-indent: .5rem;
+  background: #313030;
+  color: #bfbcbc;
+}
+
+
 .side-content {
   flex-grow: 1;
   display:flex;

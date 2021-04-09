@@ -13,10 +13,12 @@
       </a>
     </h3>
     <div id="collapse-episode-{{ episode.ep_number }}" class="collapse list-group flex-column mb-0">
-      {% for puzzle in episode.puzzle_set.all %}
-          <a href="{% url 'huntserver:puzzle' puzzle_id=puzzle.puzzle_id %}" class="list-group-item">
-            {{ puzzle.puzzle_name }}
+      {% for cpuzzle in episode.puzzle_set.all %}
+          {% if cpuzzle in puzzles %}
+          <a href="{% url 'huntserver:puzzle' puzzle_id=cpuzzle.puzzle_id %}" class="list-group-item {% if puzzle and cpuzzle == puzzle %} active {% endif %}">
+            {{ cpuzzle.puzzle_name }}
           </a>
+          {% endif %}
       {% endfor %}
     </div>
   {% endfor %}
@@ -28,5 +30,7 @@ $(function() {
   $('#sidebar-collapse').on('click', function() {
     $('#sidebar').toggleClass('active');
   });
+
+  $('#sidebar .list-group-item.active').parent().show()
 });
 </script>
