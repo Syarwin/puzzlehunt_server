@@ -125,6 +125,7 @@ h3.episode-header a.collapsed::after {
   display: flex;
   justify-content: center;
   align-items: center;
+  height:100%;
 }
 
 #submission-bar {
@@ -154,4 +155,11 @@ h3.episode-header a.collapsed::after {
   font-size: 90%;
   border-bottom: 1px solid #312c2c9c;
   margin-bottom:0.5rem;
+}
+
+
+.daypicture {
+  position: absolute;
+  right: 0;
+  bottom: 0;
 }
