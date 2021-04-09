@@ -1,3 +1,10 @@
+function encode(message){
+  return message.replace(/[\u00A0-\u9999<>\&]/g, function(i) {
+   return '&#'+i.charCodeAt(0)+';';
+ });
+}
+
+
 function message(message, type = "danger") {
   var error_msg = $('<div class="alert alert-dismissible alert-' + type + '">' + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
   error_msg.appendTo($('#guess-feedback'))//.delay(3000).fadeOut(2000, function(){$(this).remove()})
@@ -9,13 +16,13 @@ var guesses = [];
 
 function addGuess(user, guess, correct, guess_uid) {
   var guesses_table = $('#guesses');
-  guesses_table.prepend('<li><span class="guess-user">' + encode(user) + '</span><span class="guess-value">' + encode(guess) + '</span>></li>')
+  guesses_table.prepend('<li><span class="guess-user">' + encode(user) + '</span><span class="guess-value">' + encode(guess) + '</span></li>')
   guesses.push(guess_uid)
 }
 
 function receivedNewAnswer(content) {
   if (!guesses.includes(content.guess_uid)) {
-    addAnswer(content.by, content.guess, content.correct, content.guess_uid)
+    addGuess(content.by, content.guess, content.correct, content.guess_uid)
 
 /*
     if (content.correct) {
@@ -92,7 +99,6 @@ $(function() {
 
   $('#guess-form').submit(function(e) {
     e.preventDefault()
-    console.log("test");
     if (!field.val()) {
       field.focus()
       return
@@ -101,7 +107,6 @@ $(function() {
     var data = {
       answer: field.val(),
     }
-    console.log(data);
     $.ajax({
       type: 'POST',
       url: '',

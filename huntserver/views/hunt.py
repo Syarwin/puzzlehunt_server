@@ -21,7 +21,6 @@ import os
 import re
 
 from huntserver.models import Puzzle, Hunt, Guess, Unlockable, Prepuzzle
-from huntserver.forms import AnswerForm
 from .mixin import RequiredTeamMixin
 
 import logging
@@ -208,7 +207,9 @@ class PuzzleView(View):
 
 
     def post(self, request, puzzle_id):
-        return HttpResponse("Coucou")
+        self.check_rate(request, puzzle_id)
+        team = request.team
+        puzzle = request.puzzle
 
         # Dealing with answer guesss, proper procedure is to create a guess
         # object and then rely on Guess.respond for automatic responses.
@@ -219,17 +220,21 @@ class PuzzleView(View):
                 # If the hunt isn't public and you aren't signed in, please stop...
                 return HttpResponse('fail')
 
-        form = AnswerForm(request.POST)
-        form.helper.form_action = reverse('huntserver:puzzle', kwargs={'hunt_num' : hunt_num, 'puzzle_id': puzzle_id})
 
-        if form.is_valid():
-            user_answer = form.cleaned_data['answer']
-            s = Guess.objects.create(guess_text=user_answer, team=team,
-                                          puzzle=puzzle, guess_time=timezone.now())
-            s.respond()
-        else:
-            s = None
+        given_answer = request.POST.get('answer', '')
+        if given_answer == '':
+            return JsonResponse({'error': 'no answer given'}, status=400)
 
+        guess = Guess(
+            guess_text=given_answer,
+            team=team,
+            puzzle=puzzle,
+            guess_time=timezone.now()
+        )
+        guess.save()
+        guess.respond()
+
+        """
         # Deal with answers for public hunts
         if(puzzle.hunt.is_public):
             if(s is None):
@@ -242,21 +247,9 @@ class PuzzleView(View):
             context = {'form': form, 'puzzle': puzzle, 'PROTECTED_URL': settings.PROTECTED_URL,
                        'response': response, 'is_correct': is_correct}
             return render(request, 'puzzle.html', context)
+        """
 
-        if(s is None):
-            return HttpResponseBadRequest(form.errors.as_json())
-
-        # Render response to HTML for live hunts
-        guess_list = [render_to_string('puzzle_sub_row.html', {'guess': s})]
-
-        try:
-            last_date = Guess.objects.latest('modified_date').modified_date.strftime(DT_FORMAT)
-        except Guess.DoesNotExist:
-            last_date = timezone.now().strftime(DT_FORMAT)
-
-        # Send back rendered response for display
-        context = {'guess_list': guess_list, 'last_date': last_date}
-        return HttpResponse(json.dumps(context))
+        return HttpResponse("Coucou")
 
 
 

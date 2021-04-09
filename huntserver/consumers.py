@@ -52,9 +52,16 @@ def pre_save_handler(func):
             instance._hybrid_save_cb = after_commit
         else:  # nocover
             transaction.on_commit(after_commit)
-
     return classmethod(inner)
 
+@receiver(post_save)
+def hybrid_save_signal_dispatcher(sender, instance, **kwargs):
+    # This checks for the attribute set by the above signal handler and calls it if it exists.
+    hybrid_cb = getattr(instance, '_hybrid_save_cb', None)
+    if hybrid_cb:
+        # No need to pass args because this will always be a closure with the args from pre_save
+        instance._hybrid_save_cb = None
+        hybrid_cb()
 
 
 class TeamMixin:
@@ -199,11 +206,11 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
     def _new_guess_json(cls, guess):
         #correct = guess.get_correct_for() is not None
         content = {
-            'timestamp': str(guess.given),
-            'guess': guess.guess,
-            'guess_uid': guess.compact_id,
+            'timestamp': str(guess.guess_time),
+            'guess': guess.guess_text,
+            'guess_uid': guess.id,
             'correct': False, #correct,
-            'by': guess.by.username,
+            'by': "Moi",
         }
 
         return content
@@ -211,8 +218,8 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
     @classmethod
     def send_new_guess(cls, guess):
         content = cls._new_guess_json(guess)
-
-        cls._send_message(cls._puzzle_groupname(guess.for_puzzle, guess.by_team), {
+        print(content)
+        cls._send_message(cls._puzzle_groupname(guess.puzzle, guess.team), {
             'type': 'new_guess',
             'content': content
         })
@@ -254,4 +261,4 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
         cls.send_new_guess(guess)
 
 
-#pre_save.connect(PuzzleEventWebsocket._saved_guess, sender=models.Guess)
+pre_save.connect(PuzzleWebsocket._saved_guess, sender=models.Guess)

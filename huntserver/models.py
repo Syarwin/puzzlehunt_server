@@ -690,6 +690,9 @@ class Person(models.Model):
 class Guess(models.Model):
     """ A class representing a guess to a given puzzle from a given team """
 
+    class Meta:
+        verbose_name_plural = 'Guesses'
+
     team = models.ForeignKey(
         Team,
         on_delete=models.CASCADE,
@@ -744,7 +747,7 @@ class Guess(models.Model):
     # Order of response importance: Regex, Defaults, Staff response.
     def respond(self):
         """ Takes the guess's text and uses various methods to craft and populate a response.
-            If the response is correct a solve is created and the correct puzzles are unlocked """
+            If the response is correct a solve is created and the correct puzzles are unlocked
         # Compare against correct answer
         if(self.is_correct):
             # Make sure we don't have duplicate or after hunt guess objects
@@ -774,7 +777,8 @@ class Guess(models.Model):
                              str(self.puzzle.puzzle_id)))
 
         self.response_text = response
-        self.save()
+        self.save()"""
+        print("Respond")
 
     def update_response(self, text):
         """ Updates the response with the given text """
