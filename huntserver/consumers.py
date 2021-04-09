@@ -210,7 +210,7 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
             'guess': guess.guess_text,
             'guess_uid': guess.id,
             'correct': False, #correct,
-            'by': "Moi",
+            'by': guess.user.username,
         }
 
         return content

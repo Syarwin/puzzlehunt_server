@@ -693,6 +693,10 @@ class Guess(models.Model):
     class Meta:
         verbose_name_plural = 'Guesses'
 
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        help_text="The user that made the guess")
     team = models.ForeignKey(
         Team,
         on_delete=models.CASCADE,

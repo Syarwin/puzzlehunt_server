@@ -210,6 +210,7 @@ class PuzzleView(View):
         self.check_rate(request, puzzle_id)
         team = request.team
         puzzle = request.puzzle
+        user = request.user
 
         # Dealing with answer guesss, proper procedure is to create a guess
         # object and then rely on Guess.respond for automatic responses.
@@ -228,6 +229,7 @@ class PuzzleView(View):
         guess = Guess(
             guess_text=given_answer,
             team=team,
+            user=user,
             puzzle=puzzle,
             guess_time=timezone.now()
         )
