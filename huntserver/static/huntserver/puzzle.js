@@ -274,7 +274,8 @@ function openEventSocket() {
       sock.send(JSON.stringify({'type': 'unlocks-plz'}))
     } else {
       sock.send(JSON.stringify({'type': 'guesses-plz', 'from': 'all'}))
-      sock.send(JSON.stringify({'type': 'unlocks-plz'}))
+      sock.send(JSON.stringify({'type': 'hints-plz', 'from': 'all'}))
+      sock.send(JSON.stringify({'type': 'unlocks-plz', 'from': 'all'}))
     }
   }
 }

@@ -147,13 +147,13 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
         except KeyError:
             pass
 
-        delay = hint.delay_for_team(self.team)
-        print("Test", delay)
+        delay = hint.delay_for_team(self.team) - (timezone.now() - hint.starting_time_for_team(self.team))
         if delay is None:
             return
         delay = delay.total_seconds()
         if not send_expired and delay < 0:
             return
+
         loop = sync_to_async.threadlocal.main_event_loop
         # run the hint sender function on the asyncio event loop so we don't have to bother writing scheduler stuff
         task = loop.create_task(self.send_new_hint(self.team, hint, delay))
@@ -323,7 +323,12 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
             })
 
     def send_old_hints(self, start='all'):
-        print("TODO")
+        hints = self.puzzle.hint_set.all()
+        for hint in hints:
+            delay = hint.delay_for_team(self.team) - (timezone.now() - hint.starting_time_for_team(self.team))
+            delay = delay.total_seconds()
+            if delay < 0:
+                self.send_new_hint_to_team(self.team, hint)
 
     def send_old_unlocks(self):
         eurekas = self.team.eurekas.filter(puzzle=self.puzzle).order_by('eurekaunlock__time')

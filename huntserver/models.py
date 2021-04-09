@@ -439,6 +439,21 @@ class Puzzle(models.Model):
     def __str__(self):
         return str(self.puzzle_number) + "-" + str(self.puzzle_id) + " " + self.puzzle_name
 
+    def starting_time_for_team(self, team):
+        episode = self.episode
+        if team is None:
+            return episode.start_date
+        else:
+            try:
+                unlock = PuzzleUnlock.objects.get(puzzle=self, team=team)
+                return unlock.time
+            except PuzzleUnlock.DoesNotExist:
+                try:
+                    guess = Guess.objects.filter(puzzle=self, team=team).order_by("guess_time").first()
+                    return guess.guess_time
+                except Guess.DoesNotExist:
+                    return episode.start_date
+
 
 
 class Prepuzzle(models.Model):
@@ -790,7 +805,7 @@ class Guess(models.Model):
         # Compare against correct answer
         if(self.is_correct):
             # Make sure we don't have duplicate or after hunt guess objects
-            if(not self.puzzle.hunt.is_public):
+            if(not self.puzzle.episode.hunt.is_public):
                 if(self.puzzle not in self.team.solved.all()):
                     self.create_solve()
                     t = self.team
@@ -983,7 +998,7 @@ class Hint(models.Model):
     def compact_id(self):
         return self.id
 
-    def unlocks_at(self, team, possible_guesses=None):
+    def unlocks_at(self, team):
         """Returns when the hint unlocks for the given team.
 
         Parameters as for `unlocked_by`.
@@ -991,14 +1006,21 @@ class Hint(models.Model):
         # TODO
         return timezone.now() + self.time
 
-    def delay_for_team(self, team, possible_guesses=None):
+    def delay_for_team(self, team):
         """Returns how long until the hint unlocks for the given team.
 
         Parameters as for `unlocked_by`.
         """
-        unlocks_at = self.unlocks_at(team, possible_guesses)
-        return None if unlocks_at is None else unlocks_at - timezone.now()
+        if team is None:
+            return self.time
+        else:
+            for eureka in self.eurekas.all():
+                if eureka not in team.eurekas.all():
+                    return self.time
+            return self.short_time
 
+    def starting_time_for_team(self, team):
+        return self.puzzle.starting_time_for_team(team)
 
 
 
