@@ -129,8 +129,16 @@ h3.episode-header a.collapsed::after {
   height:100%;
 }
 
-#submission-bar {
+#guess-bar {
   padding:1rem;
+  position:relative;
+}
+
+#guess-feedback {
+  position: absolute;
+  bottom: 45px;
+  left: 1%;
+  width: 98%;
 }
 
 #right-bar {

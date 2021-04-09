@@ -1,30 +1,30 @@
 <tr class="
-{% if submission.response_text == '' %}
+{% if guess.response_text == '' %}
   warning
-{% elif submission.is_correct %}
+{% elif guess.is_correct %}
   success
 {% else %}
   danger
-{% endif %} submission" data-id='{{ submission.pk }}'>
+{% endif %} guess" data-id='{{ guess.pk }}'>
   <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;" >
-    {{ submission.team.team_name|truncatechars:40}}
+    {{ guess.team.team_name|truncatechars:40}}
   </td>
-  <td>{{ submission.puzzle.puzzle_name }}</td>
-  <td style="max-width: 200px; overflow-wrap: break-word;">{{ submission.submission_text }}</td>
-  <td>{{ submission.submission_time|time:"h:i a" }}</td>
+  <td>{{ guess.puzzle.puzzle_name }}</td>
+  <td style="max-width: 200px; overflow-wrap: break-word;">{{ guess.guess_text }}</td>
+  <td>{{ guess.guess_time|time:"h:i a" }}</td>
   <td>
-    {% if submission.response_text == '' %}
+    {% if guess.response_text == '' %}
       <a href='#' class='needs-response'>[manual response]</a>
       <a href='#' class='canned-response'>[canned response]</a>
     {% else%}
-      {{submission.response_text}} <a href='#' class='needs-response'>Fix</a>
+      {{guess.response_text}} <a href='#' class='needs-response'>Fix</a>
     {% endif  %}
     <form class='sub_form' action="/staff/queue/" method="post" style="display:none">
       {% csrf_token %}
       <p>
         <input id='id_response' maxlength='400' name='response' type='text'
-          value='{% if submission.response_text == '' %}Wrong answer{% else %}{{submission.response_text}}{% endif %}'>
-        <input type="hidden" name="sub_id" value="{{ submission.pk }}">
+          value='{% if guess.response_text == '' %}Wrong answer{% else %}{{guess.response_text}}{% endif %}'>
+        <input type="hidden" name="sub_id" value="{{ guess.pk }}">
         <input type="Submit" value="Send Response"/>
       </p>
     </form>

@@ -338,7 +338,7 @@ def puzzle_pdf_link(l):
 
 def puzzle_answer(l):
     # Submit answer to current puzzle using POST with some correctness chance
-    # 1 in 9 submissions is correct
+    # 1 in 9 guesss is correct
     puzzle_id = l.locust.puzzle_id
     if(random.random() < (1.0 / 9.0)):
         answer = "answer" + puzzle_id
@@ -413,12 +413,12 @@ def user_profile(l):
 
 def progress_main_page(l):
     response = url_all(l, better_get(l, "/staff/progress/"))
-    search_results = re.search(r"last_solve_pk = (.*);\n *last_unlock_pk = (.*);\n *last_submission_pk = (.*)", response.text)
+    search_results = re.search(r"last_solve_pk = (.*);\n *last_unlock_pk = (.*);\n *last_guess_pk = (.*)", response.text)
     if(search_results):
         set_ajax_args(l, "progress", {
             'last_solve_pk': search_results.group(1),
             'last_unlock_pk': search_results.group(2),
-            'last_submission_pk': search_results.group(3),
+            'last_guess_pk': search_results.group(3),
         })
     else:
         sys.stdout.write("progress_main_page could not find ajax: %s" % str(response.text))
@@ -426,7 +426,7 @@ def progress_main_page(l):
         set_ajax_args(l, "progress", {
             'last_solve_pk': 0,
             'last_unlock_pk': 0,
-            'last_submission_pk': 0,
+            'last_guess_pk': 0,
         })
 
     search_results = re.findall(r"id='p(.*)t(.*)' class='unavailable'", response.text)
@@ -452,7 +452,7 @@ def progress_ajax(l):
     response = better_get(l, "/staff/progress/?" +
         "last_solve_pk=" + str(get_ajax_args(l, "progress")['last_solve_pk']) +
         "&last_unlock_pk=" + str(get_ajax_args(l, "progress")['last_unlock_pk']) +
-        "&last_submission_pk=" + str(get_ajax_args(l, "progress")['last_submission_pk']),
+        "&last_guess_pk=" + str(get_ajax_args(l, "progress")['last_guess_pk']),
         headers=ajax_headers, name="/staff/progress/ AJAX")
     try:
         update_info = response.json()["update_info"]
@@ -460,7 +460,7 @@ def progress_ajax(l):
             set_ajax_args(l, "progress", {
                 'last_solve_pk': update_info[0],
                 'last_unlock_pk': update_info[1],
-                'last_submission_pk': update_info[2],
+                'last_guess_pk': update_info[2],
             })
     except:
         sys.stdout.write("progress_ajax could not find ajax: %s" % str(response.text))
@@ -478,7 +478,7 @@ def queue_main_page(l):
         sys.stdout.flush()
     set_ajax_args(l, "queue", {'last_date': last_date})
 
-    search_results = re.search(r"incorrect-replied *\n *submission.*data-id='(\d+)'>", response.text)
+    search_results = re.search(r"incorrect-replied *\n *guess.*data-id='(\d+)'>", response.text)
     if(search_results):
         l.locust.queue_sub_id = search_results.group(1)
     else:

@@ -12,7 +12,7 @@
 {% endblock includes %}
 
 {% block content %}
-<h1>Submission Queue</h1>
+<h1>Guess Queue</h1>
 
 <form method="GET" action="" class="form-inline">
   <select name="team_id" style="width: 200px;" class="form-control">
@@ -46,8 +46,8 @@
   </thead>
 
   <tbody id='sub_table'>
-    {% for submission in submission_list %}
-      {{ submission }}
+    {% for guess in guess_list %}
+      {{ guess }}
     {% endfor %}
   </tbody>
 </table>

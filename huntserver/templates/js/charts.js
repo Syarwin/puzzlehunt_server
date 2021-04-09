@@ -37,8 +37,8 @@ function drawStacked() {
   // Chart 2
   var data2 = new google.visualization.DataTable();
   data2.addColumn('string', 'Puzzle Name');
-  data2.addColumn('number', 'Correct submissions');
-  data2.addColumn('number', 'Incorrect submissions');
+  data2.addColumn('number', 'Correct guesss');
+  data2.addColumn('number', 'Incorrect guesss');
 
   data2.addRows([
     {% for point in data2_list %}
@@ -47,7 +47,7 @@ function drawStacked() {
   ]);
 
   var options2 = {
-    title: 'Puzzle submissions',
+    title: 'Puzzle guesss',
     isStacked: true,
     height: 500,
     width: 800,
@@ -95,7 +95,7 @@ function drawStacked() {
   // Chart 3
   var data3 = new google.visualization.DataTable();
   data3.addColumn('string', 'Hour');
-  data3.addColumn('number', '# Submissions');
+  data3.addColumn('number', '# Guesss');
 
   data3.addRows([
     {% for point in data3_list %}
@@ -104,7 +104,7 @@ function drawStacked() {
   ]);
 
   var options3 = {
-    title: 'Submissions over time',
+    title: 'Guesss over time',
     isStacked: true,
     height: 400,
     width: 800,

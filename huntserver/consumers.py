@@ -23,9 +23,38 @@ from django.db import transaction
 from django.db.models.signals import pre_save, post_save, pre_delete
 from django.dispatch import receiver
 from django.utils import timezone
-from .models import Puzzle, Hunt
+from .models import Puzzle, Hunt, Guess
 
 from . import models, utils
+
+
+
+def pre_save_handler(func):
+    """The purpose of this decorator is to connect signal handlers to consumer class methods.
+
+    Before the normal signature of the signal handler, func is passed the class (as a normal classmethod) and "old",
+    the instance in the database before save was called (or None). func will then be called after the current
+    transaction has been successfully committed, ensuring that the instance argument is stored in the database and
+    accessible via database connections in other threads, and that data is ready to be sent to clients."""
+    def inner(cls, sender, instance, *args, **kwargs):
+        try:
+            old = type(instance).objects.get(pk=instance.pk)
+        except ObjectDoesNotExist:
+            old = None
+
+        def after_commit():
+            func(cls, old, sender, instance, *args, **kwargs)
+
+        if transaction.get_autocommit():
+            # in this case we want to wait until *post* save so the new object is in the db, which on_commit
+            # will not do. Instead, do nothing but set an attribute on the instance to the callback, and
+            # call it later in a post_save receiver.
+            instance._hybrid_save_cb = after_commit
+        else:  # nocover
+            transaction.on_commit(after_commit)
+
+    return classmethod(inner)
+
 
 
 class TeamMixin:
@@ -46,23 +75,24 @@ class TeamMixin:
         return super().websocket_connect(message)
 
 
-class PuzzleWebsocket(TeamMixin, JsonWebsocketConsumer):
+class PuzzleWebsocket(JsonWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.connected = False
 
     @classmethod
     def _puzzle_groupname(cls, puzzle, team=None):
-        hunt = puzzle.hunt
         if team:
-            return f'hunt-{hunt.id}.puzzle-{puzzle.id}.events.team-{team.id}'
+            return f'puzzle-{puzzle.id}.events.team-{team.id}'
         else:
-            return f'hunt-{hunt.id}.puzzle-{puzzle.id}.events'
+            return f'puzzle-{puzzle.id}.events'
 
     def connect(self):
         keywords = self.scope['url_route']['kwargs']
         puzzle_id = keywords['puzzle_id']
         self.puzzle = get_object_or_404(Puzzle, puzzle_id__iexact=puzzle_id)
+        self.hunt = self.puzzle.episode.hunt
+        self.team = self.hunt.team_from_user(self.scope['user'])
         async_to_sync(self.channel_layer.group_add)(
             self._puzzle_groupname(self.puzzle, self.team), self.channel_name
         )
@@ -159,3 +189,69 @@ class PuzzleWebsocket(TeamMixin, JsonWebsocketConsumer):
         # have async versions.)
         await self.base_send.awaitable({'type': 'websocket.send', 'text': self.encode_json(self._new_hint_json(hint))})
         del self.hint_events[hint.id]
+
+
+
+
+
+
+    @classmethod
+    def _new_guess_json(cls, guess):
+        #correct = guess.get_correct_for() is not None
+        content = {
+            'timestamp': str(guess.given),
+            'guess': guess.guess,
+            'guess_uid': guess.compact_id,
+            'correct': False, #correct,
+            'by': guess.by.username,
+        }
+
+        return content
+
+    @classmethod
+    def send_new_guess(cls, guess):
+        content = cls._new_guess_json(guess)
+
+        cls._send_message(cls._puzzle_groupname(guess.for_puzzle, guess.by_team), {
+            'type': 'new_guess',
+            'content': content
+        })
+
+
+    # handler: Guess.pre_save
+    @pre_save_handler
+    def _saved_guess(cls, old, sender, guess, raw, *args, **kwargs):
+        # Do not trigger unless this was a newly created guess.
+        # Note this means an admin modifying a guess will not trigger anything.
+        if raw:  # nocover
+            return
+        if old:
+            return
+
+        """
+        # required info:
+        # guess, correctness, new unlocks, timestamp, whodunnit
+        all_unlocks = models.Unlock.objects.filter(
+            puzzle=guess.for_puzzle
+        ).select_related(
+            'puzzle'
+        ).prefetch_related(
+            'unlockanswer_set',
+            'hint_set'
+        )
+        for u in all_unlocks:
+            if any([a.validate_guess(guess) for a in u.unlockanswer_set.all()]):
+                cls.send_new_unlock(guess, u)
+            for hint in u.hint_set.all():
+                layer = get_channel_layer()
+                # It is impossible for a hint to already be unlocked if it's dependent on what we just entered,
+                # so we just schedule it here rather than checking if it's unlocked and perhaps sending straight away.
+                async_to_sync(layer.group_send)(cls._puzzle_groupname(guess.for_puzzle, guess.by_team), {
+                    'type': 'schedule_hint_msg',
+                    'hint_uid': str(hint.id)
+                })
+        """
+        cls.send_new_guess(guess)
+
+
+#pre_save.connect(PuzzleEventWebsocket._saved_guess, sender=models.Guess)

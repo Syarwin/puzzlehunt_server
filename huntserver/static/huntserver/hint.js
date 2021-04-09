@@ -91,14 +91,14 @@ jQuery(document).ready(function($) {
   });
 
   // receive a message though the websocket from the server
-  function receiveMessage(submission) {
+  function receiveMessage(guess) {
     $("#no_hint_message").hide();
-    submission = $(submission);
-    pk = submission.data('id');
+    guess = $(guess);
+    pk = guess.data('id');
     if ($('tr[data-id=' + pk + ']').length == 0) {
-      submission.prependTo("#hint_table");
+      guess.prependTo("#hint_table");
     } else {
-      $('tr[data-id=' + pk + ']').replaceWith(submission);
+      $('tr[data-id=' + pk + ']').replaceWith(guess);
     }
   }
 });

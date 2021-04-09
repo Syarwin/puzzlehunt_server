@@ -19,7 +19,7 @@ $(document).ready(function() {
       if (document.title[0] == '[') {
         document.title = title;
       } else {
-        document.title = '[' + title + '] - New Submissions';
+        document.title = '[' + title + '] - New Guesss';
       }
     } else {
       document.title = title;
@@ -33,7 +33,7 @@ $(document).ready(function() {
       data: {last_date: last_date, all: true, puzzle_id: puzzle_id, team_id: team_id},
       success: function (response) {
         var response = JSON.parse(response);
-        messages = response.submission_list;
+        messages = response.guess_list;
         if(messages.length > 0){
           for (var i = 0; i < messages.length; i++) {
             receiveMessage(messages[i]);
@@ -57,7 +57,7 @@ $(document).ready(function() {
       data: $(this).serialize(),
       success: function (response) {
         response = JSON.parse(response);
-        old_row.replaceWith($(response.submission_list[0]));
+        old_row.replaceWith($(response.guess_list[0]));
         $('.sub_form').on('submit', formListener);
       },
       error: function (jXHR, textStatus, errorThrown) {
@@ -66,20 +66,20 @@ $(document).ready(function() {
     });
   }
 
-  function receiveMessage(submission) {
-    submission = $(submission);
-    pk = submission.data('id');
+  function receiveMessage(guess) {
+    guess = $(guess);
+    pk = guess.data('id');
     if ($('tr[data-id=' + pk + ']').length == 0) {
-      if(!submission.hasClass('correct')) {
+      if(!guess.hasClass('correct')) {
         flashing = !focused;
         $('audio')[0].play();
       }
-      submission.prependTo("#sub_table");
+      guess.prependTo("#sub_table");
       if($('#sub_table tr').length >= 30){
         $('#sub_table tr:last').remove();
       }
     } else {
-      $('tr[data-id=' + pk + ']').replaceWith(submission);
+      $('tr[data-id=' + pk + ']').replaceWith(guess);
     }
     $('.sub_form').on('submit', formListener);
   }

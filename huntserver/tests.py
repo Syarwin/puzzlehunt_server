@@ -91,10 +91,10 @@ class nonWebTests(TestCase):
         puzzle = models.Puzzle.objects.get(pk=5)
         team = models.Team.objects.get(pk=2)
 
-        models.Submission.objects.create(team=team, submission_time=timezone.now(), puzzle=puzzle,
-                                         submission_text="foobar", modified_date=timezone.now())
+        models.Guess.objects.create(team=team, guess_time=timezone.now(), puzzle=puzzle,
+                                         guess_text="foobar", modified_date=timezone.now())
         models.PuzzleSolve.objects.create(puzzle=puzzle, team=team,
-                                    submission=models.Submission.objects.all()[0])
+                                    guess=models.Guess.objects.all()[0])
         models.PuzzleUnlock.objects.create(puzzle=puzzle, team=team, time=timezone.now())
         models.Unlockable.objects.create(puzzle=puzzle, content_type="TXT", content="foobar")
 
@@ -103,7 +103,7 @@ class nonWebTests(TestCase):
         str(models.Puzzle.objects.all()[0])
         str(models.Person.objects.all()[0])
         # str(models.Person.objects.all()[-1])
-        str(models.Submission.objects.all()[0])
+        str(models.Guess.objects.all()[0])
         str(models.PuzzleSolve.objects.all()[0])
         str(models.PuzzleUnlock.objects.all()[0])
         str(models.Unlockable.objects.all()[0])
@@ -463,8 +463,8 @@ class StaffTests(TestCase):
 
         puzzle = models.Puzzle.objects.all()[0]
         team = models.Team.objects.all()[0]
-        s = models.Submission.objects.create(submission_text="bad answer", puzzle=puzzle,
-                                             submission_time=timezone.now(), team=team)
+        s = models.Guess.objects.create(guess_text="bad answer", puzzle=puzzle,
+                                             guess_time=timezone.now(), team=team)
         post_context = {'response': "Wrong answer", 'sub_id': str(s.pk)}
         response = self.client.post(reverse('huntserver:queue'), post_context)
         self.assertEqual(response.status_code, 200)
@@ -484,7 +484,7 @@ class StaffTests(TestCase):
         "Test the staff progress view"
         login(self, 'admin')
         response = get_and_check_page(self, 'huntserver:progress', 200)
-        ajax_args = {'last_solve_pk': '0', 'last_submission_pk': '0', 'last_unlock_pk': '0'}
+        ajax_args = {'last_solve_pk': '0', 'last_guess_pk': '0', 'last_unlock_pk': '0'}
         response = ajax_and_check_page(self, 'huntserver:progress', 200, ajax_args)
         response = ajax_and_check_page(self, 'huntserver:progress', 404, {'last_solve_pk': '1'})
         solve_puzzle_from_admin(self)
@@ -583,8 +583,8 @@ admin.py
 Saving models
 
 hunt_views.py
-puzzle view submission with no team
-puzzle view submission with excecption case?
+puzzle view guess with no team
+puzzle view guess with excecption case?
 puzzle view ajax with no team
 puzzle view ajax with exception case?
 chat view ajax something about messages?
@@ -599,7 +599,7 @@ unicode on all models
 staff_views.py
 queue page exceptions (not possible?)
 progress ajax as non-staff (not possible?)
-progress normal page with no submissions
+progress normal page with no guesss
 
 bootstrap_tags.py
 call the tag with bad data?
