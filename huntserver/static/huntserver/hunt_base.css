@@ -119,6 +119,7 @@ h3.episode-header a.collapsed::after {
 
 .puzzle-holder {
   flex-grow:1;
+  max-height: calc(100% - 100px);
 }
 
 .puzzle-holder div.centered {
@@ -155,6 +156,12 @@ h3.episode-header a.collapsed::after {
   font-size: 90%;
   border-bottom: 1px solid #312c2c9c;
   margin-bottom:0.5rem;
+}
+
+img.fit-inside {
+  object-fit: contain;
+  max-height: 100%;
+  max-width: 100%;
 }
 
 
