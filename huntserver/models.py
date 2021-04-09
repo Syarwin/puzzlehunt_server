@@ -640,7 +640,7 @@ class Team(models.Model):
         self.unlocked.clear()
         self.puzzlesolve_set.all().delete()
         self.solved.clear()
-        self.submission_set.all().delete()
+        self.guess_set.all().delete()
         self.num_unlock_points = 0
         self.save()
 
@@ -687,15 +687,15 @@ class Person(models.Model):
             return name
 
 
-class Submission(models.Model):
-    """ A class representing a submission to a given puzzle from a given team """
+class Guess(models.Model):
+    """ A class representing a guess to a given puzzle from a given team """
 
     team = models.ForeignKey(
         Team,
         on_delete=models.CASCADE,
-        help_text="The team that made the submission")
-    submission_time = models.DateTimeField()
-    submission_text = models.CharField(
+        help_text="The team that made the guess")
+    guess_time = models.DateTimeField()
+    guess_text = models.CharField(
         max_length=100)
     response_text = models.CharField(
         blank=True,
@@ -704,24 +704,24 @@ class Submission(models.Model):
     puzzle = models.ForeignKey(
         Puzzle,
         on_delete=models.CASCADE,
-        help_text="The puzzle that this submission is in response to")
+        help_text="The puzzle that this guess is in response to")
     modified_date = models.DateTimeField(
         help_text="Last date/time of response modification")
 
     def serialize_for_ajax(self):
         """ Serializes the time, puzzle, team, and status fields for ajax transmission """
         message = dict()
-        df = DateFormat(self.submission_time.astimezone(time_zone))
+        df = DateFormat(self.guess_time.astimezone(time_zone))
         message['time_str'] = df.format("h:i a")
         message['puzzle'] = self.puzzle.serialize_for_ajax()
         message['team_pk'] = self.team.pk
-        message['status_type'] = "submission"
+        message['status_type'] = "guess"
         return message
 
     @property
     def is_correct(self):
-        """ A boolean indicating if the submission given is exactly correct """
-        return self.submission_text.upper() == self.puzzle.answer.upper()
+        """ A boolean indicating if the guess given is exactly correct """
+        return self.guess_text.upper() == self.puzzle.answer.upper()
 
     @property
     def convert_markdown_response(self):
@@ -731,23 +731,23 @@ class Submission(models.Model):
     def save(self, *args, **kwargs):
         """ Overrides the default save function to update the modified date on save """
         self.modified_date = timezone.now()
-        super(Submission, self).save(*args, **kwargs)
+        super(Guess, self).save(*args, **kwargs)
 
     def create_solve(self):
-        """ Creates a solve based on this submission """
-        PuzzleSolve.objects.create(puzzle=self.puzzle, team=self.team, submission=self)
+        """ Creates a solve based on this guess """
+        PuzzleSolve.objects.create(puzzle=self.puzzle, team=self.team, guess=self)
         logger.info("Team %s correctly solved puzzle %s" % (str(self.team.team_name),
                                                             str(self.puzzle.puzzle_id)))
 
-    # Automatic submission response system
+    # Automatic guess response system
     # Returning an empty string means that huntstaff should respond via the queue
     # Order of response importance: Regex, Defaults, Staff response.
     def respond(self):
-        """ Takes the submission's text and uses various methods to craft and populate a response.
+        """ Takes the guess's text and uses various methods to craft and populate a response.
             If the response is correct a solve is created and the correct puzzles are unlocked """
         # Compare against correct answer
         if(self.is_correct):
-            # Make sure we don't have duplicate or after hunt submission objects
+            # Make sure we don't have duplicate or after hunt guess objects
             if(not self.puzzle.hunt.is_public):
                 if(self.puzzle not in self.team.solved.all()):
                     self.create_solve()
@@ -760,7 +760,7 @@ class Submission(models.Model):
 
         # Check against regexes
         for resp in self.puzzle.eureka_set.all():
-            if(re.match(resp.regex, self.submission_text, re.IGNORECASE)):
+            if(re.match(resp.regex, self.guess_text, re.IGNORECASE)):
                 response = resp.feedback
                 break
         else:  # Give a default response if no regex matches
@@ -770,7 +770,7 @@ class Submission(models.Model):
                 # Current philosphy is to auto-can wrong answers: If it's not right, it's wrong
                 response = "Wrong Answer."
                 logger.info("Team %s incorrectly guessed %s for puzzle %s" %
-                            (str(self.team.team_name), str(self.submission_text),
+                            (str(self.team.team_name), str(self.guess_text),
                              str(self.puzzle.puzzle_id)))
 
         self.response_text = response
@@ -783,7 +783,7 @@ class Submission(models.Model):
         self.save()
 
     def __str__(self):
-        return self.submission_text
+        return self.guess_text
 
 
 
@@ -798,11 +798,11 @@ class PuzzleSolve(models.Model):
         Team,
         on_delete=models.CASCADE,
         help_text="The team that this solve is from")
-    submission = models.ForeignKey(
-        Submission,
+    guess = models.ForeignKey(
+        Guess,
         blank=True,
         on_delete=models.CASCADE,
-        help_text="The submission object that the team submitted to solve the puzzle")
+        help_text="The guess object that the team submitted to solve the puzzle")
 
     class Meta:
         unique_together = ('puzzle', 'team',)
@@ -812,7 +812,7 @@ class PuzzleSolve(models.Model):
         message = dict()
         message['puzzle'] = self.puzzle.serialize_for_ajax()
         message['team_pk'] = self.team.pk
-        time = self.submission.submission_time
+        time = self.guess.guess_time
         df = DateFormat(time.astimezone(time_zone))
         message['time_str'] = df.format("h:i a")
         message['status_type'] = "solve"
@@ -892,7 +892,7 @@ class Eureka(models.Model):
         help_text="The python-style regex that will be checked against the user's response")
     answer = models.CharField(
         max_length=400,
-        help_text="The text to use in the submission response if the regex matched")
+        help_text="The text to use in the guess response if the regex matched")
     feedback = models.CharField(
         max_length=255,
         blank=True,

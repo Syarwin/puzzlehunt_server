@@ -1,5 +1,44 @@
+function message(message, type = "danger") {
+  var error_msg = $('<div class="alert alert-dismissible alert-' + type + '">' + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
+  error_msg.appendTo($('#guess-feedback'))//.delay(3000).fadeOut(2000, function(){$(this).remove()})
+}
+
+
+
+var guesses = [];
+
+function addGuess(user, guess, correct, guess_uid) {
+  var guesses_table = $('#guesses');
+  guesses_table.prepend('<li><span class="guess-user">' + encode(user) + '</span><span class="guess-value">' + encode(guess) + '</span>></li>')
+  guesses.push(guess_uid)
+}
+
+function receivedNewAnswer(content) {
+  if (!guesses.includes(content.guess_uid)) {
+    addAnswer(content.by, content.guess, content.correct, content.guess_uid)
+
+/*
+    if (content.correct) {
+      var message = $('#correct-answer-message')
+      var html = `"${content.guess} was correct! Taking you ${content.text}. <a class="puzzle-complete-redirect" href="${content.redirect}">go right now</a>`
+      if (message.length) {
+        // The server already replied so we already put up a temporary message; just update it
+        message.html(html)
+      } else {
+        // That did not happen, so add the message
+        var form = $('.form-inline')
+        form.after(`<div id="correct-answer-message">${html}</div>`)
+        form.remove()
+      }
+      setTimeout(function () {window.location.href = content.redirect}, 3000)
+    }
+*/
+  }
+}
+
+
 function receivedNewHint(content) {
-  console.log(content);
+  message(content.hint);
 }
 
 function receivedError(content) {
@@ -10,6 +49,7 @@ function receivedError(content) {
 function openEventSocket() {
   const socketHandlers = {
     'new_hint': receivedNewHint,
+    'new_guess': receivedNewAnswer,
     'error': receivedError,
   }
 
@@ -42,6 +82,56 @@ function openEventSocket() {
     */
   }
 }
+
+
+
+$(function() {
+  openEventSocket()
+
+  let field = $('#answer-entry')
+
+  $('#guess-form').submit(function(e) {
+    e.preventDefault()
+    console.log("test");
+    if (!field.val()) {
+      field.focus()
+      return
+    }
+
+    var data = {
+      answer: field.val(),
+    }
+    console.log(data);
+    $.ajax({
+      type: 'POST',
+      url: '',
+      data: $.param(data),
+      contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+      /*
+      success: function(data) {
+        field.val('')
+        fieldKeyup()
+        if (data.correct == 'true') {
+          correct_answer()
+        } else {
+          incorrect_answer(data.guess, data.timeout_length, data.timeout_end, data.unlocks)
+        }
+      },
+      error: function(xhr, status, error) {
+        button.removeData('cooldown')
+        if (xhr.responseJSON && xhr.responseJSON.error == 'too fast') {
+          message('Slow down there, sparky! You\'re supposed to wait 5s between guesss.', '')
+        } else if (xhr.responseJSON && xhr.responseJSON.error == 'already answered') {
+          message('Your team has already correctly answered this puzzle!', '')
+        } else {
+          message('There was an error submitting the answer.', error)
+        }
+      },
+      */
+      dataType: 'json',
+    })
+  })
+})
 
 
 
@@ -80,7 +170,7 @@ jQuery(document).ready(function($) {
         data: {last_date: last_date},
         success: function (response) {
           var response = JSON.parse(response);
-          messages = response.submission_list;
+          messages = response.guess_list;
           if(messages.length > 0){
             ajax_delay = 3;
             for (var i = 0; i < messages.length; i++) {
@@ -136,7 +226,7 @@ jQuery(document).ready(function($) {
       data: $(this).serialize(),
       error: function (jXHR, textStatus, errorThrown) {
         if(jXHR.status == 403){
-          error = "Submission rejected due to exessive guessing."
+          error = "Guess rejected due to exessive guessing."
           $("<tr><td colspan = 3><i>" + error +"</i></td></tr>").prependTo("#sub_table");
         } else {
           var response = JSON.parse(jXHR.responseText);
@@ -150,22 +240,22 @@ jQuery(document).ready(function($) {
         ajax_delay = 3;
         ajax_timeout = setTimeout(get_posts, ajax_delay*1000);
         response = JSON.parse(response);
-        receiveMessage(response.submission_list[0]);
+        receiveMessage(response.guess_list[0]);
       }
     });
     $('#id_answer').val('');
   });
 
   // receive a message though the websocket from the server
-  function receiveMessage(submission) {
-    submission = $(submission);
-    pk = submission.data('id');
+  function receiveMessage(guess) {
+    guess = $(guess);
+    pk = guess.data('id');
     if ($('tr[data-id=' + pk + ']').length == 0) {
-      submission.prependTo("#sub_table");
+      guess.prependTo("#sub_table");
     } else {
-      $('tr[data-id=' + pk + ']').replaceWith(submission);
+      $('tr[data-id=' + pk + ']').replaceWith(guess);
     }
-    if(submission.data('correct') == "True") {
+    if(guess.data('correct') == "True") {
       $("#id_answer").prop("disabled", true);
       $('button[type="submit"]').addClass("disabled");
       $('button[type="submit"]').attr('disabled', 'disabled');

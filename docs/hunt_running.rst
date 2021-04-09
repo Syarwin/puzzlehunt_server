@@ -61,19 +61,19 @@ Queue Page
 ----------
 
 The queue page shows team's puzzle answer guesses as they come in. The main
-table on the page has one row for each submission. As the table header says, the
-table shows the team, the puzzle, the submission, the submission time, and the
-response. The row will be color coded for each submission: red for wrong and
+table on the page has one row for each guess. As the table header says, the
+table shows the team, the puzzle, the guess, the guess time, and the
+response. The row will be color coded for each guess: red for wrong and
 green for correct.
 
 The response column also has a "Fix" link next to each response. Clicking it
-will bring up a form where you can edit the response to the submission. The
+will bring up a form where you can edit the response to the guess. The
 edited response will automatically be pushed to the team's puzzle page. This can
 be used to nudge a team in the correct direction if they are close or have
 possibly just misspelled something.
 
 Above the table there are two dropdown selectors and a "Filter" button. These
-can be used to filter the shown submissions on the queue page by Team or Puzzle.
+can be used to filter the shown guesss on the queue page by Team or Puzzle.
 
 Chat Page
 ---------
@@ -96,7 +96,7 @@ Hints Page
 ----------
 
 The hints page allows you to see hints that teams have requested and respond to
-them. Hints will appear one on top of another just like submissions on the queue
+them. Hints will appear one on top of another just like guesss on the queue
 page. In addition to the puzzle and team filters like the ones on the queue
 page, the hint page also has a "Filter by Status" dropdown that lets you view
 only the answered or unanswered hints.
@@ -143,7 +143,7 @@ allows the downloading of resources for any chosen prepuzzle.
 
 Finally, there is a single button at the bottom of the page titled "Reset all
 progress". This button resets all team interaction that has happened so far with
-a hunt, all submissions, responses, unlocks, solves, hints, and chat messages
+a hunt, all guesss, responses, unlocks, solves, hints, and chat messages
 are deleted. This is normally only used once between playtesting and the start
 of the hunt.
 

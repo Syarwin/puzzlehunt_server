@@ -228,15 +228,15 @@ class HintAdmin(admin.ModelAdmin):
 
 class PuzzleSolveAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'solve_time']
-    autocomplete_fields = ['team', 'submission']
+    autocomplete_fields = ['team', 'guess']
 
     def solve_time(self, solve):
-        return solve.submission.submission_time
+        return solve.guess.guess_time
 
 
-class SubmissionAdmin(admin.ModelAdmin):
-    search_fields = ['submission_text']
-    list_display = ['submission_text', short_team_name, 'submission_time']
+class GuessAdmin(admin.ModelAdmin):
+    search_fields = ['guess_text']
+    list_display = ['guess_text', short_team_name, 'guess_time']
     autocomplete_fields = ['team']
 
 
@@ -363,7 +363,7 @@ admin.site.register(models.Puzzle,     PuzzleAdmin)
 admin.site.register(models.Eureka,     EurekaAdmin)
 admin.site.register(models.Hint,       HintAdmin)
 admin.site.register(models.PuzzleSolve,PuzzleSolveAdmin)
-admin.site.register(models.Submission, SubmissionAdmin)
+admin.site.register(models.Guess, GuessAdmin)
 admin.site.register(models.Team,       TeamAdmin)
 #admin.site.register(models.Unlockable)
 admin.site.register(models.PuzzleUnlock, PuzzleUnlockAdmin)

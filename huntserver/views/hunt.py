@@ -2,6 +2,8 @@ from datetime import datetime
 from dateutil import tz
 from django.conf import settings
 from ratelimit.utils import is_ratelimited
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseForbidden
 from django.http import HttpResponseBadRequest
@@ -18,7 +20,7 @@ import json
 import os
 import re
 
-from huntserver.models import Puzzle, Hunt, Submission, Unlockable, Prepuzzle
+from huntserver.models import Puzzle, Hunt, Guess, Unlockable, Prepuzzle
 from huntserver.forms import AnswerForm
 from .mixin import RequiredTeamMixin
 
@@ -105,7 +107,7 @@ class HuntIndex(View):
 
 def prepuzzle(request, prepuzzle_num):
     """
-    A view to handle answer submissions via POST and render the prepuzzle's template.
+    A view to handle answer guesss via POST and render the prepuzzle's template.
     """
 
     puzzle = Prepuzzle.objects.get(pk=prepuzzle_num)
@@ -160,9 +162,10 @@ def get_ratelimit_key(group, request):
     return request.ratelimit_key
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class PuzzleView(View):
     """
-    A view to handle answer submissions via POST, handle response update requests via AJAX, and
+    A view to handle answer guesss via POST, handle response update requests via AJAX, and
     render the basic per-puzzle pages.
     """
 
@@ -205,8 +208,10 @@ class PuzzleView(View):
 
 
     def post(self, request, puzzle_id):
-        # Dealing with answer submissions, proper procedure is to create a submission
-        # object and then rely on Submission.respond for automatic responses.
+        return HttpResponse("Coucou")
+
+        # Dealing with answer guesss, proper procedure is to create a guess
+        # object and then rely on Guess.respond for automatic responses.
         if(team is None):
             if(puzzle.hunt.is_public):
                 team = puzzle.hunt.dummy_team
@@ -219,8 +224,8 @@ class PuzzleView(View):
 
         if form.is_valid():
             user_answer = form.cleaned_data['answer']
-            s = Submission.objects.create(submission_text=user_answer, team=team,
-                                          puzzle=puzzle, submission_time=timezone.now())
+            s = Guess.objects.create(guess_text=user_answer, team=team,
+                                          puzzle=puzzle, guess_time=timezone.now())
             s.respond()
         else:
             s = None
@@ -228,7 +233,7 @@ class PuzzleView(View):
         # Deal with answers for public hunts
         if(puzzle.hunt.is_public):
             if(s is None):
-                response = "Invalid Submission"
+                response = "Invalid Guess"
                 is_correct = None
             else:
                 response = s.response_text
@@ -242,38 +247,38 @@ class PuzzleView(View):
             return HttpResponseBadRequest(form.errors.as_json())
 
         # Render response to HTML for live hunts
-        submission_list = [render_to_string('puzzle_sub_row.html', {'submission': s})]
+        guess_list = [render_to_string('puzzle_sub_row.html', {'guess': s})]
 
         try:
-            last_date = Submission.objects.latest('modified_date').modified_date.strftime(DT_FORMAT)
-        except Submission.DoesNotExist:
+            last_date = Guess.objects.latest('modified_date').modified_date.strftime(DT_FORMAT)
+        except Guess.DoesNotExist:
             last_date = timezone.now().strftime(DT_FORMAT)
 
         # Send back rendered response for display
-        context = {'submission_list': submission_list, 'last_date': last_date}
+        context = {'guess_list': guess_list, 'last_date': last_date}
         return HttpResponse(json.dumps(context))
 
 
 
     def ajax(self, request, puzzle_id):
-        # Will return HTML rows for all submissions the user does not yet have
+        # Will return HTML rows for all guesss the user does not yet have
         if(team is None):
             return HttpResponseNotFound('access denied')
 
         # Find which objects the user hasn't seen yet and render them to HTML
         last_date = datetime.strptime(request.GET.get("last_date"), DT_FORMAT)
         last_date = last_date.replace(tzinfo=tz.gettz('UTC'))
-        submissions = Submission.objects.filter(modified_date__gt=last_date)
-        submissions = submissions.filter(team=team, puzzle=puzzle)
-        submission_list = [render_to_string('puzzle_sub_row.html', {'submission': submission})
-                           for submission in submissions]
+        guesss = Guess.objects.filter(modified_date__gt=last_date)
+        guesss = guesss.filter(team=team, puzzle=puzzle)
+        guess_list = [render_to_string('puzzle_sub_row.html', {'guess': guess})
+                           for guess in guesss]
 
         try:
-            last_date = Submission.objects.latest('modified_date').modified_date.strftime(DT_FORMAT)
-        except Submission.DoesNotExist:
+            last_date = Guess.objects.latest('modified_date').modified_date.strftime(DT_FORMAT)
+        except Guess.DoesNotExist:
             last_date = timezone.now().strftime(DT_FORMAT)
 
-        context = {'submission_list': submission_list, 'last_date': last_date}
+        context = {'guess_list': guess_list, 'last_date': last_date}
         return HttpResponse(json.dumps(context))
 
 

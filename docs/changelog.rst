@@ -26,7 +26,7 @@ Updates:
 
 Bugfixes:
    - Don't ratelimit by team for past hunts
-   - Removed hint submission box when hunt is public
+   - Removed hint guess box when hunt is public
    - Display end date for multi-day hunts
    - Fix flatpages deployment bugs
    - More hint bugfixes
@@ -64,8 +64,8 @@ Updates:
    - Teams can now register in the 2 days before the hunt but cannot request a room
    - Updated text on index and hunt info pages to work for multi-day hunts
    - Due to points/time puzzles, playtest teams now must have a start and end date/time
-   - The submission box now goes away after a team submits a correct answer
-   - Removed the "submissions after solve" chart on the admin "Charts" page
+   - The guess box now goes away after a team submits a correct answer
+   - Removed the "guesss after solve" chart on the admin "Charts" page
    - Removed the hidden "depgraph" staff page
    - Tweaked ratelimits, they are now more restrictive
    - The test suite no longer requires internet access to run
@@ -154,9 +154,9 @@ v3.2.0
 ======
 
 New:
-   - Common punctuation ( _-;:+,.!?) is now automatically stripped from puzzle answer submissions
+   - Common punctuation ( _-;:+,.!?) is now automatically stripped from puzzle answer guesss
    - All string fields now support unicode characters
-   - Puzzle answer submissions are now ratelimited to 10 submissions per minute
+   - Puzzle answer guesss are now ratelimited to 10 guesss per minute
    - New charts and other info on charts page
    - Puzzle pages now show a solve count
    - Teams can now update their name before the hunt starts from the team management page
@@ -178,7 +178,7 @@ v3.1.0
 New:
    -  Users can now update their profile information including name, email, phone, and food preferences
    -  Teams can now update their own location from the registration page
-   -  Automatic submission responses now support markdown style links
+   -  Automatic guess responses now support markdown style links
    -  Progress page now has a button to unlock a specific puzzle for all teams
    -  New 404 and 500 error pages to match website's style
 
@@ -264,7 +264,7 @@ New:
    ======
 
    New:
-      -  Progress page now shows last submission time for unsolved team/puzzle squares
+      -  Progress page now shows last guess time for unsolved team/puzzle squares
       -  Staff chat now supports announcements to all teams
       -  Added 3 new charts to the staff charts page
 
@@ -327,7 +327,7 @@ New:
 
    Bugfixes:
       -  Fixed bug where correct answers on old hunts were styled as wrong answers
-      -  Fixed bug where puzzle page would "lose" a submission response
+      -  Fixed bug where puzzle page would "lose" a guess response
 
    v2.5.0
    ======
@@ -346,11 +346,11 @@ New:
 
    New:
       -  Staff queue now is paginated for faster load times
-      -  Submissions may now be computationally responded to using regexes
+      -  Guesss may now be computationally responded to using regexes
       -  Old hunts are now preserved properly and playable
       -  Server now supports "Playtesting" teams who get early access to puzzles
       -  AJAX requests now only fire when the page is active to reduce web traffic
-      -  Correct answer submissions may now have response texts other than "Correct!"
+      -  Correct answer guesss may now have response texts other than "Correct!"
       -  Support for running simultaneous development server(s)
 
          -  Identifying header when on development server
@@ -368,7 +368,7 @@ New:
    Bugfixes:
       -  Fixed bug where staff members had to be on a team for the queue to update
       -  Fixed bug where local clock skew would cause the queue to miss updates
-      -  Fixed bug where AJAX would fail if there weren't any submissions yet
+      -  Fixed bug where AJAX would fail if there weren't any guesss yet
       -  Shibboleth will now default to local login when not configured
       -  Removed unnessecary CSRF token from certain GET requests
 
@@ -491,7 +491,7 @@ New:
       -  Static file access is now protected by unlock structure
 
    Updates:
-      -  Answer box now clears upon submission
+      -  Answer box now clears upon guess
       -  Puzzle image quality improved
       -  Code is better commented
       -  Important private settings have been moved to an untracked file
@@ -547,7 +547,7 @@ New:
 
    New:
       -  Added Login, Landing, Puzzle and Queue pages
-      -  Added answer submission on puzzle page and answer viewing on queue page
+      -  Added answer guess on puzzle page and answer viewing on queue page
       -  Added websocket functionality to allow Puzzle and Queue pages to update live
 
    v0.1.0

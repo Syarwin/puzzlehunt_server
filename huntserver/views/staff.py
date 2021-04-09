@@ -18,8 +18,8 @@ import json
 from copy import deepcopy
 # from silk.profiling.profiler import silk_profile
 
-from huntserver.models import Submission, Hunt, Team, Puzzle, PuzzleUnlock, PuzzleSolve, Prepuzzle, Person
-from huntserver.forms import SubmissionForm, UnlockForm, EmailForm, LookupForm
+from huntserver.models import Guess, Hunt, Team, Puzzle, PuzzleUnlock, PuzzleSolve, Prepuzzle, Person
+from huntserver.forms import GuessForm, UnlockForm, EmailForm, LookupForm
 
 DT_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
@@ -32,70 +32,70 @@ def add_apps_to_context(context, request):
 @staff_member_required
 def queue(request):
     """
-    A view to handle queue response updates via POST, handle submission update requests via AJAX,
-    and render the queue page. Submissions are pre-rendered for standard and AJAX requests.
+    A view to handle queue response updates via POST, handle guess update requests via AJAX,
+    and render the queue page. Guesss are pre-rendered for standard and AJAX requests.
     """
 
     if request.method == 'POST':
-        form = SubmissionForm(request.POST)
+        form = GuessForm(request.POST)
         if not form.is_valid():
             return HttpResponse(status=400)
         response = form.cleaned_data['response']
-        s = Submission.objects.get(pk=form.cleaned_data['sub_id'])
+        s = Guess.objects.get(pk=form.cleaned_data['sub_id'])
         s.update_response(response)
-        submissions = [s]
+        guesss = [s]
 
     elif request.is_ajax():
         last_date = datetime.strptime(request.GET.get("last_date"), DT_FORMAT)
         last_date = last_date.replace(tzinfo=tz.gettz('UTC'))
-        submissions = Submission.objects.filter(modified_date__gt=last_date)
-        submissions = submissions.exclude(team__location="DUMMY")
+        guesss = Guess.objects.filter(modified_date__gt=last_date)
+        guesss = guesss.exclude(team__location="DUMMY")
         team_id = request.GET.get("team_id")
         puzzle_id = request.GET.get("puzzle_id")
         if(team_id and team_id != "None"):
-            submissions = submissions.filter(team__pk=team_id)
+            guesss = guesss.filter(team__pk=team_id)
         if(puzzle_id and puzzle_id != "None"):
-            submissions = submissions.filter(puzzle__pk=puzzle_id)
+            guesss = guesss.filter(puzzle__pk=puzzle_id)
 
     else:
         page_num = request.GET.get("page_num")
         team_id = request.GET.get("team_id")
         puzzle_id = request.GET.get("puzzle_id")
         hunt = Hunt.objects.get(is_current_hunt=True)
-        submissions = Submission.objects.filter(puzzle__hunt=hunt).exclude(team__location="DUMMY")
+        guesss = Guess.objects.filter(puzzle__hunt=hunt).exclude(team__location="DUMMY")
         arg_string = ""
         if(team_id):
             team_id = int(team_id)
-            submissions = submissions.filter(team__pk=team_id)
+            guesss = guesss.filter(team__pk=team_id)
             arg_string = arg_string + ("&team_id=%s" % team_id)
         if(puzzle_id):
             puzzle_id = int(puzzle_id)
-            submissions = submissions.filter(puzzle__pk=puzzle_id)
+            guesss = guesss.filter(puzzle__pk=puzzle_id)
             arg_string = arg_string + ("&puzzle_id=%s" % puzzle_id)
-        submissions = submissions.select_related('team', 'puzzle').order_by('-pk')
-        pages = Paginator(submissions, 30)
+        guesss = guesss.select_related('team', 'puzzle').order_by('-pk')
+        pages = Paginator(guesss, 30)
         try:
-            submissions = pages.page(page_num)
+            guesss = pages.page(page_num)
         except PageNotAnInteger:
-            submissions = pages.page(1)
+            guesss = pages.page(1)
         except EmptyPage:
-            submissions = pages.page(pages.num_pages)
+            guesss = pages.page(pages.num_pages)
 
-    form = SubmissionForm()
+    form = GuessForm()
     try:
-        last_date = Submission.objects.latest('modified_date').modified_date.strftime(DT_FORMAT)
-    except Submission.DoesNotExist:
+        last_date = Guess.objects.latest('modified_date').modified_date.strftime(DT_FORMAT)
+    except Guess.DoesNotExist:
         last_date = timezone.now().strftime(DT_FORMAT)
-    submission_list = [render_to_string('queue_row.html', {'submission': submission},
+    guess_list = [render_to_string('queue_row.html', {'guess': guess},
                                         request=request)
-                       for submission in submissions]
+                       for guess in guesss]
 
     if request.is_ajax() or request.method == 'POST':
-        context = {'submission_list': submission_list, 'last_date': last_date}
+        context = {'guess_list': guess_list, 'last_date': last_date}
         return HttpResponse(json.dumps(context))
     else:
-        context = {'form': form, 'page_info': submissions, 'arg_string': arg_string,
-                   'submission_list': submission_list, 'last_date': last_date, 'hunt': hunt,
+        context = {'form': form, 'page_info': guesss, 'arg_string': arg_string,
+                   'guess_list': guess_list, 'last_date': last_date, 'hunt': hunt,
                    'puzzle_id': puzzle_id, 'team_id': team_id}
         return render(request, 'queue.html', add_apps_to_context(context, request))
 
@@ -134,7 +134,7 @@ def progress(request):
         update_info = []
         if not ("last_solve_pk" in request.GET and
                 "last_unlock_pk" in request.GET and
-                "last_submission_pk" in request.GET):
+                "last_guess_pk" in request.GET):
             return HttpResponse(status=404)
         results = []
 
@@ -148,11 +148,11 @@ def progress(request):
         for unlock in unlocks:
             results.append(unlock.serialize_for_ajax())
 
-        last_submission_pk = request.GET.get("last_submission_pk")
-        submissions = Submission.objects.filter(pk__gt=last_submission_pk)
-        for submission in submissions:
-            if(not submission.team.solved.filter(pk=submission.puzzle.pk).exists()):
-                results.append(submission.serialize_for_ajax())
+        last_guess_pk = request.GET.get("last_guess_pk")
+        guesss = Guess.objects.filter(pk__gt=last_guess_pk)
+        for guess in guesss:
+            if(not guess.team.solved.filter(pk=guess.puzzle.pk).exists()):
+                results.append(guess.serialize_for_ajax())
 
         if(len(results) > 0):
             try:
@@ -164,10 +164,10 @@ def progress(request):
             except PuzzleUnlock.DoesNotExist:
                 last_unlock_pk = 0
             try:
-                last_submission_pk = Submission.objects.latest('id').id
-            except Submission.DoesNotExist:
-                last_submission_pk = 0
-            update_info = [last_solve_pk, last_unlock_pk, last_submission_pk]
+                last_guess_pk = Guess.objects.latest('id').id
+            except Guess.DoesNotExist:
+                last_guess_pk = 0
+            update_info = [last_solve_pk, last_unlock_pk, last_guess_pk]
         response = json.dumps({'messages': results, 'update_info': update_info})
         return HttpResponse(response)
 
@@ -192,8 +192,8 @@ def progress(request):
         for point in data:
             sol_dict[point[0]][point[1]] = ['unlocked', point[2]]
 
-        data = Submission.objects.filter(team__hunt=curr_hunt).exclude(team__location='DUMMY')
-        data = data.values_list('team', 'puzzle').annotate(Max('submission_time'))
+        data = Guess.objects.filter(team__hunt=curr_hunt).exclude(team__location='DUMMY')
+        data = data.values_list('team', 'puzzle').annotate(Max('guess_time'))
         data = data.annotate(Count('puzzlesolve'))
 
         for point in data:
@@ -216,12 +216,12 @@ def progress(request):
         except PuzzleUnlock.DoesNotExist:
             last_unlock_pk = 0
         try:
-            last_submission_pk = Submission.objects.latest('id').id
-        except Submission.DoesNotExist:
-            last_submission_pk = 0
+            last_guess_pk = Guess.objects.latest('id').id
+        except Guess.DoesNotExist:
+            last_guess_pk = 0
         context = {'puzzle_list': puzzles, 'team_list': teams, 'sol_list': sol_list,
                    'last_unlock_pk': last_unlock_pk, 'last_solve_pk': last_solve_pk,
-                   'last_submission_pk': last_submission_pk}
+                   'last_guess_pk': last_guess_pk}
         return render(request, 'progress.html', add_apps_to_context(context, request))
 
 
@@ -243,7 +243,7 @@ def charts(request):
     puzzle_info_dict7 = []
 
     solves = puzzles.annotate(solved=Count('puzzlesolve')).values_list('solved', flat=True)
-    subs = puzzles.annotate(subs=Count('submission')).values_list('subs', flat=True)
+    subs = puzzles.annotate(subs=Count('guess')).values_list('subs', flat=True)
     unlocks = puzzles.annotate(unlocked=Count('puzzleunlock')).values_list('unlocked', flat=True)
     hints = puzzles.annotate(hints=Count('hint')).values_list('hints', flat=True)
     puzzle_data = zip(names, solves, subs, unlocks, hints)
@@ -267,35 +267,35 @@ def charts(request):
         })
 
     # Chart 3
-    submission_hours = []
-    subs = Submission.objects.filter(puzzle__hunt=curr_hunt,
-                                     submission_time__gte=curr_hunt.start_date,
-                                     submission_time__lte=curr_hunt.end_date)
-    subs = subs.values_list('submission_time__year',
-                            'submission_time__month',
-                            'submission_time__day',
-                            'submission_time__hour')
-    subs = subs.annotate(Count("id")).order_by('submission_time__year',
-                                               'submission_time__month',
-                                               'submission_time__day',
-                                               'submission_time__hour')
+    guess_hours = []
+    subs = Guess.objects.filter(puzzle__hunt=curr_hunt,
+                                     guess_time__gte=curr_hunt.start_date,
+                                     guess_time__lte=curr_hunt.end_date)
+    subs = subs.values_list('guess_time__year',
+                            'guess_time__month',
+                            'guess_time__day',
+                            'guess_time__hour')
+    subs = subs.annotate(Count("id")).order_by('guess_time__year',
+                                               'guess_time__month',
+                                               'guess_time__day',
+                                               'guess_time__hour')
     for sub in subs:
         time_string = "%02d/%02d/%04d - %02d:00" % (sub[1], sub[2], sub[0], sub[3])
-        submission_hours.append({"hour": time_string, "amount": sub[4]})
+        guess_hours.append({"hour": time_string, "amount": sub[4]})
 
     # Chart 4
     solve_hours = []
     solves = PuzzleSolve.objects.filter(puzzle__hunt=curr_hunt,
-                                  submission__submission_time__gte=curr_hunt.start_date,
-                                  submission__submission_time__lte=curr_hunt.end_date)
-    solves = solves.values_list('submission__submission_time__year',
-                                'submission__submission_time__month',
-                                'submission__submission_time__day',
-                                'submission__submission_time__hour')
-    solves = solves.annotate(Count("id")).order_by('submission__submission_time__year',
-                                                   'submission__submission_time__month',
-                                                   'submission__submission_time__day',
-                                                   'submission__submission_time__hour')
+                                  guess__guess_time__gte=curr_hunt.start_date,
+                                  guess__guess_time__lte=curr_hunt.end_date)
+    solves = solves.values_list('guess__guess_time__year',
+                                'guess__guess_time__month',
+                                'guess__guess_time__day',
+                                'guess__guess_time__hour')
+    solves = solves.annotate(Count("id")).order_by('guess__guess_time__year',
+                                                   'guess__guess_time__month',
+                                                   'guess__guess_time__day',
+                                                   'guess__guess_time__hour')
     for solve in solves:
         time_string = "%02d/%02d/%04d - %02d:00" % (solve[1], solve[2], solve[0], solve[3])
         solve_hours.append({"hour": time_string, "amount": solve[4]})
@@ -303,9 +303,9 @@ def charts(request):
     # Chart 5
     solve_points = []
     # solves = Solve.objects.filter(puzzle__hunt=curr_hunt,
-    #                               submission__submission_time__gte=curr_hunt.start_date,
-    #                               submission__submission_time__lte=curr_hunt.end_date)
-    # solves = solves.order_by('submission__submission_time')
+    #                               guess__guess_time__gte=curr_hunt.start_date,
+    #                               guess__guess_time__lte=curr_hunt.end_date)
+    # solves = solves.order_by('guess__guess_time')
 
     # team_dict = {}
     # for team in teams:
@@ -317,17 +317,17 @@ def charts(request):
     #     progress[team_dict[solve.team]] -= 1
     #     team_dict[solve.team] += 1
     #     progress[team_dict[solve.team]] += 1
-    #     solve_points.append([solve.submission.submission_time] + progress[::-1])
+    #     solve_points.append([solve.guess.guess_time] + progress[::-1])
 
     # for puzzle in puzzles:
-    #     points = puzzle.solve_set.order_by('submission__submission_time')
-    #     points = points.values_list('submission__submission_time', flat=True)
+    #     points = puzzle.solve_set.order_by('guess__guess_time')
+    #     points = points.values_list('guess__guess_time', flat=True)
     #     points = zip([curr_hunt.start_date] + list(points), range(len(points) + 1))
     #     solve_points.append({'puzzle': puzzle, 'points': points})
 
     # for team in teams:
-    #     points = team.solve_set.order_by('submission__submission_time')
-    #     points = points.values_list('submission__submission_time', flat=True)
+    #     points = team.solve_set.order_by('guess__guess_time')
+    #     points = points.values_list('guess__guess_time', flat=True)
     #     points = zip([curr_hunt.start_date] + list(points), range(len(points) + 1))
     #     solve_points.append({'team': team, 'points': points})
 
@@ -335,10 +335,10 @@ def charts(request):
     solve_time_data = []
     # sq1 = PuzzleUnlock.objects.filter(puzzle=OuterRef('puzzle'), team=OuterRef('team'))
     # sq1 = sq1.values('time')[:1]
-    # sq2 = Solve.objects.filter(pk=OuterRef('pk')).values('submission__submission_time')[:1]
+    # sq2 = Solve.objects.filter(pk=OuterRef('pk')).values('guess__guess_time')[:1]
     # solves = Solve.objects.filter(puzzle__hunt=curr_hunt,
-    #                               submission__submission_time__gte=curr_hunt.start_date,
-    #                               submission__submission_time__lte=curr_hunt.end_date)
+    #                               guess__guess_time__gte=curr_hunt.start_date,
+    #                               guess__guess_time__lte=curr_hunt.end_date)
     # solves = solves.annotate(t1=Subquery(sq1), t2=Subquery(sq2))
     # solves = solves.annotate(solve_duration=F('t2') - F('t1'))
     # std = solves.values_list('puzzle__puzzle_number', 'solve_duration')
@@ -351,11 +351,11 @@ def charts(request):
     results = PuzzleSolve.objects.filter(pk__in=mins).values_list('puzzle__puzzle_id',
                                                             'puzzle__puzzle_name',
                                                             'team__team_name',
-                                                            'submission__submission_time')
+                                                            'guess__guess_time')
     results = list(results.annotate(Count('puzzle__puzzlesolve')).order_by('puzzle__puzzle_id'))
 
     context = {'data1_list': puzzle_info_dict1, 'data2_list': puzzle_info_dict2,
-               'data3_list': submission_hours, 'data4_list': solve_hours,
+               'data3_list': guess_hours, 'data4_list': solve_hours,
                'data5_list': solve_points, 'teams': teams, 'num_puzzles': num_puzzles,
                'chart_rows': results, 'puzzles': puzzles, 'data6_list': solve_time_data,
                'data7_list': puzzle_info_dict7}
@@ -610,13 +610,13 @@ def lookup(request):
             person = Person.objects.get(pk=request.GET.get("person_pk"))
         if("team_pk" in request.GET):
             team = Team.objects.get(pk=request.GET.get("team_pk"))
-            team.latest_submissions = team.submission_set.values_list('puzzle')
-            team.latest_submissions = team.latest_submissions.annotate(Max('submission_time'))
+            team.latest_guesss = team.guess_set.values_list('puzzle')
+            team.latest_guesss = team.latest_guesss.annotate(Max('guess_time'))
             sq1 = PuzzleSolve.objects.filter(team__pk=OuterRef('pk'), puzzle__is_meta=True).order_by()
             sq1 = sq1.values('team').annotate(c=Count('*')).values('c')
             sq1 = Subquery(sq1, output_field=PositiveIntegerField())
             all_teams = team.hunt.team_set.annotate(metas=sq1, solves=Count('solved'))
-            all_teams = all_teams.annotate(last_time=Max('solve__submission__submission_time'))
+            all_teams = all_teams.annotate(last_time=Max('solve__guess__guess_time'))
             ids = all_teams.order_by(F('metas').desc(nulls_last=True),
                                      F('solves').desc(nulls_last=True),
                                      F('last_time').asc(nulls_last=True))

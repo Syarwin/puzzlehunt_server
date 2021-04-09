@@ -34,12 +34,12 @@ class AnswerForm(forms.Form):
         # Currently the desire is to strip all non A-Z characters (Github issue #129)
         new_cleaned_data = re.sub(r"[^A-Z]", "", self.cleaned_data.get('answer').upper())
         if(new_cleaned_data == ""):
-            raise ValidationError("Submission was empty after stripping non A-Z characters",
+            raise ValidationError("Guess was empty after stripping non A-Z characters",
                                   code='all_spaces')
         return new_cleaned_data
 
 
-class SubmissionForm(forms.Form):
+class GuessForm(forms.Form):
     response = forms.CharField(max_length=400, label='response', initial="Wrong Answer")
     sub_id = forms.CharField(label='sub_id')
 

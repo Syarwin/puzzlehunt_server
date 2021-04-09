@@ -427,7 +427,7 @@ are different in a number of ways:
 
 - Prepuzzles do not require users to sign in
 - Once published, prepuzzles are accessible before the hunt is open
-- Prepuzzle submissions only support auto-response and do not show up on the
+- Prepuzzle guesss only support auto-response and do not show up on the
   queue page
 - Prepuzzles can be, but do not need to be tied to any specific hunt.
 
@@ -522,8 +522,8 @@ check_answer(callback, answer)
   answer was correct.
 
 {% include "prepuzzle_answerbox.html" %}
-  If you use this include statement it will insert a no-hassle answer submission
-  box that includes a spot for users to enter their answer, a submission button
+  If you use this include statement it will insert a no-hassle answer guess
+  box that includes a spot for users to enter their answer, a guess button
   and will display the prepuzzle's response text if the answer was correct.
 
 .. Warning:: Just like the hunt template, you may use completely custom HTML if

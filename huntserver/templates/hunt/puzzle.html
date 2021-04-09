@@ -26,11 +26,14 @@
     {% endif %}
   </div>
 
-  <div id="submission-bar">
-    <div class="input-group input-group-lg">
-      <input type="text" class="form-control" placeholder="Guess" aria-label="Your guess">
-      <button class="btn btn-primary" type="button">Submit</button>
-    </div>
+  <div id="guess-bar">
+    <div id="guess-feedback" class="container py-3"></div>
+    <form id="guess-form">
+      <div class="input-group input-group-lg">
+        <input id="answer-entry" type="text" class="form-control" placeholder="Guess" aria-label="Your guess">
+        <button class="btn btn-primary" type="submit">Submit</button>
+      </div>
+    </form>
   </div>
 </div>
 
