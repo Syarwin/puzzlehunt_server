@@ -61,11 +61,12 @@ def protected_static(request, file_path):
         allowed = True
 
     if allowed:
-        # let apache determine the correct content type
-        response['Content-Type'] = ""
-        # This is what lets django access the normally restricted /media/
-        response['X-Sendfile'] = smart_str(os.path.join(settings.MEDIA_ROOT, file_path))
-        return response
+        pathname = smart_str(os.path.join(settings.MEDIA_ROOT, file_path))
+        try:
+           with open(pathname, "rb") as f:
+              return HttpResponse(f.read(), content_type="image/png")
+        except IOError:
+           return HttpResponseNotFound('<h1>Page not found</h1>')
     else:
         logger.info("User %s tried to access %s and failed." % (str(request.user), file_path))
 
