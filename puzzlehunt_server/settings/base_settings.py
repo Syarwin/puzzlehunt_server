@@ -115,7 +115,7 @@ HUNT_REGISTRATION_LOCKOUT = 2  # 2 Days
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'America/New_York'
+TIME_ZONE = 'Europe/Paris'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
@@ -126,17 +126,6 @@ STATIC_URL = '/static/'
 
 MEDIA_ROOT = "/media/"
 MEDIA_URL = '/media/'
-
-# Shibboleth settings
-USE_SHIBBOLETH = os.getenv("DJANGO_USE_SHIBBOLETH", default="False").lower() == "true"
-SHIB_DOMAIN = os.getenv("DOMAIN", default="")
-
-SHIB_ATTRIBUTE_MAP = {
-    "Shib-Identity-Provider": (True, "idp"),
-    "eppn": (True, "eppn"),
-    "givenName": (False, "givenName"),
-    "sn": (False, "sn")
-}
 
 LOGGING = {
     'version': 1,
