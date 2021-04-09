@@ -207,7 +207,7 @@ class Hunt(models.Model):
             puzzle_list = [puzzle for episode in self.episode_set.all() for puzzle in episode.puzzle_set.all()]
 
         elif(team and team.is_playtester_team and team.playtest_started):
-            puzzle_list = team.unlocked.filter(hunt=hunt)
+            puzzle_list = team.unlocked.filter(episode__hunt=self)
         else:
             puzzle_list = ()
 
