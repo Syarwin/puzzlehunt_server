@@ -1,3 +1,122 @@
+/***************************
+****************************
+********** FORM  ***********
+****************************
+***************************/
+$(function() {
+  let field = $('#answer-entry')
+  let button = $('#answer-button')
+
+  function fieldKeyup() {
+    if (!field.val()) {
+      button.data('empty-answer', true)
+    } else {
+      button.removeData('empty-answer')
+    }
+
+    evaluateButtonDisabledState(button)
+  }
+  field.on('input', fieldKeyup)
+
+  $('#guess-form').submit(function(e) {
+    e.preventDefault()
+    if (!field.val()) {
+      field.focus()
+      return
+    }
+
+    var data = {
+      answer: field.val(),
+    }
+    $.ajax({
+      type: 'POST',
+      url: '',
+      data: $.param(data),
+      contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+      success: function(data) {
+        field.val('')
+        fieldKeyup()
+        if (data.status == 'correct') {
+          correct_answer()
+        } else if(data.status == "eureka"){
+          message(data.message, '', "info")
+        } else {
+          waitCheckSynchronize(data.guess, data.timeout_length, data.timeout_end, data.unlocks)
+        }
+      },
+      error: function(xhr, status, error) {
+        button.removeData('cooldown')
+        if (xhr.responseJSON && xhr.responseJSON.error == 'too fast') {
+          message('Slow down there, sparky! You\'re supposed to wait 5s between guesss.', '')
+        } else if (xhr.responseJSON && xhr.responseJSON.error == 'already answered') {
+          message('Your team has already correctly answered this puzzle!', '')
+        } else {
+          message('There was an error submitting the answer.', error)
+        }
+      },
+      dataType: 'json',
+    })
+  })
+})
+
+
+function waitCheckSynchronize(guess, timeout_length, timeout) {
+  var milliseconds = Date.parse(timeout) - Date.now()
+  var difference = timeout_length - milliseconds
+
+  // There will be a small difference in when the server says we should re-enable the guessing and
+  // when the client thinks we should due to latency. However, if the client and server clocks are
+  // different it will be worse and could lead to a team getting disadvantaged or seeing tons of
+  // errors. Hence in that case we use our own calculation and ignore latency.
+  if (difference < 0 || Math.abs(difference) > 1000) {
+    difference = timeout_length
+  }
+  doCooldown(difference)
+}
+
+function correct_answer() {
+  var form = $('#guess-form');
+  if (form.length) {
+    // We got a direct response before the WebSocket notified us (possibly because the WebSocket is broken
+    // in this case, we still want to tell the user that they got the right answer. If the WebSocket is
+    // working, this will be updated when it replies.
+    message("Correct!", '', 'success');
+  }
+}
+
+
+/***************************
+**** BUTTON ANIMATIONS *****
+***************************/
+function evaluateButtonDisabledState(button) {
+  var onCooldown = button.data('cooldown')
+  var emptyAnswer = button.data('empty-answer')
+  if (onCooldown || emptyAnswer) {
+    button.attr('disabled', true)
+  } else {
+    button.removeAttr('disabled')
+  }
+}
+
+function doCooldown(milliseconds) {
+  var btn = $('#answer-button')
+  btn.data('cooldown', true)
+  evaluateButtonDisabledState(btn)
+
+  setTimeout(function () {
+    btn.removeData('cooldown')
+    evaluateButtonDisabledState(btn)
+  }, milliseconds)
+}
+
+
+
+/******************
+*******************
+**** MESSAGES *****
+*******************
+******************/
+
 function encode(message){
   return message.replace(/[\u00A0-\u9999<>\&]/g, function(i) {
    return '&#'+i.charCodeAt(0)+';';
@@ -5,12 +124,19 @@ function encode(message){
 }
 
 
-function message(message, type = "danger") {
-  var error_msg = $('<div class="alert alert-dismissible alert-' + type + '">' + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
-  error_msg.appendTo($('#guess-feedback'))//.delay(3000).fadeOut(2000, function(){$(this).remove()})
+function message(message, error = '', type = "danger") {
+  var error_msg = $('<div class="alert alert-dismissible alert-' + type + '">' + message + ' ' + error + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
+  error_msg.appendTo($('#guess-feedback')).delay(3000).fadeOut(800, function(){$(this).remove()})
 }
 
 
+
+
+/***************************
+****************************
+********* GUESSES **********
+****************************
+***************************/
 
 var guesses = [];
 
@@ -51,19 +177,75 @@ function receivedOldGuess(content) {
 
 
 
+
+
+/***************************
+****************************
+********* HINTS ************
+****************************
+***************************/
+var hints = [];
+
 function receivedNewHint(content) {
-  message(content.hint);
+  if(!hints.includes(content.hint_uid)){
+    hints[content.hint_uid] = {'time': content.time, 'hint': content.hint}
+    updateHints()
+  }
 }
 
+function updateHints() {
+  let hints_list = $("#hints")
+  hints_list.empty()
+  var entries = Object.entries(hints)
+  entries.sort(function (a, b) {
+    if (a[1].time < b[1].time) return -1
+    else if(a[1].time > b[1].time) return 1
+    return 0
+  })
+  entries.forEach(entry => {
+    hints_list.append('<li><span class="guess-value">' + encode(entry[1].hint) + '</span><span class="guess-user">(' + encode(entry[1].time) + ')</span></li>')
+  })
+}
+
+
+
+/***************************
+****************************
+********* EUREKAS **********
+****************************
+***************************/
+var eurekas = [];
+
+function addEureka(eureka, eureka_uid) {
+  var guesses_table = $('#eurekas');
+  guesses_table.prepend('<li>' + encode(eureka) + '</li>')
+  eurekas.push(eureka_uid)
+}
+
+function receivedNewEureka(content) {
+  if(!eurekas.includes(content.hint_uid)){
+    addEureka(content.eureka, content.eureka_uid)
+  }
+}
+
+
+
+/***************************
+****************************
+******** WEBSOCKET *********
+****************************
+***************************/
 function receivedError(content) {
   throw content.error
 }
-
 
 var lastUpdated;
 function openEventSocket() {
   const socketHandlers = {
     'new_hint': receivedNewHint,
+    'old_hint': receivedNewHint,
+    'new_eureka': receivedNewEureka,
+    'old_eureka': receivedNewEureka,
     'new_guess': receivedNewGuess,
     'old_guess': receivedOldGuess,
     'error': receivedError,
@@ -83,8 +265,7 @@ function openEventSocket() {
     }
   }
   sock.onerror = function() {
-    //TODO this message is ugly and disappears after a while
-    alert('Websocket is broken. You will not receive new information without refreshing the page.')
+    message('Websocket is broken. You will not receive new information without refreshing the page.')
   }
   sock.onopen = function() {
     if (lastUpdated != undefined) {
@@ -93,6 +274,7 @@ function openEventSocket() {
       sock.send(JSON.stringify({'type': 'unlocks-plz'}))
     } else {
       sock.send(JSON.stringify({'type': 'guesses-plz', 'from': 'all'}))
+      sock.send(JSON.stringify({'type': 'unlocks-plz'}))
     }
   }
 }
@@ -101,48 +283,6 @@ function openEventSocket() {
 
 $(function() {
   openEventSocket()
-
-  let field = $('#answer-entry')
-
-  $('#guess-form').submit(function(e) {
-    e.preventDefault()
-    if (!field.val()) {
-      field.focus()
-      return
-    }
-
-    var data = {
-      answer: field.val(),
-    }
-    $.ajax({
-      type: 'POST',
-      url: '',
-      data: $.param(data),
-      contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-      /*
-      success: function(data) {
-        field.val('')
-        fieldKeyup()
-        if (data.correct == 'true') {
-          correct_answer()
-        } else {
-          incorrect_answer(data.guess, data.timeout_length, data.timeout_end, data.unlocks)
-        }
-      },
-      error: function(xhr, status, error) {
-        button.removeData('cooldown')
-        if (xhr.responseJSON && xhr.responseJSON.error == 'too fast') {
-          message('Slow down there, sparky! You\'re supposed to wait 5s between guesss.', '')
-        } else if (xhr.responseJSON && xhr.responseJSON.error == 'already answered') {
-          message('Your team has already correctly answered this puzzle!', '')
-        } else {
-          message('There was an error submitting the answer.', error)
-        }
-      },
-      */
-      dataType: 'json',
-    })
-  })
 })
 
 

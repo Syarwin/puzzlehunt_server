@@ -501,6 +501,34 @@ class TeamManager(models.Manager):
         return qs
 
 
+class Eureka(models.Model):
+    """ A class to represent an automated response regex """
+
+    puzzle = models.ForeignKey(
+        Puzzle,
+        on_delete=models.CASCADE,
+        help_text="The puzzle that this automated response is related to")
+    regex = models.CharField(
+        max_length=400,
+        help_text="The python-style regex that will be checked against the user's response")
+    answer = models.CharField(
+        max_length=400,
+        help_text="The text to use in the guess response if the regex matched")
+    feedback = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="The feedback message sent when this eureka is found - if blank, use the default feedback of the hunt")
+
+    def __str__(self):
+        return self.answer + " (" + self.regex + ")=> " + self.feedback
+
+    @property
+    def get_feedback(self):
+        if self.feedback != '':
+            return self.feedback
+        else:
+            return self.puzzle.episode.hunt.eureka_feedback
+
 
 class Team(models.Model):
     """ A class representing a team within a hunt """
@@ -525,6 +553,12 @@ class Team(models.Model):
         related_name='unlocked_for',
         through="PuzzleUnlock",
         help_text="The puzzles the team has unlocked")
+    eurekas = models.ManyToManyField(
+        Eureka,
+        blank=True,
+        related_name='eurekas_for',
+        through="EurekaUnlock",
+        help_text="The eurekas the team has unlocked")
     unlockables = models.ManyToManyField(
         "Unlockable",
         blank=True,
@@ -751,7 +785,8 @@ class Guess(models.Model):
     # Order of response importance: Regex, Defaults, Staff response.
     def respond(self):
         """ Takes the guess's text and uses various methods to craft and populate a response.
-            If the response is correct a solve is created and the correct puzzles are unlocked
+            If the response is correct a solve is created and the correct puzzles are unlocked"""
+
         # Compare against correct answer
         if(self.is_correct):
             # Make sure we don't have duplicate or after hunt guess objects
@@ -763,26 +798,20 @@ class Guess(models.Model):
                     t.save()
                     t.refresh_from_db()
                     t.unlock_puzzles()
-                    t.unlock_hints()  # The one and only place to call unlock hints
 
-        # Check against regexes
-        for resp in self.puzzle.eureka_set.all():
-            if(re.match(resp.regex, self.guess_text, re.IGNORECASE)):
-                response = resp.feedback
-                break
-        else:  # Give a default response if no regex matches
-            if(self.is_correct):
-                response = "Correct"
-            else:
+            return {"status": "correct", "message": "Correct!"}
+
+        else:
+            # TODO removed unlocked Eureka
+            for resp in self.puzzle.eureka_set.all():
+                if(re.match(resp.regex, self.guess_text, re.IGNORECASE)):
+                    if(resp not in self.team.eurekas.all()):
+                        EurekaUnlock.objects.create(team=self.team, eureka=resp, time=timezone.now())
+                    return {"status": "eureka", "message": resp.get_feedback}
+            else:  # Give a default response if no regex matches
                 # Current philosphy is to auto-can wrong answers: If it's not right, it's wrong
-                response = "Wrong Answer."
-                logger.info("Team %s incorrectly guessed %s for puzzle %s" %
-                            (str(self.team.team_name), str(self.guess_text),
-                             str(self.puzzle.puzzle_id)))
+                return {"status" : "wrong", "message" : "Wrong Answer" }
 
-        self.response_text = response
-        self.save()"""
-        print("Respond")
 
     def update_response(self, text):
         """ Updates the response with the given text """
@@ -888,28 +917,6 @@ class Unlockable(models.Model):
 
 
 
-class Eureka(models.Model):
-    """ A class to represent an automated response regex """
-
-    puzzle = models.ForeignKey(
-        Puzzle,
-        on_delete=models.CASCADE,
-        help_text="The puzzle that this automated response is related to")
-    regex = models.CharField(
-        max_length=400,
-        help_text="The python-style regex that will be checked against the user's response")
-    answer = models.CharField(
-        max_length=400,
-        help_text="The text to use in the guess response if the regex matched")
-    feedback = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="The feedback message sent when this eureka is found - if blank, use the default feedback of the hunt")
-
-    def __str__(self):
-        return self.answer + " (" + self.regex + ")=> " + self.feedback
-
-
 
 class EurekaUnlock(models.Model):
     """ A class that links a team and a eureka to indicate that the team has unlocked the eureka """
@@ -923,7 +930,7 @@ class EurekaUnlock(models.Model):
         on_delete=models.CASCADE,
         help_text="The team that this unlocked puzzle is for")
     time = models.DateTimeField(
-        help_text="The time this puzzle was unlocked for this team")
+        help_text="The time this eureka was unlocked for this team")
 
     class Meta:
         unique_together = ('eureka', 'team',)
@@ -937,7 +944,7 @@ class EurekaUnlock(models.Model):
         return message
 
     def __str__(self):
-        return self.team.short_name + ": " + self.eureka.text
+        return self.team.short_name + ": " + self.eureka.answer
 
 
 

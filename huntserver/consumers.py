@@ -258,6 +258,25 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
         cls.send_new_guess(guess)
 
 
+    @classmethod
+    def _new_eureka_json(cls, eureka):
+        return {
+            'eureka': eureka.answer,
+            'eureka_uid': eureka.id
+        }
+
+    @classmethod
+    def send_new_eureka(cls, eureka, team):
+        cls._send_message(cls._puzzle_groupname(eureka.puzzle, team), {
+            'type': 'new_eureka',
+            'content': cls._new_eureka_json(eureka)
+        })
+
+
+    @pre_save_handler
+    def _saved_eurekaUnlock(cls, old, sender, eurekaUnlock, raw, *args, **kwargs):
+        cls.send_new_eureka(eurekaUnlock.eureka, eurekaUnlock.team)
+
 
     def receive_json(self, content):
         if 'type' not in content:
@@ -307,7 +326,14 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
         print("TODO")
 
     def send_old_unlocks(self):
-        print("TODO")
+        eurekas = self.team.eurekas.filter(puzzle=self.puzzle).order_by('eurekaunlock__time')
+
+        for u in eurekas:
+            self.send_json({
+                'type': 'old_eureka',
+                'content': self._new_eureka_json(u)
+            })
 
 
 pre_save.connect(PuzzleWebsocket._saved_guess, sender=models.Guess)
+pre_save.connect(PuzzleWebsocket._saved_eurekaUnlock, sender=models.EurekaUnlock)

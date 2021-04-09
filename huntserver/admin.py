@@ -234,6 +234,10 @@ class PuzzleSolveAdmin(admin.ModelAdmin):
         return solve.guess.guess_time
 
 
+class EurekaUnlockAdmin(admin.ModelAdmin):
+    list_display = ['__str__', 'time']
+
+
 class GuessAdmin(admin.ModelAdmin):
     search_fields = ['guess_text']
     list_display = ['guess_text', short_team_name, 'guess_time']
@@ -367,5 +371,6 @@ admin.site.register(models.Guess, GuessAdmin)
 admin.site.register(models.Team,       TeamAdmin)
 #admin.site.register(models.Unlockable)
 admin.site.register(models.PuzzleUnlock, PuzzleUnlockAdmin)
+admin.site.register(models.EurekaUnlock, EurekaUnlockAdmin)
 admin.site.register(UserProxyObject,   UserProxyAdmin)
 admin.site.register(FlatPageProxyObject, FlatPageProxyAdmin)

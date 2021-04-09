@@ -1,12 +1,13 @@
 from datetime import datetime
 from dateutil import tz
 from django.conf import settings
+from datetime import timedelta
 from ratelimit.utils import is_ratelimited
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseForbidden
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.template import Template, RequestContext
 from django.template.loader import render_to_string
@@ -173,21 +174,24 @@ class PuzzleView(View):
         request.hunt = request.puzzle.episode.hunt
         request.team = request.hunt.team_from_user(request.user)
 
+        limited = False
         if(request.team is not None):
             request.ratelimit_key = request.team.team_name
 
-            is_ratelimited(request, fn=PuzzleView.as_view(), key='user', rate='1/3s', method='POST',
+            limited = is_ratelimited(request, fn=PuzzleView.as_view(), key='user', rate='20/m', method='POST',
                            increment=True)
-        if(not request.hunt.is_public):
-            is_ratelimited(request, fn=PuzzleView.as_view(), key=get_ratelimit_key, rate='5/m', method='POST',
+        if (not limited and not request.hunt.is_public):
+            limited = is_ratelimited(request, fn=PuzzleView.as_view(), key=get_ratelimit_key, rate='5/m', method='POST',
                            increment=True)
 
-        if(getattr(request, 'limited', False)):
+
+        return limited or getattr(request, 'limited', False)
+
+    def get(self, request, puzzle_id):
+        if self.check_rate(request, puzzle_id):
             logger.info("User %s rate-limited for puzzle %s" % (str(request.user), puzzle_id))
             return HttpResponseForbidden()
 
-    def get(self, request, puzzle_id):
-        self.check_rate(request, puzzle_id)
 
         # Only allowed access if the hunt is public or if unlocked by team
         if(not request.hunt.is_public):
@@ -207,7 +211,10 @@ class PuzzleView(View):
 
 
     def post(self, request, puzzle_id):
-        self.check_rate(request, puzzle_id)
+        if self.check_rate(request, puzzle_id):
+            logger.info("User %s rate-limited for puzzle %s" % (str(request.user), puzzle_id))
+            return JsonResponse({'error': 'too fast'}, status=429)
+
         team = request.team
         puzzle = request.puzzle
         user = request.user
@@ -219,7 +226,7 @@ class PuzzleView(View):
                 team = puzzle.hunt.dummy_team
             else:
                 # If the hunt isn't public and you aren't signed in, please stop...
-                return HttpResponse('fail')
+                return JsonResponse({'error':'fail'})
 
 
         given_answer = request.POST.get('answer', '')
@@ -234,25 +241,17 @@ class PuzzleView(View):
             guess_time=timezone.now()
         )
         guess.save()
-        guess.respond()
+        response = guess.respond()
+        if not guess.is_correct:
+            now = timezone.now()
+            minimum_time = timedelta(seconds=5)
 
-        """
-        # Deal with answers for public hunts
-        if(puzzle.hunt.is_public):
-            if(s is None):
-                response = "Invalid Guess"
-                is_correct = None
-            else:
-                response = s.response_text
-                is_correct = s.is_correct
+            response['guess'] = given_answer
+            response['timeout_length'] = minimum_time.total_seconds() * 1000
+            response['timeout_end'] = str(now + minimum_time)
+        response['by'] = request.user.username
 
-            context = {'form': form, 'puzzle': puzzle, 'PROTECTED_URL': settings.PROTECTED_URL,
-                       'response': response, 'is_correct': is_correct}
-            return render(request, 'puzzle.html', context)
-        """
-
-        return HttpResponse("Coucou")
-
+        return JsonResponse(response)
 
 
     def ajax(self, request, puzzle_id):
