@@ -8,11 +8,11 @@
 
   {% for episode in episodes %}
     <h3 class="episode-header">
-      <a data-bs-toggle="collapse" href="#collapse-episode-{{ episode.ep_number }}" role="button" aria-expanded="true" aria-controls="collapseExample">
+      <a class="collapsed" data-bs-toggle="collapse" href="#collapse-episode-{{ episode.ep_number }}" role="button" aria-expanded="false" aria-controls="collapseExample">
       {{ episode.ep_name }}
       </a>
     </h3>
-    <div id="collapse-episode-{{ episode.ep_number }}" class="list-group flex-column mb-0">
+    <div id="collapse-episode-{{ episode.ep_number }}" class="collapse list-group flex-column mb-0">
       {% for puzzle in episode.puzzle_set.all %}
           <a href="{% url 'huntserver:puzzle' puzzle_id=puzzle.puzzle_id %}" class="list-group-item">
             {{ puzzle.puzzle_name }}
