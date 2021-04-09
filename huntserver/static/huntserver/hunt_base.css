@@ -145,6 +145,7 @@ h3.episode-header a.collapsed::after {
   background:none;
   box-shadow: none;
   margin-left:0px;
+  padding-bottom:370px;
 }
 
 
@@ -166,6 +167,26 @@ h3.episode-header a.collapsed::after {
   margin-bottom:0.5rem;
 }
 
+.right-block ul {
+  padding:0;
+  list-style-type: none;
+}
+
+.right-block ul li {
+  display: flex;
+  border-bottom:1px dotted rgb(128, 80, 50);
+}
+
+.right-block ul li span.guess-value {
+  color:#424141;
+}
+
+.right-block ul li span.guess-user {
+  margin-left:auto;
+  font-size:15px;
+  color:rgb(159, 110, 80);
+}
+
 img.fit-inside {
   object-fit: contain;
   max-height: 100%;
@@ -177,4 +198,5 @@ img.fit-inside {
   position: absolute;
   right: 0;
   bottom: 0;
+  z-index: 1000;
 }

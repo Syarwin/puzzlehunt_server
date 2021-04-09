@@ -199,9 +199,6 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
 
 
 
-
-
-
     @classmethod
     def _new_guess_json(cls, guess):
         #correct = guess.get_correct_for() is not None
@@ -259,6 +256,58 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
                 })
         """
         cls.send_new_guess(guess)
+
+
+
+    def receive_json(self, content):
+        if 'type' not in content:
+            self._error('no type in message')
+            return
+
+        if content['type'] == 'guesses-plz':
+            if 'from' not in content:
+                self._error('required field "from" is missing')
+                return
+            self.send_old_guesses(content['from'])
+        elif content['type'] == 'unlocks-plz':
+            self.send_old_unlocks()
+        elif content['type'] == 'hints-plz':
+            if 'from' not in content:
+                self._error('required field "from" is missing')
+                return
+            self.send_old_hints(content['from'])
+        else:
+            self._error('invalid request type')
+
+    def _error(self, message):
+        self.send_json({'type': 'error', 'content': {'error': message}})
+
+    def send_old_guesses(self, start):
+        guesses = Guess.objects.filter(puzzle=self.puzzle, team=self.team).order_by('guess_time')
+        if start != 'all':
+            start = datetime.fromtimestamp(int(start) // 1000, timezone.utc)
+            # TODO: `start` is given by the client and is the timestamp of the most recently received guess.
+            # the following could miss guesses if guesses get the same timestamp, though this is very unlikely.
+            guesses = guesses.filter(guess_time__gt=start)
+            # The client requested guesses from a certain point in time, i.e. it already has some.
+            # Even though these are "old" they're "new" in the sense that the user will never have
+            # seen them before so should trigger the same UI effect.
+            msg_type = 'new_guess'
+        else:
+            msg_type = 'old_guess'
+
+        for g in guesses:
+            content = self._new_guess_json(g)
+            self.send_json({
+                'type': msg_type,
+                'content': content
+            })
+
+    def send_old_hints(self, start='all'):
+        print("TODO")
+
+    def send_old_unlocks(self):
+        print("TODO")
 
 
 pre_save.connect(PuzzleWebsocket._saved_guess, sender=models.Guess)

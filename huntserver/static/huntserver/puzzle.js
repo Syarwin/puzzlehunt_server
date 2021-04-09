@@ -16,11 +16,11 @@ var guesses = [];
 
 function addGuess(user, guess, correct, guess_uid) {
   var guesses_table = $('#guesses');
-  guesses_table.prepend('<li><span class="guess-user">' + encode(user) + '</span><span class="guess-value">' + encode(guess) + '</span></li>')
+  guesses_table.prepend('<li><span class="guess-value">' + encode(guess) + '</span><span class="guess-user">(' + encode(user) + ')</span></li>')
   guesses.push(guess_uid)
 }
 
-function receivedNewAnswer(content) {
+function receivedNewGuess(content) {
   if (!guesses.includes(content.guess_uid)) {
     addGuess(content.by, content.guess, content.correct, content.guess_uid)
 
@@ -43,6 +43,13 @@ function receivedNewAnswer(content) {
   }
 }
 
+function receivedOldGuess(content) {
+  if (!guesses.includes(content.guess_uid)) {
+    addGuess(content.by, content.guess, content.correct, content.guess_uid)
+  }
+}
+
+
 
 function receivedNewHint(content) {
   message(content.hint);
@@ -53,10 +60,12 @@ function receivedError(content) {
 }
 
 
+var lastUpdated;
 function openEventSocket() {
   const socketHandlers = {
     'new_hint': receivedNewHint,
-    'new_guess': receivedNewAnswer,
+    'new_guess': receivedNewGuess,
+    'old_guess': receivedOldGuess,
     'error': receivedError,
   }
 
@@ -78,7 +87,6 @@ function openEventSocket() {
     alert('Websocket is broken. You will not receive new information without refreshing the page.')
   }
   sock.onopen = function() {
-    /*
     if (lastUpdated != undefined) {
       sock.send(JSON.stringify({'type': 'guesses-plz', 'from': lastUpdated}))
       sock.send(JSON.stringify({'type': 'hints-plz', 'from': lastUpdated}))
@@ -86,7 +94,6 @@ function openEventSocket() {
     } else {
       sock.send(JSON.stringify({'type': 'guesses-plz', 'from': 'all'}))
     }
-    */
   }
 }
 
