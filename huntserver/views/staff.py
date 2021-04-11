@@ -334,16 +334,16 @@ def charts(request):
 
     # Chart 6
     solve_time_data = []
-    sq1 = PuzzleUnlock.objects.filter(puzzle=OuterRef('puzzle'), team=OuterRef('team'))
-    sq1 = sq1.values('time')[:1]
-    sq2 = Solve.objects.filter(pk=OuterRef('pk')).values('guess__guess_time')[:1]
-    solves = Solve.objects.filter(puzzle__hunt=curr_hunt,
-                                 guess__guess_time__gte=curr_hunt.start_date,
-                                 guess__guess_time__lte=curr_hunt.end_date)
-    solves = solves.annotate(t1=Subquery(sq1), t2=Subquery(sq2))
-    solves = solves.annotate(solve_duration=F('t2') - F('t1'))
-    std = solves.values_list('puzzle__puzzle_number', 'solve_duration')
-    solve_time_data = [(x[0]+(random.random()/2)-0.5, x[1].total_seconds()/60) for x in std]
+    # sq1 = PuzzleUnlock.objects.filter(puzzle=OuterRef('puzzle'), team=OuterRef('team'))
+    # sq1 = sq1.values('time')[:1]
+    # sq2 = Solve.objects.filter(pk=OuterRef('pk')).values('guess__guess_time')[:1]
+    # solves = Solve.objects.filter(puzzle__hunt=curr_hunt,
+    #                               guess__guess_time__gte=curr_hunt.start_date,
+    #                               guess__guess_time__lte=curr_hunt.end_date)
+    # solves = solves.annotate(t1=Subquery(sq1), t2=Subquery(sq2))
+    # solves = solves.annotate(solve_duration=F('t2') - F('t1'))
+    # std = solves.values_list('puzzle__puzzle_number', 'solve_duration')
+    # solve_time_data = [(x[0]+(random.random()/2)-0.5, x[1].total_seconds()/60) for x in std]
 
     # Info Table
     # with silk_profile(name="Info Table"):
