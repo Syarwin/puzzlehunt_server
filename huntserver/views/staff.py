@@ -230,7 +230,8 @@ def charts(request):
     """ A view to render the charts page. Mostly just collecting and organizing data """
 
     curr_hunt = Hunt.objects.get(is_current_hunt=True)
-    puzzles = curr_hunt.puzzle_set.order_by('puzzle_number')
+#    puzzles = curr_hunt.puzzle_set.order_by('puzzle_number')
+    puzzles = [puzzle for episode in curr_hunt.episode_set.all() for puzzle in episode.puzzle_set.all()] #dirty but should work for now (11/04/2021)
     teams = curr_hunt.real_teams.exclude(location="DUMMY")
     num_teams = teams.count()
     num_puzzles = puzzles.count()
