@@ -231,7 +231,7 @@ def charts(request):
 
     curr_hunt = Hunt.objects.get(is_current_hunt=True)
 #    puzzles = curr_hunt.puzzle_set.order_by('puzzle_number')
-    puzzles = [episode.puzzle_set.order_by('puzzle_number') for episode in curr_hunt.episode_set.all()][0] #dirty but should work for now (11/04/2021)
+    puzzles = [episode.puzzle_set.order_by('puzzle_number') for episode in curr_hunt.episode_set.all()][1] #dirty but should work for now (11/04/2021)
     teams = curr_hunt.real_teams.exclude(location="DUMMY")
     num_teams = teams.count()
     num_puzzles = puzzles.count()
