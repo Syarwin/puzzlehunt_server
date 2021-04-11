@@ -360,7 +360,7 @@ def charts(request):
                'data5_list': solve_points, 'teams': teams, 'num_puzzles': num_puzzles,
                'chart_rows': results, 'puzzles': puzzles, 'data6_list': solve_time_data,
                'data7_list': puzzle_info_dict7}
-    return render(request, 'charts.html', add_apps_to_context(context, request))
+    return render(request, 'staff/charts.html', add_apps_to_context(context, request))
 
 
 
