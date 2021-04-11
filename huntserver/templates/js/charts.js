@@ -192,7 +192,7 @@ function drawStacked() {
 
 
   // Chart 6
-/*  var data6 = new google.visualization.DataTable();
+  var data6 = new google.visualization.DataTable();
   data6.addColumn('number', 'Puzzle_id');
   data6.addColumn('number', 'Time to solve (Minutes)');
 
@@ -217,7 +217,7 @@ function drawStacked() {
   };
 
   var chart6 = new google.visualization.ScatterChart(document.getElementById('chart_div6'));
-  chart6.draw(data6, options6);*/
+  chart6.draw(data6, options6);
 }
 
 /*window.onload = function () {
