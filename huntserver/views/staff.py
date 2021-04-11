@@ -270,7 +270,7 @@ def charts(request):
     # Chart 3
     guess_hours = []
     subs = Guess.objects.filter(puzzle__episode__hunt=curr_hunt,
-                                     guess_time__gte=curr_hunt.start_date,
+                                #     guess_time__gte=curr_hunt.start_date,
                                      guess_time__lte=curr_hunt.end_date)
     subs = subs.values_list('guess_time__year',
                             'guess_time__month',
@@ -287,7 +287,7 @@ def charts(request):
     # Chart 4
     solve_hours = []
     solves = PuzzleSolve.objects.filter(puzzle__episode__hunt=curr_hunt,
-                                  guess__guess_time__gte=curr_hunt.start_date,
+                              #    guess__guess_time__gte=curr_hunt.start_date,
                                   guess__guess_time__lte=curr_hunt.end_date)
     solves = solves.values_list('guess__guess_time__year',
                                 'guess__guess_time__month',
