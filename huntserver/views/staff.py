@@ -269,24 +269,24 @@ def charts(request):
 
     # Chart 3
     guess_hours = []
-#    subs = Guess.objects.filter(puzzle__hunt=curr_hunt,
-#                                     guess_time__gte=curr_hunt.start_date,
-#                                     guess_time__lte=curr_hunt.end_date)
-#    subs = subs.values_list('guess_time__year',
-#                            'guess_time__month',
-#                            'guess_time__day',
-#                            'guess_time__hour')
-#    subs = subs.annotate(Count("id")).order_by('guess_time__year',
-#                                               'guess_time__month',
-#                                               'guess_time__day',
-#                                               'guess_time__hour')
-#    for sub in subs:
-#        time_string = "%02d/%02d/%04d - %02d:00" % (sub[1], sub[2], sub[0], sub[3])
-#        guess_hours.append({"hour": time_string, "amount": sub[4]})
+    subs = Guess.objects.filter(puzzle__episode__hunt=curr_hunt,
+                                     guess_time__gte=curr_hunt.start_date,
+                                     guess_time__lte=curr_hunt.end_date)
+    subs = subs.values_list('guess_time__year',
+                            'guess_time__month',
+                            'guess_time__day',
+                            'guess_time__hour')
+    subs = subs.annotate(Count("id")).order_by('guess_time__year',
+                                               'guess_time__month',
+                                               'guess_time__day',
+                                               'guess_time__hour')
+    for sub in subs:
+        time_string = "%02d/%02d/%04d - %02d:00" % (sub[1], sub[2], sub[0], sub[3])
+        guess_hours.append({"hour": time_string, "amount": sub[4]})
 
     # Chart 4
     solve_hours = []
-    solves = PuzzleSolve.objects.filter(puzzle__hunt=curr_hunt,
+    solves = PuzzleSolve.objects.filter(puzzle__episode__hunt=curr_hunt,
                                   guess__guess_time__gte=curr_hunt.start_date,
                                   guess__guess_time__lte=curr_hunt.end_date)
     solves = solves.values_list('guess__guess_time__year',
