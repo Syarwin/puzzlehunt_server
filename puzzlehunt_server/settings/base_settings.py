@@ -81,6 +81,7 @@ CACHES = {
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 
 HUEY = {
+    'immediate': False,
     'connection': {
         'host': 'redis',
     },
