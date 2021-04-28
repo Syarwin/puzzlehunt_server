@@ -86,7 +86,7 @@ def queue(request):
         last_date = Guess.objects.latest('modified_date').modified_date.strftime(DT_FORMAT)
     except Guess.DoesNotExist:
         last_date = timezone.now().strftime(DT_FORMAT)
-    guess_list = [render_to_string('queue_row.html', {'guess': guess},
+    guess_list = [render_to_string('staff/queue_row.html', {'guess': guess},
                                         request=request)
                        for guess in guesss]
 
