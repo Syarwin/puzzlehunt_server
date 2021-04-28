@@ -3,7 +3,7 @@
     <i class="bi bi-puzzle"></i>
   </div>
 
-  <h2>{{ hunt.hunt_name }}</h2>
+  <h2><a href="{% url 'huntserver:hunt' hunt.hunt_number %}">{{ hunt.hunt_name }}</a></h2>
 
 
   {% for episode in episodes %}
