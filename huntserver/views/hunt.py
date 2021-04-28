@@ -101,8 +101,8 @@ class HuntIndex(View):
         episodes = sorted(hunt.get_episodes(user, team), key=lambda p: p.ep_number)
         puzzles = hunt.get_puzzle_list(user, team)
         context = {'hunt': hunt, 'episodes': episodes, 'team': team, 'puzzles':puzzles}
-        return render(request, 'hunt/hunt_example.html', context)
-        #return HttpResponse(Template(hunt.template).render(RequestContext(request, context)))
+     #   return render(request, 'hunt/hunt_example.html', context)
+        return HttpResponse(Template(hunt.template).render(RequestContext(request, context)))
 
 
 def prepuzzle(request, prepuzzle_num):
