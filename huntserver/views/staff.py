@@ -62,7 +62,7 @@ def queue(request):
         team_id = request.GET.get("team_id")
         puzzle_id = request.GET.get("puzzle_id")
         hunt = Hunt.objects.get(is_current_hunt=True)
-        guesss = Guess.objects.filter(puzzle__hunt=hunt).exclude(team__location="DUMMY")
+        guesss = Guess.objects.filter(puzzle__episode__hunt=hunt).exclude(team__location="DUMMY")
         arg_string = ""
         if(team_id):
             team_id = int(team_id)
@@ -97,7 +97,7 @@ def queue(request):
         context = {'form': form, 'page_info': guesss, 'arg_string': arg_string,
                    'guess_list': guess_list, 'last_date': last_date, 'hunt': hunt,
                    'puzzle_id': puzzle_id, 'team_id': team_id}
-        return render(request, 'queue.html', add_apps_to_context(context, request))
+        return render(request, 'staff/queue.html', add_apps_to_context(context, request))
 
 
 @staff_member_required
@@ -174,7 +174,8 @@ def progress(request):
     else:
         curr_hunt = Hunt.objects.get(is_current_hunt=True)
         teams = curr_hunt.real_teams.all().order_by('team_name')
-        puzzles = curr_hunt.puzzle_set.all().order_by('puzzle_number')
+#        puzzles = curr_hunt.puzzle_set.all().order_by('puzzle_number')
+        puzzles = [p  for episode in curr_hunt.episode_set.all() for p in episode.puzzle_set.order_by('puzzle_number')]
         # An array of solves, organized by team then by puzzle
         # This array is essentially the grid on the progress page
         # The structure is messy, it was built part by part as features were added
@@ -222,7 +223,7 @@ def progress(request):
         context = {'puzzle_list': puzzles, 'team_list': teams, 'sol_list': sol_list,
                    'last_unlock_pk': last_unlock_pk, 'last_solve_pk': last_solve_pk,
                    'last_guess_pk': last_guess_pk}
-        return render(request, 'progress.html', add_apps_to_context(context, request))
+        return render(request, 'staff/progress.html', add_apps_to_context(context, request))
 
 
 @staff_member_required
@@ -371,7 +372,7 @@ def hunt_management(request):
     hunts = Hunt.objects.all()
     prepuzzles = Prepuzzle.objects.all()
     context = {'hunts': hunts, 'prepuzzles': prepuzzles}
-    return render(request, 'hunt_management.html', add_apps_to_context(context, request))
+    return render(request, 'staff/hunt_management.html', add_apps_to_context(context, request))
 
 
 @staff_member_required
@@ -413,7 +414,7 @@ def hunt_info(request):
                    'have_teams': have_teams.all(),
                    'offsite_teams': offsite_teams.all(),
                    }
-        return render(request, 'staff_hunt_info.html', add_apps_to_context(context, request))
+        return render(request, 'staff/staff_hunt_info.html', add_apps_to_context(context, request))
 
 
 @staff_member_required
@@ -533,7 +534,7 @@ def staff_hints_text(request):
         context = {'page_info': hints, 'hint_list': hint_list,  'arg_string': arg_string,
                    'last_date': last_date, 'hunt': hunt, 'puzzle_id': puzzle_id, 'team_id': team_id,
                    'hint_status': hint_status, "response_form": form}
-        return render(request, 'staff_hints.html', add_apps_to_context(context, request))
+        return render(request, 'staff/staff_hints.html', add_apps_to_context(context, request))
 
 
 @staff_member_required
@@ -589,7 +590,7 @@ def emails(request):
     else:
         email_form = EmailForm()
     context = {'email_list': (', ').join(email_list), 'email_form': email_form}
-    return render(request, 'email.html', add_apps_to_context(context, request))
+    return render(request, 'staff/email.html', add_apps_to_context(context, request))
 
 
 @staff_member_required
@@ -627,4 +628,4 @@ def lookup(request):
         results = {}
     context = {'lookup_form': lookup_form, 'results': results, 'person': person, 'team': team,
                'curr_hunt': curr_hunt}
-    return render(request, 'lookup.html', add_apps_to_context(context, request))
+    return render(request, 'staff/lookup.html', add_apps_to_context(context, request))
