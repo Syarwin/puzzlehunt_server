@@ -780,7 +780,8 @@ class Guess(models.Model):
     @property
     def is_correct(self):
         """ A boolean indicating if the guess given is exactly correct """
-        return self.guess_text.upper() == self.puzzle.answer.upper()
+        noSpace = self.guess_text.upper().replace(" ","")
+        return noSpace == self.puzzle.answer.upper()
 
     @property
     def convert_markdown_response(self):
@@ -804,7 +805,8 @@ class Guess(models.Model):
     def respond(self):
         """ Takes the guess's text and uses various methods to craft and populate a response.
             If the response is correct a solve is created and the correct puzzles are unlocked"""
-
+      
+        noSpace = self.guess_text.upper().replace(" ","")
         # Compare against correct answer
         if(self.is_correct):
             # Make sure we don't have duplicate or after hunt guess objects
@@ -822,7 +824,7 @@ class Guess(models.Model):
         else:
             # TODO removed unlocked Eureka
             for resp in self.puzzle.eureka_set.all():
-                if(re.match(resp.regex, self.guess_text, re.IGNORECASE)):
+                if(re.fullmatch(resp.regex, noSpace, re.IGNORECASE)):
                     if(resp not in self.team.eurekas.all()):
                         EurekaUnlock.objects.create(team=self.team, eureka=resp, time=timezone.now())
                     return {"status": "eureka", "message": resp.get_feedback}
