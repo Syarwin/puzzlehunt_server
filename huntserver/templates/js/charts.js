@@ -150,6 +150,36 @@ function drawStacked() {
   chart4.draw(data4, options4);
 
 
+
+  // Chart 5
+  var data5 = new google.visualization.DataTable();
+  data5.addColumn('number', 'Time');
+  data5.addColumn('number', '# Solves');
+
+  data5.addRows([
+    {% for point in data5_list %}
+      [{{point.seconds}}, {{point.index}}],
+    {% endfor %}
+  ]);
+
+  var options5 = {
+    title: 'Plot solutions over time (seconds)',
+    isStacked: true,
+    height: 400,
+    width: 800,
+    chartArea: {
+       top: 20,
+       left: 50,
+       height: '50%'
+    },
+    pointSize: 3,
+    hAxis: {slantedText:true, slantedTextAngle:60 },
+  };
+
+  var chart5 = new google.visualization.LineChart(document.getElementById('chart_div5'));
+  chart5.draw(data5, options5);
+
+
   // Chart 5
 /*  var data5 = new google.visualization.DataTable();
   data5.addColumn('datetime', 'Time');

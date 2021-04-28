@@ -232,7 +232,7 @@ def charts(request):
 
     curr_hunt = Hunt.objects.get(is_current_hunt=True)
 #    puzzles = curr_hunt.puzzle_set.order_by('puzzle_number')
-    puzzles = [episode.puzzle_set.order_by('puzzle_number') for episode in curr_hunt.episode_set.all()][1] #dirty but should work for now (11/04/2021)
+    puzzles = [episode.puzzle_set.order_by('puzzle_number') for episode in curr_hunt.episode_set.all()][0] #dirty but should work for now (11/04/2021)
     teams = curr_hunt.real_teams.exclude(location="DUMMY")
     num_teams = teams.count()
     num_puzzles = puzzles.count()
@@ -303,7 +303,28 @@ def charts(request):
         solve_hours.append({"hour": time_string, "amount": solve[4]})
 
     # Chart 5
-    solve_points = []
+    #TODO only works with a single team now...
+    solve_time = []
+    solves = PuzzleSolve.objects.filter(puzzle__episode__hunt=curr_hunt,
+                              #    guess__guess_time__gte=curr_hunt.start_date,
+                                  guess__guess_time__lte=curr_hunt.end_date)
+    solves = solves.values_list('guess__guess_time__year',
+                                'guess__guess_time__month',
+                                'guess__guess_time__day',
+                                'guess__guess_time__hour',
+                                'guess__guess_time__minute',
+                                'guess__guess_time__second',
+                                'puzzle__puzzle_name')
+    solves = solves.order_by('guess__guess_time__year',
+                                                   'guess__guess_time__month',
+                                                   'guess__guess_time__day',
+                                                   'guess__guess_time__hour', 
+                                                   'guess__guess_time__minute',
+                                                   'guess__guess_time__second')
+    
+    for i,solve in enumerate(solves):
+        seconds = (datetime(solve[0],solve[1],solve[2],solve[3],solve[4],solve[5]) - datetime(solves[0][0],solves[0][1],solves[0][2],solves[0][3],solves[0][4],solves[0][5])).total_seconds()
+        solve_time.append({"seconds": seconds, "index": i})
     # solves = Solve.objects.filter(puzzle__hunt=curr_hunt,
     #                               guess__guess_time__gte=curr_hunt.start_date,
     #                               guess__guess_time__lte=curr_hunt.end_date)
@@ -358,7 +379,7 @@ def charts(request):
 
     context = {'data1_list': puzzle_info_dict1, 'data2_list': puzzle_info_dict2,
                'data3_list': guess_hours, 'data4_list': solve_hours,
-               'data5_list': solve_points, 'teams': teams, 'num_puzzles': num_puzzles,
+               'data5_list': solve_time, 'teams': teams, 'num_puzzles': num_puzzles,
                'chart_rows': results, 'puzzles': puzzles, 'data6_list': solve_time_data,
                'data7_list': puzzle_info_dict7}
     return render(request, 'staff/charts.html', add_apps_to_context(context, request))
