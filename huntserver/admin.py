@@ -152,8 +152,8 @@ class PuzzleAdminForm(forms.ModelForm):
 
     def clean_answer(self):
         data = self.cleaned_data.get('answer')
-        if(re.fullmatch(r"[a-zA-Z0-9]+", data.upper()) is None):
-            raise forms.ValidationError("Answer must only contain the characters A-Z and digits.")
+        if(re.fullmatch(r"[a-zA-Z0-9 \(\)]+", data.upper()) is None):
+            raise forms.ValidationError("Answer must only contain the characters A-Z- -(-) and digits.")
         return data
 
     class Meta:
