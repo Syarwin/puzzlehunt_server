@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 from django.contrib.admin.widgets import FilteredSelectMultiple
+import re
 
 from . import models
 from teams.widgets import HtmlEditor

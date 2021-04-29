@@ -16,15 +16,6 @@ logger = logging.getLogger(__name__)
 
 time_zone = tz.gettz(settings.TIME_ZONE)
 
-# enum for the different types of unlock
-# TODO: simplify since we do not care about points!
-class UnlockType(Enum):
-    SOLVES_UNLOCK = 'SOL'
-    POINTS_UNLOCK = 'POT'
-    EITHER_UNLOCK = 'ETH'
-    BOTH_UNLOCK = 'BTH'
-
-
 class TeamManager(models.Manager):
     def search(self, query=None):
         qs = self.get_queryset()
@@ -157,19 +148,19 @@ class Team(models.Model):
             s_unlock = (puzzle.num_required_to_unlock <= mapping[puzzle.puzzle_number])
             p_unlock = (self.num_unlock_points >= puzzle.points_cost)
 
-            if(puzzle.unlock_type == UnlockType.SOLVES_UNLOCK and s_unlock):
+            if(puzzle.unlock_type == "SOL" and s_unlock):
                 logger.info("Team %s unlocked puzzle %s with solves" % (str(self.team_name),
                             str(puzzle.puzzle_id)))
                 TeamPuzzleLink.objects.create(team=self, puzzle=puzzle, time=timezone.now())
-            elif(puzzle.unlock_type == UnlockType.POINTS_UNLOCK and p_unlock):
+            elif(puzzle.unlock_type == "POT" and p_unlock):
                 logger.info("Team %s unlocked puzzle %s with points" % (str(self.team_name),
                             str(puzzle.puzzle_id)))
                 TeamPuzzleLink.objects.create(team=self, puzzle=puzzle, time=timezone.now())
-            elif(puzzle.unlock_type == UnlockType.EITHER_UNLOCK and (s_unlock or p_unlock)):
+            elif(puzzle.unlock_type == "ETH" and (s_unlock or p_unlock)):
                 logger.info("Team %s unlocked puzzle %s with either" % (str(self.team_name),
                             str(puzzle.puzzle_id)))
                 TeamPuzzleLink.objects.create(team=self, puzzle=puzzle, time=timezone.now())
-            elif(puzzle.unlock_type == UnlockType.BOTH_UNLOCK and (s_unlock and p_unlock)):
+            elif(puzzle.unlock_type == "BTH" and (s_unlock and p_unlock)):
                 logger.info("Team %s unlocked puzzle %s with both" % (str(self.team_name),
                             str(puzzle.puzzle_id)))
                 TeamPuzzleLink.objects.create(team=self, puzzle=puzzle, time=timezone.now())

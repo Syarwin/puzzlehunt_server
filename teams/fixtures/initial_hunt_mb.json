@@ -34,7 +34,7 @@
         "end_date": "2000-01-02T05:00:00Z",
         "hunt_name": "Example Hunt 1",
         "is_current_hunt": true,
-        "template": "{% extends \"hunt/hunt_base.html\" %}\r\n{% block title %}Puzzles 1{% endblock title %}\r\n\r\n{% block content %}\r\nExample Template 1\r\n{% endblock content %}",
+        "template": "{% extends \"hunt/hunt_example.html\" %}\r\n{% block title %}Puzzles 1{% endblock title %}\r\n\r\n{% block content %}\r\nExample Template 1\r\n{% endblock content %}",
         "hunt_number": 1,
         "start_date": "2000-01-01T05:00:00Z"
     },

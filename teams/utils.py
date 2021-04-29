@@ -56,9 +56,6 @@ def update_time_items():
     except Hunt.DoesNotExist:
         return
 
-    if(hunt.is_open):
-        check_hints(hunt)
-
     last_update_time = cache.get('last_update_time')
     if(last_update_time is None):
         cache.set('last_update_time', timezone.now(), 30 * 60)

@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.db import models, transaction
 from datetime import timedelta
-from teams.models import UnlockType, Team, Person, Guess, TeamPuzzleLink
+from teams.models import Team, Person, Guess, TeamPuzzleLink
 
 import os
 import re
@@ -280,10 +280,10 @@ class Puzzle(models.Model):
         ordering = ['-episode', 'puzzle_number']
 
     puzzle_unlock_type_choices = [
-        (UnlockType.SOLVES_UNLOCK, 'Solves Based Unlock'),
-        (UnlockType.POINTS_UNLOCK, 'Points Based Unlock'),
-        (UnlockType.EITHER_UNLOCK, 'Either (OR) Unlocking Method'),
-        (UnlockType.BOTH_UNLOCK, 'Both (AND) Unlocking Methods'),
+        ("SOL", 'Solves Based Unlock'),
+        ("POT", 'Points Based Unlock'),
+        ("ETH", 'Either (OR) Unlocking Method'),
+        ("BTH", 'Both (AND) Unlocking Methods'),
     ]
 
     PDF_PUZZLE = 'PDF'
@@ -361,7 +361,7 @@ class Puzzle(models.Model):
     unlock_type = models.CharField(
         max_length=3,
         choices=puzzle_unlock_type_choices,
-        default=UnlockType.SOLVES_UNLOCK,
+        default="SOL",
         blank=False,
         help_text="The type of puzzle unlocking scheme"
     )
