@@ -112,7 +112,7 @@ class UnlockInline(admin.TabularInline):
             try:
                 parent_obj_id = request.resolver_match.kwargs['object_id']
                 puzzle = models.Puzzle.objects.get(id=parent_obj_id)
-                query = models.Puzzle.objects.filter(hunt=puzzle.hunt)
+                query = models.Puzzle.objects.filter(hunt=puzzle.episode.hunt)
                 kwargs["queryset"] = query.order_by('puzzle_id')
             except IndexError:
                 pass

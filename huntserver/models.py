@@ -306,7 +306,7 @@ class Puzzle(models.Model):
         max_length=200,
         help_text="The name of the puzzle as it will be seen by hunt participants")
     puzzle_number = models.IntegerField(
-        help_text="The number of the puzzle within the episode, for sorting purposes")
+        help_text="The number of the puzzle within the episode, for sorting purposes (must be unique within the episode, and not too large)")
     puzzle_id = models.CharField(
         max_length=12,
         unique=True,  # hex only please
@@ -317,6 +317,7 @@ class Puzzle(models.Model):
     answer_regex = models.CharField(
         max_length=100,
         help_text="The regexp towards which the guess is checked in addition to the answer (optional)",
+        blank=True,
         default= "")
     is_meta = models.BooleanField(
         default=False,
@@ -656,40 +657,28 @@ class Team(models.Model):
 
     def unlock_puzzles(self):
         """ Unlocks all puzzles a team is currently supposed to have unlocked """
-        puzzles = self.hunt.puzzle_set.all().order_by('puzzle_number')
+        puzzles = [puzzle for episode in self.hunt.episode_set.all() for puzzle in episode.puzzle_set.all()]
         numbers = []
 
-        numbers = puzzles.values_list('puzzle_number', flat=True)
+        numbers = [puz.puzzle_number for puz in puzzles]
+        
         # make an array for how many points a team has towards unlocking each puzzle
         mapping = [0 for i in range(max(numbers) + 1)]
 
         # go through each solved puzzle and add to the list for each puzzle it unlocks
-        for puzzle in self.solved.all():
-            for num in puzzle.unlocks.values_list('puzzle_number', flat=True):
+        for puz in self.solved.all():
+            for num in puz.unlocks.values_list('puzzle_number', flat=True):
                 mapping[num] += 1
 
         # See if the number of points is enough to unlock any given puzzle
-        puzzles = puzzles.difference(self.unlocked.all())
-        for puzzle in puzzles:
-            s_unlock = (puzzle.num_required_to_unlock <= mapping[puzzle.puzzle_number])
-            p_unlock = (self.num_unlock_points >= puzzle.points_cost)
-
-            if(puzzle.unlock_type == Puzzle.SOLVES_UNLOCK and s_unlock):
+        unlocked_numbers = [puz.puzzle_number for puz in self.unlocked.all()]
+        for puz in puzzles:
+            if (puz.puzzle_number in unlocked_numbers):
+                continue
+            if(puz.num_required_to_unlock <= mapping[puz.puzzle_number]):
                 logger.info("Team %s unlocked puzzle %s with solves" % (str(self.team_name),
-                            str(puzzle.puzzle_id)))
-                PuzzleUnlock.objects.create(team=self, puzzle=puzzle, time=timezone.now())
-            elif(puzzle.unlock_type == Puzzle.POINTS_UNLOCK and p_unlock):
-                logger.info("Team %s unlocked puzzle %s with points" % (str(self.team_name),
-                            str(puzzle.puzzle_id)))
-                PuzzleUnlock.objects.create(team=self, puzzle=puzzle, time=timezone.now())
-            elif(puzzle.unlock_type == Puzzle.EITHER_UNLOCK and (s_unlock or p_unlock)):
-                logger.info("Team %s unlocked puzzle %s with either" % (str(self.team_name),
-                            str(puzzle.puzzle_id)))
-                PuzzleUnlock.objects.create(team=self, puzzle=puzzle, time=timezone.now())
-            elif(puzzle.unlock_type == Puzzle.BOTH_UNLOCK and (s_unlock and p_unlock)):
-                logger.info("Team %s unlocked puzzle %s with both" % (str(self.team_name),
-                            str(puzzle.puzzle_id)))
-                PuzzleUnlock.objects.create(team=self, puzzle=puzzle, time=timezone.now())
+                            str(puz.puzzle_id)))
+                PuzzleUnlock.objects.create(team=self, puzzle=puz, time=timezone.now())
 
     def reset(self):
         """ Resets/deletes all of the team's progress """
@@ -783,10 +772,9 @@ class Guess(models.Model):
 
     @property
     def is_correct(self):
-        """ A boolean indicating if the guess given is exactly correct """
-        noSpace = self.guess_text.upper().replace(" ","")
-        
-        return (noSpace == self.puzzle.answer.upper().replace(" ","") or (self.puzzle.answer_regex != "" and re.fullmatch(self.puzzle.answer_regex, noSpace, re.IGNORECASE)))
+        """ A boolean indicating if the guess given is exactly correct (matches either the answer or the non-empty regex). Spaces do not matter so are removed. """
+        noSpace = self.guess_text.upper().replace(" ","")       
+        return (noSpace == self.puzzle.answer.upper().replace(" ","") or (self.puzzle.answer_regex.replace(" ","") != "" and re.fullmatch(self.puzzle.answer_regex.replace(" ",""), noSpace, re.IGNORECASE)))
 
     @property
     def convert_markdown_response(self):
@@ -829,7 +817,7 @@ class Guess(models.Model):
         else:
             # TODO removed unlocked Eureka
             for resp in self.puzzle.eureka_set.all():
-                if(re.fullmatch(resp.regex, noSpace, re.IGNORECASE)):
+                if(re.fullmatch(resp.regex.replace(" ",""), noSpace, re.IGNORECASE)):
                     if(resp not in self.team.eurekas.all()):
                         EurekaUnlock.objects.create(team=self.team, eureka=resp, time=timezone.now())
                     return {"status": "eureka", "message": resp.get_feedback}

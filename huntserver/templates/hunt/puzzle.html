@@ -58,7 +58,7 @@
 </div>
 
 
-{% if puzzle.hunt.is_public %}
+{% if puzzle.episode.hunt.is_public %}
   {% if puzzle.solution_is_webpage and puzzle.solution_resource_file != "" %}
     <a class="btn btn-default" href='{{ PROTECTED_URL }}solutions/{{ puzzle.puzzle_id }}_sol/index.html'>
         View solution

@@ -222,8 +222,8 @@ class PuzzleView(View):
         # Dealing with answer guesss, proper procedure is to create a guess
         # object and then rely on Guess.respond for automatic responses.
         if(team is None):
-            if(puzzle.hunt.is_public):
-                team = puzzle.hunt.dummy_team
+            if(puzzle.episode.hunt.is_public):
+                team = puzzle.episode.hunt.dummy_team
             else:
                 # If the hunt isn't public and you aren't signed in, please stop...
                 return JsonResponse({'error':'fail'})
