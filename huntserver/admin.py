@@ -179,7 +179,7 @@ class PuzzleAdmin(admin.ModelAdmin):
     radio_fields = {"unlock_type": admin.VERTICAL}
     fieldsets = (
         (None, {
-            'fields': ('episode', 'puzzle_name', 'answer', 'puzzle_number', 'puzzle_id', 'is_meta',
+            'fields': ('episode', 'puzzle_name', 'answer', 'answer_regex', 'puzzle_number', 'puzzle_id', 'is_meta',
                        'doesnt_count', 'extra_data', 'unlock_type')
         }),
         ('Resources', {

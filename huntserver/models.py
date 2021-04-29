@@ -314,6 +314,10 @@ class Puzzle(models.Model):
     answer = models.CharField(
         max_length=100,
         help_text="The answer to the puzzle, not case sensitive")
+    answer_regex = models.CharField(
+        max_length=100,
+        help_text="The regexp towards which the guess is checked in addition to the answer (optional)",
+        default= "")
     is_meta = models.BooleanField(
         default=False,
         verbose_name="Is a metapuzzle",
@@ -781,7 +785,8 @@ class Guess(models.Model):
     def is_correct(self):
         """ A boolean indicating if the guess given is exactly correct """
         noSpace = self.guess_text.upper().replace(" ","")
-        return noSpace == self.puzzle.answer.upper()
+        
+        return (noSpace == self.puzzle.answer.upper() or (self.puzzle.answer_regex != "" and re.fullmatch(self.puzzle.answer_regex, noSpace, re.IGNORECASE)))
 
     @property
     def convert_markdown_response(self):
