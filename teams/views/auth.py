@@ -4,17 +4,17 @@ from django.contrib.auth import logout, login, views
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, reverse
-from huntserver.utils import parse_attributes
 from django.db.models.functions import Lower
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
-from . import info
 import random
 import re
 
+from hunts.views import info
 from hunts.models import Hunt
 from teams.models import Person, Team
 from teams.forms import UserForm, PersonForm
+from teams.utils import parse_attributes
 
 import logging
 logger = logging.getLogger(__name__)

@@ -23,7 +23,7 @@
         "teams": [],
         "user": 1
     },
-    "model": "huntserver.person",
+    "model": "teams.person",
     "pk": 1
 },
 {
@@ -38,7 +38,7 @@
         "hunt_number": 1,
         "start_date": "2000-01-01T05:00:00Z"
     },
-    "model": "huntserver.hunt",
+    "model": "hunts.hunt",
     "pk": 1
 }
 ]

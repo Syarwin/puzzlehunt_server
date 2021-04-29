@@ -23,9 +23,10 @@ from django.db import transaction
 from django.db.models.signals import pre_save, post_save, pre_delete
 from django.dispatch import receiver
 from django.utils import timezone
-from .models import Puzzle, Hunt, Guess
+from .models import Guess, TeamEurekaLink
+from hunts.models import Puzzle, Hunt, Hint
 
-from . import models, utils
+from . import utils
 
 
 
@@ -135,7 +136,7 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
 
     def schedule_hint_msg(self, message):
         try:
-            hint = models.Hint.objects.get(id=message['hint_uid'])
+            hint = Hint.objects.get(id=message['hint_uid'])
         except (TypeError, KeyError):
             raise ValueError('Cannot schedule a hint without either a hint instance or a dictionary with `hint_uid` key.')
         send_expired = message.get('send_expired', False)
@@ -160,7 +161,7 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
         self.hint_events[hint.id] = task
 
     def cancel_scheduled_hint(self, content):
-        hint = models.Hint.objects.get(id=content['hint_uid'])
+        hint = Hint.objects.get(id=content['hint_uid'])
 
         try:
             self.hint_events[hint.id].cancel()
@@ -340,5 +341,5 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
             })
 
 
-pre_save.connect(PuzzleWebsocket._saved_guess, sender=models.Guess)
-pre_save.connect(PuzzleWebsocket._saved_eurekaUnlock, sender=models.EurekaUnlock)
+pre_save.connect(PuzzleWebsocket._saved_guess, sender=Guess)
+pre_save.connect(PuzzleWebsocket._saved_eurekaUnlock, sender=TeamEurekaLink)

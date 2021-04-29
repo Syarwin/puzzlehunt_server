@@ -1,4 +1,5 @@
-from .models import Hunt, Team
+from .models import Team
+from hunts.models import Hunt
 
 class HuntMiddleware(object):
     """

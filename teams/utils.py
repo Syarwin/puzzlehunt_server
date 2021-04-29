@@ -5,7 +5,7 @@ from huey import crontab
 from huey.contrib.djhuey import db_periodic_task
 from django.core.cache import cache
 
-from .models import Hunt
+from hunts.models import Hunt
 
 
 import logging
