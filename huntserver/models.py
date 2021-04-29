@@ -313,7 +313,7 @@ class Puzzle(models.Model):
         help_text="A 3-12 character hex string that uniquely identifies the puzzle")
     answer = models.CharField(
         max_length=100,
-        help_text="The answer to the puzzle, not case sensitive")
+        help_text="The answer to the puzzle, not case nor space sensitive. Can contain parentheses to show multiple options but a regex is then mandatory.")
     answer_regex = models.CharField(
         max_length=100,
         help_text="The regexp towards which the guess is checked in addition to the answer (optional)",
@@ -773,8 +773,8 @@ class Guess(models.Model):
     @property
     def is_correct(self):
         """ A boolean indicating if the guess given is exactly correct (matches either the answer or the non-empty regex). Spaces do not matter so are removed. """
-        noSpace = self.guess_text.upper().replace(" ","")       
-        return (noSpace == self.puzzle.answer.upper().replace(" ","") or (self.puzzle.answer_regex.replace(" ","") != "" and re.fullmatch(self.puzzle.answer_regex.replace(" ",""), noSpace, re.IGNORECASE)))
+        noSpace = self.guess_text.upper().replace(" ","")
+        return (noSpace == self.puzzle.answer.upper().replace(" ","") or (self.puzzle.answer_regex != "" and re.fullmatch(self.puzzle.answer_regex, noSpace, re.IGNORECASE)))
 
     @property
     def convert_markdown_response(self):

@@ -155,10 +155,18 @@ class PuzzleAdminForm(forms.ModelForm):
         if(re.fullmatch(r"[a-zA-Z0-9 \(\)]+", data.upper()) is None):
             raise forms.ValidationError("Answer must only contain the characters A-Z- -(-) and digits.")
         return data
+        
+    def clean_answer_regex(self):
+        data = self.cleaned_data.get('answer_regex')
+        if(re.fullmatch(r".* .*", data)):
+            raise forms.ValidationError("Answer regex must not contain spaces.")
+        if (data == "" and re.fullmatch(r".*[\(\)].*", self.cleaned_data.get('answer'))):
+            raise forms.ValidationError("Answer regex is empty but Answer contains non-alphanumerical character: the puzzle has no answer.")
+        return data
 
     class Meta:
         model = models.Puzzle
-        fields = ('episode', 'puzzle_name', 'puzzle_number', 'puzzle_id', 'answer', 'is_meta',
+        fields = ('episode', 'puzzle_name', 'puzzle_number', 'puzzle_id', 'answer', 'answer_regex', 'is_meta',
                   'doesnt_count', 'puzzle_page_type', 'puzzle_file', 'resource_file',
                   'solution_file', 'extra_data', 'num_required_to_unlock', 'unlock_type',
                   'points_cost', 'points_value', 'solution_is_webpage', 'solution_resource_file')
