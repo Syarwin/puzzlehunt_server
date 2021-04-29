@@ -2,8 +2,9 @@ from django.db.models.functions import Lower
 from django.shortcuts import render
 from django.contrib import messages
 
-from huntserver.models import Hunt, Team
-from huntserver.forms import PersonForm, UserForm
+from hunts.models import Hunt
+from teams.models import Team
+from teams.forms import PersonForm, UserForm
 
 import logging
 logger = logging.getLogger(__name__)

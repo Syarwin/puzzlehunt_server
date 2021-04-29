@@ -6,6 +6,9 @@ from django.conf.urls.static import static
 from django.urls import reverse_lazy
 from django.views.generic import RedirectView
 
+from hunts.urls import urlpatterns as hunts_patterns
+from teams.urls import urlpatterns as teams_patterns
+
 urlpatterns = [
     # Admin redirections/views
     url(r'^admin/login/$', RedirectView.as_view(url=reverse_lazy(settings.LOGIN_URL),
@@ -13,14 +16,15 @@ urlpatterns = [
     url(r'^staff/login/$', RedirectView.as_view(url=reverse_lazy(settings.LOGIN_URL),
                                                 query_string=True)),
     url(r'^admin/$', RedirectView.as_view(url=reverse_lazy('admin:app_list',
-                                          args=('huntserver',)))),
+                                          args=('teams',)))),
     url(r'^staff/$', RedirectView.as_view(url=reverse_lazy('admin:app_list',
-                                          args=('huntserver',)))),
+                                          args=('teams',)))),
     url(r'^staff/', admin.site.urls),
     url(r'^admin/', admin.site.urls),
 
     # All of the huntserver URLs
-    url(r'^', include('huntserver.urls', namespace="huntserver")),
+    url(r'^', include('teams.urls', namespace="teams")),
+    url(r'^', include('hunts.urls', namespace="hunts")),
 
     # User auth/password reset
     url(r'^accounts/logout/$', base_auth_views.LogoutView.as_view(),

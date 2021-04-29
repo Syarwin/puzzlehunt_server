@@ -18,8 +18,9 @@ import json
 from copy import deepcopy
 # from silk.profiling.profiler import silk_profile
 
-from huntserver.models import Guess, Hunt, Team, Puzzle, PuzzleUnlock, PuzzleSolve, Prepuzzle, Person
-from huntserver.forms import GuessForm, UnlockForm, EmailForm, LookupForm
+from hunts.models import Guess, Hunt, Prepuzzle
+from teams.models import Team, TeamPuzzleLink, PuzzleSolve, Person
+from teams.forms import GuessForm, UnlockForm, EmailForm, LookupForm
 
 DT_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
@@ -116,7 +117,7 @@ def progress(request):
                     t = Team.objects.get(pk=form.cleaned_data['team_id'])
                     p = Puzzle.objects.get(puzzle_id=form.cleaned_data['puzzle_id'])
                     if(p not in t.unlocked.all()):
-                        u = PuzzleUnlock.objects.create(team=t, puzzle=p, time=timezone.now())
+                        u = TeamPuzzleLink.objects.create(team=t, puzzle=p, time=timezone.now())
                         return HttpResponse(json.dumps(u.serialize_for_ajax()))
                     else:
                         return HttpResponse(status=200)
@@ -125,7 +126,7 @@ def progress(request):
                 response = []
                 for team in p.hunt.team_set.all():
                     if(p not in team.unlocked.all()):
-                        u = PuzzleUnlock.objects.create(team=team, puzzle=p, time=timezone.now())
+                        u = TeamPuzzleLink.objects.create(team=team, puzzle=p, time=timezone.now())
                         response.append(u.serialize_for_ajax())
                 return HttpResponse(json.dumps(response))
         return HttpResponse(status=400)
@@ -144,7 +145,7 @@ def progress(request):
             results.append(solve.serialize_for_ajax())
 
         last_unlock_pk = request.GET.get("last_unlock_pk")
-        unlocks = PuzzleUnlock.objects.filter(pk__gt=last_unlock_pk)
+        unlocks = TeamPuzzleLink.objects.filter(pk__gt=last_unlock_pk)
         for unlock in unlocks:
             results.append(unlock.serialize_for_ajax())
 
@@ -160,8 +161,8 @@ def progress(request):
             except PuzzleSolve.DoesNotExist:
                 last_solve_pk = 0
             try:
-                last_unlock_pk = PuzzleUnlock.objects.latest('id').id
-            except PuzzleUnlock.DoesNotExist:
+                last_unlock_pk = TeamPuzzleLink.objects.latest('id').id
+            except TeamPuzzleLink.DoesNotExist:
                 last_unlock_pk = 0
             try:
                 last_guess_pk = Guess.objects.latest('id').id
@@ -187,7 +188,7 @@ def progress(request):
         for team in teams:
             sol_dict[team.pk] = deepcopy(puzzle_dict)
 
-        data = PuzzleUnlock.objects.filter(team__hunt=curr_hunt).exclude(team__location='DUMMY')
+        data = TeamPuzzleLink.objects.filter(team__hunt=curr_hunt).exclude(team__location='DUMMY')
         data = data.values_list('team', 'puzzle').annotate(Max('time'))
 
         for point in data:
@@ -213,8 +214,8 @@ def progress(request):
         except PuzzleSolve.DoesNotExist:
             last_solve_pk = 0
         try:
-            last_unlock_pk = PuzzleUnlock.objects.latest('id').id
-        except PuzzleUnlock.DoesNotExist:
+            last_unlock_pk = TeamPuzzleLink.objects.latest('id').id
+        except TeamPuzzleLink.DoesNotExist:
             last_unlock_pk = 0
         try:
             last_guess_pk = Guess.objects.latest('id').id
@@ -356,7 +357,7 @@ def charts(request):
 
     # Chart 6
     solve_time_data = []
-    # sq1 = PuzzleUnlock.objects.filter(puzzle=OuterRef('puzzle'), team=OuterRef('team'))
+    # sq1 = TeamPuzzleLink.objects.filter(puzzle=OuterRef('puzzle'), team=OuterRef('team'))
     # sq1 = sq1.values('time')[:1]
     # sq2 = Solve.objects.filter(pk=OuterRef('pk')).values('guess__guess_time')[:1]
     # solves = Solve.objects.filter(puzzle__hunt=curr_hunt,
@@ -464,20 +465,20 @@ def control(request):
             for team in teams:
                 team.unlock_puzzles()
             messages.success(request, "Initial puzzles released")
-            return redirect('huntserver:hunt_management')
+            return redirect('teams:hunt_management')
         if(request.POST["action"] == "reset"):
             teams = curr_hunt.team_set.all().order_by('team_name')
             for team in teams:
                 team.reset()
             messages.success(request, "Progress reset")
-            return redirect('huntserver:hunt_management')
+            return redirect('teams:hunt_management')
 
         if(request.POST["action"] == "new_current_hunt"):
             new_curr = Hunt.objects.get(hunt_number=int(request.POST.get('hunt_number')))
             new_curr.is_current_hunt = True
             new_curr.save()
             messages.success(request, "Set new current hunt")
-            return redirect('huntserver:hunt_management')
+            return redirect('teams:hunt_management')
 
         else:
             return HttpResponseNotFound('access denied')

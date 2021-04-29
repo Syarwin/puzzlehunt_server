@@ -1,7 +1,7 @@
 from django import template
 from django.conf import settings
 from django.template import Template, Context
-from huntserver.models import Hunt
+from hunts.models import Hunt
 from datetime import datetime
 register = template.Library()
 

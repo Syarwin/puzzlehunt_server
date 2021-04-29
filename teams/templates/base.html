@@ -29,13 +29,13 @@
 					<div class="collapse navbar-collapse" id="navbar-collapse-wrapper">
 						<ul class="navbar-nav me-auto mb-2 mb-lg-0">
               <li class='nav-item'>
-                <a class='nav-link' href="{% url 'huntserver:current_hunt_info' %}">
+                <a class='nav-link' href="{% url 'hunts:current_hunt_info' %}">
                   <i class="bi bi-book me-1"></i>
                   Info and rules
                 </a>
               </li>
               <li class='nav-item'>
-                <a class='nav-link' href="{% url 'huntserver:current_hunt' %}">
+                <a class='nav-link' href="{% url 'hunts:current_hunt' %}">
                   <i class="bi bi-play-circle-fill me-1"></i>
                   Game
                 </a>
@@ -54,20 +54,20 @@
                      {{request.user.username}}
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="{% url 'huntserver:profile' %}">Edit Profile</a></li>
-                    <li><a class="dropdown-item" href="{% url 'huntserver:registration' %}">Join/Manage Team</a></li>
+                    <li><a class="dropdown-item" href="{% url 'teams:profile' %}">Edit Profile</a></li>
+                    <li><a class="dropdown-item" href="{% url 'teams:registration' %}">Join/Manage Team</a></li>
                     <li role="separator" class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="/logout/">Log Out</a></li>
                   </ul>
                 </li>
               {% else %}
                 <li class="nav-item">
-									<a class="nav-link" href="{% url 'huntserver:signup' %}">
+									<a class="nav-link" href="{% url 'teams:signup' %}">
 	                  Sign-up
                 	</a>
 								</li>
                 <li class="nav-item">
-									<a class="nav-link" href="{% url 'huntserver:login' %}">
+									<a class="nav-link" href="{% url 'teams:login' %}">
 	                  Login
                 	</a>
 								</li>

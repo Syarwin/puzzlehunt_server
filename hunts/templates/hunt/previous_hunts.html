@@ -13,7 +13,7 @@
   </p>
   {% for hunt in hunts reversed %}
   <h4>
-    <a href="{% url 'huntserver:hunt' hunt.hunt_number %}">
+    <a href="{% url 'hunts:hunt' hunt.hunt_number %}">
       {{hunt.hunt_name}} ({{hunt.season}} '{{ hunt.start_date|date:"y" }})
     </a>
   </h4>

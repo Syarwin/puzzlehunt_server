@@ -5,8 +5,8 @@ class RequiredTeamMixin(LoginRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
         if request.team is None:
             if request.hunt is None:
-                return redirect(reverse('huntserver:index'))
+                return redirect(reverse('hunts:index'))
             else:
-                return redirect(reverse('huntserver:registration'))
+                return redirect(reverse('teams:registration'))
         else:
             return super().dispatch(request, *args, **kwargs)

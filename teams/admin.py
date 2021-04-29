@@ -292,7 +292,7 @@ class TeamAdmin(admin.ModelAdmin):
     short_team_name.short_description = "Team name"
 
 
-class PuzzleUnlockAdmin(admin.ModelAdmin):
+class TeamPuzzleLinkAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'time']
     autocomplete_fields = ['team']
 
@@ -370,7 +370,7 @@ admin.site.register(models.PuzzleSolve,PuzzleSolveAdmin)
 admin.site.register(models.Guess, GuessAdmin)
 admin.site.register(models.Team,       TeamAdmin)
 #admin.site.register(models.Unlockable)
-admin.site.register(models.PuzzleUnlock, PuzzleUnlockAdmin)
+admin.site.register(models.TeamPuzzleLink, TeamPuzzleLinkAdmin)
 admin.site.register(models.EurekaUnlock, EurekaUnlockAdmin)
 admin.site.register(UserProxyObject,   UserProxyAdmin)
 admin.site.register(FlatPageProxyObject, FlatPageProxyAdmin)
