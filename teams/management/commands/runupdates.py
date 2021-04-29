@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from huntserver.utils import update_time_items
+from teams.utils import update_time_items
 
 
 class RunUpdates(BaseCommand):

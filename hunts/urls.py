@@ -20,8 +20,6 @@ from django.views.generic.base import RedirectView
 from django.contrib.flatpages import views as flatpage_views
 from . import views
 
-app_name = "hunts"
-
 urlpatterns = [
      # Info Pages
     url(r'^$', views.info.index, name='index'),

@@ -108,7 +108,7 @@ class TeamPuzzleLinkAdmin(admin.ModelAdmin):
 class UserProxyObject(User):
     class Meta:
         proxy = True
-        app_label = 'huntserver'
+        app_label = 'teams'
         verbose_name = User._meta.verbose_name
         verbose_name_plural = User._meta.verbose_name_plural
         ordering = ['-pk']
@@ -122,7 +122,7 @@ class UserProxyAdmin(admin.ModelAdmin):
 class FlatPageProxyObject(FlatPage):
     class Meta:
         proxy = True
-        app_label = 'huntserver'
+        app_label = 'teams'
         verbose_name = "info page"
         verbose_name_plural = "info pages"
 

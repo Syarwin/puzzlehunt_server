@@ -332,7 +332,7 @@ def charts(request):
     # solves = solves.order_by('guess__guess_time')
 
     # team_dict = {}
-    # for team in teams:
+    # for team in 
     #     team_dict[team] = 0
     # progress = [0] * (num_puzzles + 1)
     # progress[0] = num_teams
@@ -349,7 +349,7 @@ def charts(request):
     #     points = zip([curr_hunt.start_date] + list(points), range(len(points) + 1))
     #     solve_points.append({'puzzle': puzzle, 'points': points})
 
-    # for team in teams:
+    # for team in 
     #     points = team.solve_set.order_by('guess__guess_time')
     #     points = points.values_list('guess__guess_time', flat=True)
     #     points = zip([curr_hunt.start_date] + list(points), range(len(points) + 1))
@@ -465,20 +465,20 @@ def control(request):
             for team in teams:
                 team.unlock_puzzles()
             messages.success(request, "Initial puzzles released")
-            return redirect('teams:hunt_management')
+            return redirect('hunt_management')
         if(request.POST["action"] == "reset"):
             teams = curr_hunt.team_set.all().order_by('team_name')
             for team in teams:
                 team.reset()
             messages.success(request, "Progress reset")
-            return redirect('teams:hunt_management')
+            return redirect('hunt_management')
 
         if(request.POST["action"] == "new_current_hunt"):
             new_curr = Hunt.objects.get(hunt_number=int(request.POST.get('hunt_number')))
             new_curr.is_current_hunt = True
             new_curr.save()
             messages.success(request, "Set new current hunt")
-            return redirect('teams:hunt_management')
+            return redirect('hunt_management')
 
         else:
             return HttpResponseNotFound('access denied')

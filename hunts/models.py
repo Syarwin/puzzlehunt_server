@@ -475,7 +475,7 @@ class Prepuzzle(models.Model):
         max_length=100,
         help_text="The answer to the puzzle, not case sensitive")
     template = models.TextField(
-        default='{% extends "prepuzzle.html" %}\r\n{% load prepuzzle_tags %}\r\n' +
+        default='{% extends "puzzle/prepuzzle.html" %}\r\n{% load prepuzzle_tags %}\r\n' +
                 '\r\n{% block content %}\r\n{% endblock content %}',
         help_text="The template string to be rendered to HTML on the hunt page")
     resource_file = models.FileField(

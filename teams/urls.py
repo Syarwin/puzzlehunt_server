@@ -20,8 +20,6 @@ from django.views.generic.base import RedirectView
 from django.contrib.flatpages import views as flatpage_views
 from . import views
 
-app_name = "teams"
-
 urlpatterns = [
     # Auth and Accounts
     url(r'^signup/$', views.auth.SignUp.as_view(), name='signup'),
@@ -37,8 +35,8 @@ urlpatterns = [
         url(r'^progress/$', views.staff.progress, name='progress'),
         url(r'^charts/$', views.staff.charts, name='charts'),
         url(r'^control/$', views.staff.control, name='control'),
-        url(r'^teams/$', RedirectView.as_view(url='/admin/huntserver/team/', permanent=False)),
-        url(r'^puzzles/$', RedirectView.as_view(url='/admin/huntserver/puzzle/', permanent=False)),
+        url(r'^teams/$', RedirectView.as_view(url='/admin/teams/team/', permanent=False)),
+        url(r'^puzzles/$', RedirectView.as_view(url='/admin/hunts/puzzle/', permanent=False)),
         url(r'^emails/$', views.staff.emails, name='emails'),
         url(r'^management/$', views.staff.hunt_management, name='hunt_management'),
         url(r'^info/$', views.staff.hunt_info, name='hunt_info'),

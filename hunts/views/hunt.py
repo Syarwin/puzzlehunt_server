@@ -77,7 +77,7 @@ def protected_static(request, file_path):
 
 def current_hunt(request):
     """ A simple view that calls ``teams.hunt_views.hunt`` with the current hunt's number. """
-    return redirect(reverse('teams:hunt', kwargs={'hunt_num' : Hunt.objects.get(is_current_hunt=True).hunt_number}))
+    return redirect(reverse('hunt', kwargs={'hunt_num' : Hunt.objects.get(is_current_hunt=True).hunt_number}))
 
 
 class HuntIndex(View):
@@ -94,9 +94,9 @@ class HuntIndex(View):
         # real teams get appropriate puzzles, and puzzles from past hunts are public
         if not hunt.can_access(user, team):
             if(hunt.is_locked):
-                return redirect(reverse("hunts:index"))
+                return redirect(reverse("index"))
             if(hunt.is_open):
-                return redirect(reverse('teams:registration'))
+                return redirect(reverse('registration'))
 
         episodes = sorted(hunt.get_episodes(user, team), key=lambda p: p.ep_number)
         puzzles = hunt.get_puzzle_list(user, team)
@@ -133,7 +133,7 @@ def prepuzzle(request, prepuzzle_num):
 
     else:
         if(not (puzzle.released or request.user.is_staff)):
-            return redirect('hunts:current_hunt_info')
+            return redirect('current_hunt_info')
         form = AnswerForm()
         context = {'form': form, 'puzzle': puzzle}
         return HttpResponse(Template(puzzle.template).render(RequestContext(request, context)))
@@ -148,7 +148,7 @@ def hunt_prepuzzle(request, hunt_num):
         return prepuzzle(request, curr_hunt.prepuzzle.pk)
     else:
         # Maybe we can do something better, but for now, redirect to the main page
-        return redirect('hunts:current_hunt_info')
+        return redirect('current_hunt_info')
 
 
 def current_prepuzzle(request):
@@ -200,7 +200,7 @@ class PuzzleView(View):
 
             if (not request.user.is_staff):
                 if(request.team is None or request.puzzle not in request.team.unlocked.all()):
-                    return redirect(reverse('hunts:hunt', kwargs={'hunt_num' : request.hunt.hunt_number }))
+                    return redirect(reverse('hunt', kwargs={'hunt_num' : request.hunt.hunt_number }))
 
         template = Template(request.puzzle.template).render(RequestContext(request, {'URL' : settings.PROTECTED_URL + "puzzles/" + request.puzzle.puzzle_id }))
         episodes = sorted(request.hunt.get_episodes(request.user, request.team), key=lambda p: p.ep_number)
@@ -283,4 +283,4 @@ def unlockables(request):
     if(team is None):
         return render(request, 'access_error.html', {'reason': "team"})
     unlockables = Unlockable.objects.filter(puzzle__in=team.solved.all())
-    return render(request, 'unlockables.html', {'unlockables': unlockables, 'team': team})
+    return render(request, 'hunt/unlockables.html', {'unlockables': unlockables, 'team': team})

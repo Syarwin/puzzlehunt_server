@@ -23,4 +23,4 @@ def previous_hunts(request):
     for hunt in Hunt.objects.all().order_by("hunt_number"):
         if(hunt.is_public):
             old_hunts.append(hunt)
-    return render(request, "previous_hunts.html", {'hunts': old_hunts})
+    return render(request, "hunt/previous_hunts.html", {'hunts': old_hunts})

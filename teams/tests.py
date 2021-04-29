@@ -66,18 +66,18 @@ def solve_puzzle_from_admin(test):
     test.client.logout()
     login(test, 'user5')
     post_context = {'answer': "wrong answer"}
-    response = test.client.post(reverse('hunts:puzzle', kwargs={"puzzle_id": "201"}),
+    response = test.client.post(reverse('puzzle', kwargs={"puzzle_id": "201"}),
                                 post_context)
     test.assertEqual(response.status_code, 200)
     post_context = {'answer': "ANSWER21"}
-    response = test.client.post(reverse('hunts:puzzle', kwargs={"puzzle_id": "201"}),
+    response = test.client.post(reverse('puzzle', kwargs={"puzzle_id": "201"}),
                                 post_context)
     test.assertEqual(response.status_code, 200)
     post_context = {'answer': "wrong answer"}
-    response = test.client.post(reverse('hunts:puzzle', kwargs={"puzzle_id": "202"}),
+    response = test.client.post(reverse('puzzle', kwargs={"puzzle_id": "202"}),
                                 post_context)
     test.assertEqual(response.status_code, 200)
-    response = test.client.post(reverse('hunts:puzzle', kwargs={"puzzle_id": "201"}),
+    response = test.client.post(reverse('puzzle', kwargs={"puzzle_id": "201"}),
                                 post_context)
     test.assertEqual(response.status_code, 200)
     test.client.logout()
@@ -126,32 +126,32 @@ class InfoTests(TestCase):
 
     def test_index(self):
         "Test the index page"
-        response = get_and_check_page(self, 'teams:index', 200)
+        response = get_and_check_page(self, 'index', 200)
         self.assertTrue(isinstance(response.context['curr_hunt'], models.Hunt))
 
     def test_previous_hunts(self):
         "Test the previous hunts page"
-        response = get_and_check_page(self, 'teams:previous_hunts', 200)
+        response = get_and_check_page(self, 'previous_hunts', 200)
         self.assertTrue('hunts' in response.context)
         for hunt in response.context['hunts']:
             self.assertTrue(isinstance(hunt, models.Hunt))
 
     def test_registration1(self):
         "Test the registration page when not logged in"
-        response = get_and_check_page(self, 'teams:registration', 200)
+        response = get_and_check_page(self, 'registration', 200)
         self.assertEqual(message_from_response(response), "")
 
     def test_registration2(self):
         "Test the registration page when logged in and on a team"
         login(self, 'user1')
-        response = get_and_check_page(self, 'teams:registration', 200)
+        response = get_and_check_page(self, 'registration', 200)
         self.assertTrue('registered_team' in response.context)
         self.assertTrue(isinstance(response.context['registered_team'], models.Team))
 
     def test_registration3(self):
         "Test the registration page when logged in and not on a team"
         login(self, 'user6')
-        response = get_and_check_page(self, 'teams:registration', 200)
+        response = get_and_check_page(self, 'registration', 200)
         self.assertEqual(message_from_response(response), "")
         self.assertTrue('teams' in response.context)
         for hunt in response.context['teams']:
@@ -162,7 +162,7 @@ class InfoTests(TestCase):
         login(self, 'user6')
         post_context = {"form_type": "new_team", "team_name": "new_team",
                         "need_room": "need_a_room"}
-        response = self.client.post(reverse('teams:registration'), post_context)
+        response = self.client.post(reverse('registration'), post_context)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['user'].person.teams.all()), 1)
         team = response.context['user'].person.teams.all()[0]
@@ -178,7 +178,7 @@ class InfoTests(TestCase):
         login(self, 'user6')
         post_context = {"form_type": "join_team", "team_name": "Team2-2",
                         "join_code": "JOIN5"}
-        response = self.client.post(reverse('teams:registration'), post_context)
+        response = self.client.post(reverse('registration'), post_context)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['user'].person.teams.all()), 1)
         team = response.context['user'].person.teams.all()[0]
@@ -191,7 +191,7 @@ class InfoTests(TestCase):
         "Test the registration page's leave team functionality"
         login(self, 'user5')
         post_context = {"form_type": "leave_team"}
-        response = self.client.post(reverse('teams:registration'), post_context)
+        response = self.client.post(reverse('registration'), post_context)
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(message_from_response(response), "")
         hunt = models.Hunt.objects.get(is_current_hunt=True)
@@ -202,7 +202,7 @@ class InfoTests(TestCase):
         hunt.end_date = hunt.end_date + timedelta(days=10000)
         hunt.save()
         post_context = {"form_type": "leave_team"}
-        response = self.client.post(reverse('teams:registration'), post_context)
+        response = self.client.post(reverse('registration'), post_context)
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(message_from_response(response), "")
         self.assertEqual(len(response.context['user'].person.teams.filter(hunt=hunt)), 0)
@@ -211,7 +211,7 @@ class InfoTests(TestCase):
         "Test the registration page's new location functionality"
         login(self, 'user4')
         post_context = {"form_type": "new_location", "team_location": "location2.0"}
-        response = self.client.post(reverse('teams:registration'), post_context)
+        response = self.client.post(reverse('registration'), post_context)
         self.assertEqual(response.status_code, 200)
         hunt = models.Hunt.objects.get(is_current_hunt=True)
         team = response.context['user'].person.teams.filter(hunt=hunt)[0]
@@ -226,7 +226,7 @@ class InfoTests(TestCase):
         hunt.start_date = hunt.start_date + timedelta(days=10000)
         hunt.end_date = hunt.end_date + timedelta(days=10000)
         hunt.save()
-        response = self.client.post(reverse('teams:registration'), post_context)
+        response = self.client.post(reverse('registration'), post_context)
         self.assertEqual(response.status_code, 200)
         team = response.context['user'].person.teams.filter(hunt=hunt)[0]
         self.assertEqual(response.context['registered_team'], team)
@@ -238,38 +238,38 @@ class InfoTests(TestCase):
 
         post_context = {"form_type": "new_team", "team_name": "team2-2",
                         "need_room": "need_a_room"}
-        response = self.client.post(reverse('teams:registration'), post_context)
+        response = self.client.post(reverse('registration'), post_context)
         self.assertNotEqual(message_from_response(response), "")
         self.assertEqual(response.status_code, 200)
 
         post_context = {"form_type": "new_team", "team_name": "    ",
                         "need_room": "need_a_room"}
-        response = self.client.post(reverse('teams:registration'), post_context)
+        response = self.client.post(reverse('registration'), post_context)
         self.assertNotEqual(message_from_response(response), "")
         self.assertEqual(response.status_code, 200)
 
         post_context = {"form_type": "join_team", "team_name": "Team2-3",
                         "join_code": "JOIN5"}
-        response = self.client.post(reverse('teams:registration'), post_context)
+        response = self.client.post(reverse('registration'), post_context)
         self.assertNotEqual(message_from_response(response), "")
         self.assertEqual(response.status_code, 200)
 
         post_context = {"form_type": "join_team", "team_name": "Team2-2",
                         "join_code": "JOIN0"}
-        response = self.client.post(reverse('teams:registration'), post_context)
+        response = self.client.post(reverse('registration'), post_context)
         self.assertNotEqual(message_from_response(response), "")
         self.assertEqual(response.status_code, 200)
 
         post_context = {"form_type": "join_team", "team_name": "Team2-3",
                         "join_code": "JOIN6"}
-        response = self.client.post(reverse('teams:registration'), post_context)
+        response = self.client.post(reverse('registration'), post_context)
         self.assertNotEqual(message_from_response(response), "")
         self.assertEqual(response.status_code, 200)
 
     def test_user_profile(self):
         "Test the user profile page"
         login(self, 'user4')
-        response = get_and_check_page(self, 'teams:user_profile', 200)
+        response = get_and_check_page(self, 'user_profile', 200)
         self.assertTrue(isinstance(response.context['user_form'], forms.UserForm))
         self.assertTrue(isinstance(response.context['person_form'], forms.PersonForm))
 
@@ -279,7 +279,7 @@ class InfoTests(TestCase):
         user = User.objects.get(username="user4")
         post_context = {'first_name': user.first_name, 'last_name': user.last_name,
                         'username': user.username, 'email': 'test@test.com'}
-        response = self.client.post(reverse('teams:user_profile'), post_context)
+        response = self.client.post(reverse('user_profile'), post_context)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['user'].email, "test@test.com")
 
@@ -289,12 +289,12 @@ class InfoTests(TestCase):
         user = User.objects.get(username="user4")
         post_context = {'first_name': user.first_name, 'last_name': user.last_name,
                         'username': user.username, 'email': 'user3@example.com'}
-        response = self.client.post(reverse('teams:user_profile'), post_context)
+        response = self.client.post(reverse('user_profile'), post_context)
         self.assertEqual(response.status_code, 200)
 
     def test_contact_us(self):
         "Test the contact us page"
-        get_and_check_page(self, 'teams:contact_us', 200)
+        get_and_check_page(self, 'contact_us', 200)
 
 
 @override_settings(RATELIMIT_ENABLE=False)
@@ -305,79 +305,79 @@ class HuntTests(TestCase):
     # def test_protected_static(self):
     #     "Test the static file protected view"
     #     login(self, 'user1')
-    #     get_and_check_page(self, 'teams:protected_static', 200,
+    #     get_and_check_page(self, 'protected_static', 200,
     #                        {"file_path": "/"})
-    #     get_and_check_page(self, 'teams:protected_static', 200,
+    #     get_and_check_page(self, 'protected_static', 200,
     #                        {"file_path": "puzzles/101/example.pdf"})
-    #     get_and_check_page(self, 'teams:protected_static', 404,
+    #     get_and_check_page(self, 'protected_static', 404,
     #                        {"file_path": "puzzles/201/example.pdf"})
 
     def test_hunt_normal(self):
         "Test the basic per-hunt view"
         # Check when logged out
-        get_and_check_page(self, 'hunts:hunt', 302, {"hunt_num": "2"})
+        get_and_check_page(self, 'hunt', 302, {"hunt_num": "2"})
 
         login(self, 'user4')
-        get_and_check_page(self, 'hunts:hunt', 200, {"hunt_num": "1"})
-        get_and_check_page(self, 'hunts:hunt', 200, {"hunt_num": "2"})
-        get_and_check_page(self, 'hunts:hunt', 302, {"hunt_num": "3"})
+        get_and_check_page(self, 'hunt', 200, {"hunt_num": "1"})
+        get_and_check_page(self, 'hunt', 200, {"hunt_num": "2"})
+        get_and_check_page(self, 'hunt', 302, {"hunt_num": "3"})
         login(self, 'admin')
-        get_and_check_page(self, 'hunts:hunt', 200, {"hunt_num": "2"})
+        get_and_check_page(self, 'hunt', 200, {"hunt_num": "2"})
         login(self, 'user3')
-        get_and_check_page(self, 'hunts:hunt', 200, {"hunt_num": "2"})
+        get_and_check_page(self, 'hunt', 200, {"hunt_num": "2"})
         login(self, 'user6')
-        get_and_check_page(self, 'hunts:hunt', 200, {"hunt_num": "2"})
+        get_and_check_page(self, 'hunt', 200, {"hunt_num": "2"})
 
     def test_current_hunt(self):
         "Test the current hunt redirect"
         login(self, 'user1')
-        get_and_check_page(self, 'teams:current_hunt', 200)
+        get_and_check_page(self, 'current_hunt', 200)
 
     def test_puzzle_normal(self):
         "Test the basic per-puzzle view"
         # Check when logged out
-        response = get_and_check_page(self, 'hunts:puzzle', 302, {"puzzle_id": "201"})
+        response = get_and_check_page(self, 'puzzle', 302, {"puzzle_id": "201"})
 
         login(self, 'user4')
-        response = get_and_check_page(self, 'hunts:puzzle', 200, {"puzzle_id": "101"})
+        response = get_and_check_page(self, 'puzzle', 200, {"puzzle_id": "101"})
 
         post_context = {'answer': "Wrong Answer"}
-        response = self.client.post(reverse('hunts:puzzle',
+        response = self.client.post(reverse('puzzle',
                                             kwargs={"puzzle_id": "101"}),
                                     post_context)
         self.assertEqual(response.status_code, 200)
 
-        response = self.client.post(reverse('hunts:puzzle',
+        response = self.client.post(reverse('puzzle',
                                             kwargs={"puzzle_id": "101"}))
         self.assertEqual(response.status_code, 200)
 
-        response = get_and_check_page(self, 'hunts:puzzle', 200, {"puzzle_id": "201"})
+        response = get_and_check_page(self, 'puzzle', 200, {"puzzle_id": "201"})
 
         post_context = {'answer': "Wrong Answer"}
-        response = self.client.post(reverse('hunts:puzzle',
+        response = self.client.post(reverse('puzzle',
                                             kwargs={"puzzle_id": "201"}),
                                     post_context)
         self.assertEqual(response.status_code, 200)
 
         post_context = {'answer': "ANSWER21"}
-        response = self.client.post(reverse('hunts:puzzle',
+        response = self.client.post(reverse('puzzle',
                                             kwargs={"puzzle_id": "201"}),
                                     post_context)
         self.assertEqual(response.status_code, 200)
 
         post_context = {'answer': "almost"}
-        response = self.client.post(reverse('hunts:puzzle',
+        response = self.client.post(reverse('puzzle',
                                             kwargs={"puzzle_id": "202"}),
                                     post_context)
         self.assertEqual(response.status_code, 200)
 
         post_context = {'answer': "answer22"}
-        response = self.client.post(reverse('hunts:puzzle',
+        response = self.client.post(reverse('puzzle',
                                             kwargs={"puzzle_id": "202"}),
                                     post_context)
         self.assertEqual(response.status_code, 200)
 
-        response = self.client.get(reverse('hunts:puzzle', kwargs={"puzzle_id": "201"}),
+        response = self.client.get(reverse('puzzle', kwargs={"puzzle_id": "201"}),
                                    {'last_date': '2000-01-01T01:01:01.001Z'},
                                    **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
         self.assertEqual(response.status_code, 200)
@@ -388,18 +388,18 @@ class HuntTests(TestCase):
         login(self, 'user2')
         post_context = {'answer': "Wrong Answer"}
         for i in range(20):
-            response = self.client.post(reverse('hunts:puzzle', kwargs={"puzzle_id": "101"}),
+            response = self.client.post(reverse('puzzle', kwargs={"puzzle_id": "101"}),
                                         post_context)
-        response = self.client.post(reverse('hunts:puzzle', kwargs={"puzzle_id": "101"}),
+        response = self.client.post(reverse('puzzle', kwargs={"puzzle_id": "101"}),
                                     post_context)
         self.assertEqual(response.status_code, 403)
 
     def test_unlockables(self):
         "Test the unlockables view"
         login(self, 'user1')
-        response = get_and_check_page(self, 'hunts:unlockables', 200)
+        response = get_and_check_page(self, 'unlockables', 200)
         login(self, 'user6')
-        response = get_and_check_page(self, 'hunts:unlockables', 200)
+        response = get_and_check_page(self, 'unlockables', 200)
         self.assertTemplateUsed(response, 'access_error.html')
 
 
@@ -409,7 +409,7 @@ class AuthTests(TestCase):
 
     def test_register(self):
         "Test the account creation view"
-        response = get_and_check_page(self, 'teams:register', 200)
+        response = get_and_check_page(self, 'register', 200)
         post_context = {'user-first_name': "first", 'user-last_name': "last",
                         'user-username': "user7",
                         'user-email': 'user7@example.com',
@@ -417,35 +417,35 @@ class AuthTests(TestCase):
                         'user-confirm_password': "password"}
 
         post_context['user-email'] = "user6@example.com"
-        response = self.client.post(reverse('teams:register'), post_context)
+        response = self.client.post(reverse('register'), post_context)
         self.assertEqual(response.status_code, 200)
         post_context['user-email'] = "user7@example.com"
 
         post_context['user-username'] = "$$$"
-        response = self.client.post(reverse('teams:register'), post_context)
+        response = self.client.post(reverse('register'), post_context)
         self.assertEqual(response.status_code, 200)
         post_context['user-username'] = "user7"
 
         post_context['user-confirm_password'] = "wordpass"
-        response = self.client.post(reverse('teams:register'), post_context)
+        response = self.client.post(reverse('register'), post_context)
         self.assertEqual(response.status_code, 200)
         post_context['user-confirm_password'] = "password"
 
-        response = self.client.post(reverse('teams:register'), post_context)
+        response = self.client.post(reverse('register'), post_context)
         self.assertEqual(response.status_code, 200)
 
     def test_login_selection(self):
         "Test the login selection view"
-        response = get_and_check_page(self, 'teams:login_selection', 200)
-        response = self.client.get(reverse('teams:login_selection'), {'next': '/'})
+        response = get_and_check_page(self, 'login_selection', 200)
+        response = self.client.get(reverse('login_selection'), {'next': '/'})
         self.assertEqual(response.status_code, 200)
 
     def test_account_logout(self):
         "Test the account logout view"
         login(self, 'user1')
-        response = get_and_check_page(self, 'teams:account_logout', 200)
+        response = get_and_check_page(self, 'account_logout', 200)
         login(self, 'user1')
-        response = self.client.get(reverse('teams:account_logout'), {'next': '/'})
+        response = self.client.get(reverse('account_logout'), {'next': '/'})
         self.assertEqual(response.status_code, 200)
 
 
@@ -456,9 +456,9 @@ class StaffTests(TestCase):
     def test_staff_queue(self):
         "Test the staff queue view"
         login(self, 'admin')
-        response = get_and_check_page(self, 'teams:queue', 200)
+        response = get_and_check_page(self, 'queue', 200)
 
-        response = ajax_and_check_page(self, 'teams:queue', 200,
+        response = ajax_and_check_page(self, 'queue', 200,
                                        {'last_date': '2000-01-01T01:01:01.001Z'})
 
         puzzle = models.Puzzle.objects.all()[0]
@@ -466,54 +466,54 @@ class StaffTests(TestCase):
         s = models.Guess.objects.create(guess_text="bad answer", puzzle=puzzle,
                                              guess_time=timezone.now(), team=team)
         post_context = {'response': "Wrong answer", 'sub_id': str(s.pk)}
-        response = self.client.post(reverse('teams:queue'), post_context)
+        response = self.client.post(reverse('queue'), post_context)
         self.assertEqual(response.status_code, 200)
 
         post_context = {'response': "Wrong answer", 'sub_id': ""}
-        response = self.client.post(reverse('teams:queue'), post_context)
+        response = self.client.post(reverse('queue'), post_context)
         self.assertEqual(response.status_code, 400)
 
     def test_staff_queue_args(self):
         "Test the staff paged queue view"
         login(self, 'admin')
-        response = self.client.get(reverse('teams:queue'),
+        response = self.client.get(reverse('queue'),
                                    {"page_num": "1", "team_id": "18", "puzzle_id": "12"})
         self.assertEqual(response.status_code, 200)
 
     def test_staff_progress(self):
         "Test the staff progress view"
         login(self, 'admin')
-        response = get_and_check_page(self, 'teams:progress', 200)
+        response = get_and_check_page(self, 'progress', 200)
         ajax_args = {'last_solve_pk': '0', 'last_guess_pk': '0', 'last_unlock_pk': '0'}
-        response = ajax_and_check_page(self, 'teams:progress', 200, ajax_args)
-        response = ajax_and_check_page(self, 'teams:progress', 404, {'last_solve_pk': '1'})
+        response = ajax_and_check_page(self, 'progress', 200, ajax_args)
+        response = ajax_and_check_page(self, 'progress', 404, {'last_solve_pk': '1'})
         solve_puzzle_from_admin(self)
-        response = ajax_and_check_page(self, 'teams:progress', 200, ajax_args)
-        response = get_and_check_page(self, 'teams:progress', 200)
+        response = ajax_and_check_page(self, 'progress', 200, ajax_args)
+        response = get_and_check_page(self, 'progress', 200)
 
         post_context = {'action': "unlock", 'team_id': "5", 'puzzle_id': "202"}
-        response = self.client.post(reverse('teams:progress'), post_context)
+        response = self.client.post(reverse('progress'), post_context)
         self.assertEqual(response.status_code, 200)
 
         post_context = {'action': "unlock", 'team_id': "5", 'puzzle_id': "202"}
-        response = self.client.post(reverse('teams:progress'), post_context)
+        response = self.client.post(reverse('progress'), post_context)
         self.assertEqual(response.status_code, 200)
 
         post_context = {'action': "unlock_all", 'puzzle_id': "5"}
-        response = self.client.post(reverse('teams:progress'), post_context)
+        response = self.client.post(reverse('progress'), post_context)
         self.assertEqual(response.status_code, 200)
 
         post_context = {}
-        response = self.client.post(reverse('teams:progress'), post_context)
+        response = self.client.post(reverse('progress'), post_context)
         self.assertEqual(response.status_code, 400)
 
     def test_staff_charts(self):
         "Test the staff charts view"
 
         login(self, 'admin')
-        get_and_check_page(self, 'teams:charts', 200)
+        get_and_check_page(self, 'charts', 200)
         solve_puzzle_from_admin(self)
-        get_and_check_page(self, 'teams:charts', 200)
+        get_and_check_page(self, 'charts', 200)
 
     def test_staff_control(self):
         "Test the staff control view"
@@ -530,42 +530,42 @@ class StaffTests(TestCase):
 
         login(self, 'admin')
         post_context = {'action': "initial"}
-        response = self.client.post(reverse('teams:control'), post_context)
+        response = self.client.post(reverse('control'), post_context)
         self.assertEqual(response.status_code, 302)
         post_context = {'action': "reset"}
-        response = self.client.post(reverse('teams:control'), post_context)
+        response = self.client.post(reverse('control'), post_context)
         self.assertEqual(response.status_code, 302)
         # post_context = {'action': "getpuzzles", "hunt_number": "1"}
-        # response = self.client.post(reverse('teams:control'), post_context)
+        # response = self.client.post(reverse('control'), post_context)
         # self.assertEqual(response.status_code, 200)
         # post_context = {'action': "getpuzzles", "puzzle_number": "1", "puzzle_id": "201"}
-        # response = self.client.post(reverse('teams:control'), post_context)
+        # response = self.client.post(reverse('control'), post_context)
         # self.assertEqual(response.status_code, 200)
         post_context = {'action': "new_current_hunt", "hunt_number": "1"}
-        response = self.client.post(reverse('teams:control'), post_context)
+        response = self.client.post(reverse('control'), post_context)
         self.assertEqual(response.status_code, 302)
         post_context = {'action': "foobar"}
-        response = self.client.post(reverse('teams:control'), post_context)
+        response = self.client.post(reverse('control'), post_context)
         self.assertEqual(response.status_code, 404)
 
     def test_staff_emails(self):
         "Test the staff email view"
         login(self, 'admin')
-        response = get_and_check_page(self, 'teams:emails', 200)
+        response = get_and_check_page(self, 'emails', 200)
 
         post_context = {'subject': "test_subject", 'message': "test_message"}
-        response = self.client.post(reverse('teams:emails'), post_context)
+        response = self.client.post(reverse('emails'), post_context)
         self.assertEqual(response.status_code, 302)
 
     def test_staff_management(self):
         "Test the staff management view"
         login(self, 'admin')
-        get_and_check_page(self, 'hunts:hunt_management', 200)
+        get_and_check_page(self, 'hunt_management', 200)
 
     def test_staff_info(self):
         "Test the staff info view"
         login(self, 'admin')
-        get_and_check_page(self, 'hunts:hunt_info', 200)
+        get_and_check_page(self, 'hunt_info', 200)
 
     def test_admin_pages(self):
         "Test the admin page for team objects"

@@ -55,7 +55,7 @@ class SignUp(View):
             person.save()
             login(request, user)
             logger.info("User created: %s" % (str(person)))
-            return redirect(reverse('hunts:current_hunt'))
+            return redirect(reverse('current_hunt'))
         else:
             return render(request, "auth/signup.html", {'uf': uf})
 
@@ -70,7 +70,7 @@ def account_logout(request):
         additional_url = request.GET['next']
     else:
         additional_url = ""
-    return redirect(reverse('hunts:index'))
+    return redirect(reverse('index'))
 
 
 
@@ -86,9 +86,9 @@ class Registration(LoginRequiredMixin, View):
         team = curr_hunt.team_from_user(request.user)
 
         if(curr_hunt.is_locked):
-            return redirect(reverse("hunts:index"))
+            return redirect(reverse("index"))
         if(team is not None):
-            return redirect(reverse('teams:manage-team'))
+            return redirect(reverse('manage-team'))
         else:
             teams = curr_hunt.real_teams.order_by(Lower('team_name'))
             return render(request, "auth/registration.html",
@@ -105,7 +105,7 @@ class Registration(LoginRequiredMixin, View):
                 team = Team.objects.create(team_name=request.POST.get("team_name"), hunt=curr_hunt, join_code=join_code)
                 request.user.person.teams.add(team)
                 logger.info("User %s created team %s" % (str(request.user), str(team)))
-                return redirect(reverse('teams:current_hunt'))
+                return redirect(reverse('current_hunt'))
             else:
                 messages.error(request, "Your team name must contain at least one alphanumeric character.")
 
@@ -140,7 +140,7 @@ class ManageTeam(View):
             return render(request, "auth/manage-team.html",
                           {'registered_team': team, 'curr_hunt': curr_hunt})
         else:
-            return redirect(reverse('teams:registration'))
+            return redirect(reverse('registration'))
 
 
     def post(self, request):

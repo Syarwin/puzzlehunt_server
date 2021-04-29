@@ -104,7 +104,7 @@ CHANNEL_LAYERS = {
 # URL settings
 LOGIN_REDIRECT_URL = '/'
 PROTECTED_URL = '/protected/'
-LOGIN_URL = 'teams:login'
+LOGIN_URL = 'login'
 
 # Random settings
 SILENCED_SYSTEM_CHECKS = ["urls.W005"]  # silences admin url override warning
