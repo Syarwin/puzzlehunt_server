@@ -786,7 +786,7 @@ class Guess(models.Model):
         """ A boolean indicating if the guess given is exactly correct """
         noSpace = self.guess_text.upper().replace(" ","")
         
-        return (noSpace == self.puzzle.answer.upper() or (self.puzzle.answer_regex != "" and re.fullmatch(self.puzzle.answer_regex, noSpace, re.IGNORECASE)))
+        return (noSpace == self.puzzle.answer.upper().replace(" ","") or (self.puzzle.answer_regex != "" and re.fullmatch(self.puzzle.answer_regex, noSpace, re.IGNORECASE)))
 
     @property
     def convert_markdown_response(self):
