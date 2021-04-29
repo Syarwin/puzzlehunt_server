@@ -1,15 +1,11 @@
 from django.db import models, transaction
 from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.core.validators import MinValueValidator
 from django.utils.dateformat import DateFormat
 from dateutil import tz
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 from datetime import timedelta
-from hunts.models import Hunt, Episode, Puzzle, Eureka 
+from enum import Enum
 
 import os
 import re
@@ -19,6 +15,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 time_zone = tz.gettz(settings.TIME_ZONE)
+
+# enum for the different types of unlock
+# TODO: simplify since we do not care about points!
+class UnlockType(Enum):
+    SOLVES_UNLOCK = 'SOL'
+    POINTS_UNLOCK = 'POT'
+    EITHER_UNLOCK = 'ETH'
+    BOTH_UNLOCK = 'BTH'
 
 
 class TeamManager(models.Manager):
@@ -43,29 +47,29 @@ class Team(models.Model):
         null=True,
         help_text="The country the members of the team are from")
     solved = models.ManyToManyField(
-        Puzzle,
+        "hunts.Puzzle",
         blank=True,
         related_name='solved_for',
         through="PuzzleSolve",
         help_text="The puzzles the team has solved")
     unlocked = models.ManyToManyField(
-        Puzzle,
+        "hunts.Puzzle",
         blank=True,
         related_name='unlocked_for',
         through="TeamPuzzleLink",
         help_text="The puzzles the team has unlocked")
     eurekas = models.ManyToManyField(
-        Eureka,
+        "hunts.Eureka",
         blank=True,
         related_name='eurekas_for',
         through="TeamEurekaLink",
         help_text="The eurekas the team has unlocked")
     unlockables = models.ManyToManyField(
-        "Unlockable",
+        "hunts.Unlockable",
         blank=True,
         help_text="The unlockables the team has earned")
     hunt = models.ForeignKey(
-        Hunt,
+        "hunts.Hunt",
         on_delete=models.CASCADE,
         help_text="The hunt that the team is a part of")
     join_code = models.CharField(
@@ -153,19 +157,19 @@ class Team(models.Model):
             s_unlock = (puzzle.num_required_to_unlock <= mapping[puzzle.puzzle_number])
             p_unlock = (self.num_unlock_points >= puzzle.points_cost)
 
-            if(puzzle.unlock_type == Puzzle.SOLVES_UNLOCK and s_unlock):
+            if(puzzle.unlock_type == UnlockType.SOLVES_UNLOCK and s_unlock):
                 logger.info("Team %s unlocked puzzle %s with solves" % (str(self.team_name),
                             str(puzzle.puzzle_id)))
                 TeamPuzzleLink.objects.create(team=self, puzzle=puzzle, time=timezone.now())
-            elif(puzzle.unlock_type == Puzzle.POINTS_UNLOCK and p_unlock):
+            elif(puzzle.unlock_type == UnlockType.POINTS_UNLOCK and p_unlock):
                 logger.info("Team %s unlocked puzzle %s with points" % (str(self.team_name),
                             str(puzzle.puzzle_id)))
                 TeamPuzzleLink.objects.create(team=self, puzzle=puzzle, time=timezone.now())
-            elif(puzzle.unlock_type == Puzzle.EITHER_UNLOCK and (s_unlock or p_unlock)):
+            elif(puzzle.unlock_type == UnlockType.EITHER_UNLOCK and (s_unlock or p_unlock)):
                 logger.info("Team %s unlocked puzzle %s with either" % (str(self.team_name),
                             str(puzzle.puzzle_id)))
                 TeamPuzzleLink.objects.create(team=self, puzzle=puzzle, time=timezone.now())
-            elif(puzzle.unlock_type == Puzzle.BOTH_UNLOCK and (s_unlock and p_unlock)):
+            elif(puzzle.unlock_type == UnlockType.BOTH_UNLOCK and (s_unlock and p_unlock)):
                 logger.info("Team %s unlocked puzzle %s with both" % (str(self.team_name),
                             str(puzzle.puzzle_id)))
                 TeamPuzzleLink.objects.create(team=self, puzzle=puzzle, time=timezone.now())
@@ -244,7 +248,7 @@ class Guess(models.Model):
         max_length=400,
         help_text="Response to the given answer. Empty string indicates human response needed")
     puzzle = models.ForeignKey(
-        Puzzle,
+        "hunts.Puzzle",
         on_delete=models.CASCADE,
         help_text="The puzzle that this guess is in response to")
     modified_date = models.DateTimeField(
@@ -331,7 +335,7 @@ class PuzzleSolve(models.Model):
     """ A class that links a team and a puzzle to indicate that the team has solved the puzzle """
 
     puzzle = models.ForeignKey(
-        Puzzle,
+        "hunts.Puzzle",
         on_delete=models.CASCADE,
         help_text="The puzzle that this is a solve for")
     team = models.ForeignKey(
@@ -367,7 +371,7 @@ class TeamPuzzleLink(models.Model):
     """ A class that links a team and a puzzle to indicate that the team has unlocked the puzzle """
 
     puzzle = models.ForeignKey(
-        Puzzle,
+        "hunts.Puzzle",
         on_delete=models.CASCADE,
         help_text="The puzzle that this is an unlock for")
     team = models.ForeignKey(
@@ -399,7 +403,7 @@ class TeamEurekaLink(models.Model):
     """ A class that links a team and a eureka to indicate that the team has unlocked the eureka """
 
     eureka = models.ForeignKey(
-        Eureka,
+        "hunts.Eureka",
         on_delete=models.CASCADE,
         help_text="The eureka unlocked")
     team = models.ForeignKey(

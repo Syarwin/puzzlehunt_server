@@ -1,8 +1,11 @@
 from django.core.files.storage import FileSystemStorage
+from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.db import models, transaction
 from datetime import timedelta
-from teams.models import Team, Person, Guess, TeamPuzzleLink
+from teams.models import UnlockType, Team, Person, Guess, TeamPuzzleLink
 
 import os
 import re
@@ -10,9 +13,6 @@ import zipfile
 import shutil
 import logging
 logger = logging.getLogger(__name__)
-
-time_zone = tz.gettz(settings.TIME_ZONE)
-
 
 
 # TODO: cleanup duplicate functions
@@ -278,16 +278,11 @@ class Puzzle(models.Model):
         ]
         ordering = ['-episode', 'puzzle_number']
 
-    SOLVES_UNLOCK = 'SOL'
-    POINTS_UNLOCK = 'POT'
-    EITHER_UNLOCK = 'ETH'
-    BOTH_UNLOCK = 'BTH'
-
     puzzle_unlock_type_choices = [
-        (SOLVES_UNLOCK, 'Solves Based Unlock'),
-        (POINTS_UNLOCK, 'Points Based Unlock'),
-        (EITHER_UNLOCK, 'Either (OR) Unlocking Method'),
-        (BOTH_UNLOCK, 'Both (AND) Unlocking Methods'),
+        (UnlockType.SOLVES_UNLOCK, 'Solves Based Unlock'),
+        (UnlockType.POINTS_UNLOCK, 'Points Based Unlock'),
+        (UnlockType.EITHER_UNLOCK, 'Either (OR) Unlocking Method'),
+        (UnlockType.BOTH_UNLOCK, 'Both (AND) Unlocking Methods'),
     ]
 
     PDF_PUZZLE = 'PDF'
@@ -365,7 +360,7 @@ class Puzzle(models.Model):
     unlock_type = models.CharField(
         max_length=3,
         choices=puzzle_unlock_type_choices,
-        default=SOLVES_UNLOCK,
+        default=UnlockType.SOLVES_UNLOCK,
         blank=False,
         help_text="The type of puzzle unlocking scheme"
     )
