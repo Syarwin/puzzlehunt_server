@@ -152,7 +152,7 @@ class Team(models.Model):
             if(puz.num_required_to_unlock <= mapping[puz.puzzle_number]):
                 logger.info("Team %s unlocked puzzle %s with solves" % (str(self.team_name),
                             str(puz.puzzle_id)))
-                PuzzleUnlock.objects.create(team=self, puzzle=puz, time=timezone.now())
+                TeamPuzzleLink.objects.create(team=self, puzzle=puz, time=timezone.now())
 
     def reset(self):
         """ Resets/deletes all of the team's progress """
