@@ -28,6 +28,8 @@ class TeamManager(models.Manager):
 
 class Team(models.Model):
     """ A class representing a team within a hunt """
+    class Meta:
+        verbose_name_plural = "       Teams"
 
     team_name = models.CharField(
         max_length=200,
@@ -130,40 +132,27 @@ class Team(models.Model):
 
     def unlock_puzzles(self):
         """ Unlocks all puzzles a team is currently supposed to have unlocked """
-        puzzles = self.hunt.puzzle_set.all().order_by('puzzle_number')
+        puzzles = [puzzle for episode in self.hunt.episode_set.all() for puzzle in episode.puzzle_set.all()]
         numbers = []
 
-        numbers = puzzles.values_list('puzzle_number', flat=True)
+        numbers = [puz.puzzle_number for puz in puzzles]
         # make an array for how many points a team has towards unlocking each puzzle
         mapping = [0 for i in range(max(numbers) + 1)]
 
         # go through each solved puzzle and add to the list for each puzzle it unlocks
-        for puzzle in self.solved.all():
-            for num in puzzle.unlocks.values_list('puzzle_number', flat=True):
+        for puz in self.solved.all():
+            for num in puz.unlocks.values_list('puzzle_number', flat=True):
                 mapping[num] += 1
 
-        # See if the number of points is enough to unlock any given puzzle
-        puzzles = puzzles.difference(self.unlocked.all())
-        for puzzle in puzzles:
-            s_unlock = (puzzle.num_required_to_unlock <= mapping[puzzle.puzzle_number])
-            p_unlock = (self.num_unlock_points >= puzzle.points_cost)
-
-            if(puzzle.unlock_type == "SOL" and s_unlock):
+        # See if we can unlock any given puzzle
+        unlocked_numbers = [puz.puzzle_number for puz in self.unlocked.all()]
+        for puz in puzzles:
+            if (puz.puzzle_number in unlocked_numbers):
+                continue
+            if(puz.num_required_to_unlock <= mapping[puz.puzzle_number]):
                 logger.info("Team %s unlocked puzzle %s with solves" % (str(self.team_name),
-                            str(puzzle.puzzle_id)))
-                TeamPuzzleLink.objects.create(team=self, puzzle=puzzle, time=timezone.now())
-            elif(puzzle.unlock_type == "POT" and p_unlock):
-                logger.info("Team %s unlocked puzzle %s with points" % (str(self.team_name),
-                            str(puzzle.puzzle_id)))
-                TeamPuzzleLink.objects.create(team=self, puzzle=puzzle, time=timezone.now())
-            elif(puzzle.unlock_type == "ETH" and (s_unlock or p_unlock)):
-                logger.info("Team %s unlocked puzzle %s with either" % (str(self.team_name),
-                            str(puzzle.puzzle_id)))
-                TeamPuzzleLink.objects.create(team=self, puzzle=puzzle, time=timezone.now())
-            elif(puzzle.unlock_type == "BTH" and (s_unlock and p_unlock)):
-                logger.info("Team %s unlocked puzzle %s with both" % (str(self.team_name),
-                            str(puzzle.puzzle_id)))
-                TeamPuzzleLink.objects.create(team=self, puzzle=puzzle, time=timezone.now())
+                            str(puz.puzzle_id)))
+                PuzzleUnlock.objects.create(team=self, puzzle=puz, time=timezone.now())
 
     def reset(self):
         """ Resets/deletes all of the team's progress """
@@ -193,6 +182,8 @@ class PersonManager(models.Manager):
 
 class Person(models.Model):
     """ A class to associate more personal information with the default django auth user class """
+    class Meta:
+        verbose_name_plural = "      Persons"
 
     user = models.OneToOneField(
         User,
@@ -219,9 +210,8 @@ class Person(models.Model):
 
 class Guess(models.Model):
     """ A class representing a guess to a given puzzle from a given team """
-
     class Meta:
-        verbose_name_plural = 'Guesses'
+        verbose_name_plural = '   Guesses'
 
     user = models.ForeignKey(
         User,
@@ -257,9 +247,11 @@ class Guess(models.Model):
 
     @property
     def is_correct(self):
-        """ A boolean indicating if the guess given is exactly correct """
+        """ A boolean indicating if the guess given is exactly correct (matches either the
+        answer or the non-empty regex). Spaces do not matter so are removed. """
         noSpace = self.guess_text.upper().replace(" ","")
-        return noSpace == self.puzzle.answer.upper()
+        return ( noSpace == self.puzzle.answer.upper().replace(" ","") or 
+                 (self.puzzle.answer_regex!="" and re.fullmatch(self.puzzle.answer_regex, noSpace, re.IGNORECASE)) )
 
     @property
     def convert_markdown_response(self):
@@ -302,7 +294,7 @@ class Guess(models.Model):
         else:
             # TODO removed unlocked Eureka
             for resp in self.puzzle.eureka_set.all():
-                if(re.fullmatch(resp.regex, noSpace, re.IGNORECASE)):
+                if(re.fullmatch(resp.regex.replace(" ",""), noSpace, re.IGNORECASE)):
                     if(resp not in self.team.eurekas.all()):
                         TeamEurekaLink.objects.create(team=self.team, eureka=resp, time=timezone.now())
                     return {"status": "eureka", "message": resp.get_feedback}
@@ -324,6 +316,9 @@ class Guess(models.Model):
 
 class PuzzleSolve(models.Model):
     """ A class that links a team and a puzzle to indicate that the team has solved the puzzle """
+    class Meta:
+        verbose_name_plural = "  Puzzles solved by teams"
+        unique_together = ('puzzle', 'team',)
 
     puzzle = models.ForeignKey(
         "hunts.Puzzle",
@@ -337,10 +332,7 @@ class PuzzleSolve(models.Model):
         Guess,
         blank=True,
         on_delete=models.CASCADE,
-        help_text="The guess object that the team submitted to solve the puzzle")
-
-    class Meta:
-        unique_together = ('puzzle', 'team',)
+        help_text="The guess object that the team submitted to solve the puzzle")        
 
     def serialize_for_ajax(self):
         """ Serializes the puzzle, team, time, and status fields for ajax transmission """
@@ -360,6 +352,9 @@ class PuzzleSolve(models.Model):
 
 class TeamPuzzleLink(models.Model):
     """ A class that links a team and a puzzle to indicate that the team has unlocked the puzzle """
+    class Meta:
+        unique_together = ('puzzle', 'team',)
+        verbose_name_plural = " Puzzles unlocked by teams"
 
     puzzle = models.ForeignKey(
         "hunts.Puzzle",
@@ -371,9 +366,7 @@ class TeamPuzzleLink(models.Model):
         help_text="The team that this unlocked puzzle is for")
     time = models.DateTimeField(
         help_text="The time this puzzle was unlocked for this team")
-
-    class Meta:
-        unique_together = ('puzzle', 'team',)
+    
 
     def serialize_for_ajax(self):
         """ Serializes the puzzle, team, and status fields for ajax transmission """
@@ -392,6 +385,9 @@ class TeamPuzzleLink(models.Model):
 
 class TeamEurekaLink(models.Model):
     """ A class that links a team and a eureka to indicate that the team has unlocked the eureka """
+    class Meta:
+        unique_together = ('eureka', 'team',)
+        verbose_name_plural = "Eurekas unlocked by teams"
 
     eureka = models.ForeignKey(
         "hunts.Eureka",
@@ -404,9 +400,7 @@ class TeamEurekaLink(models.Model):
     time = models.DateTimeField(
         help_text="The time this eureka was unlocked for this team")
 
-    class Meta:
-        unique_together = ('eureka', 'team',)
-
+    
     def serialize_for_ajax(self):
         """ Serializes the puzzle, team, and status fields for ajax transmission """
         message = dict()

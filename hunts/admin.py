@@ -82,7 +82,7 @@ class UnlockInline(admin.TabularInline):
             try:
                 parent_obj_id = request.resolver_match.kwargs['object_id']
                 puzzle = models.Puzzle.objects.get(id=parent_obj_id)
-                query = models.Puzzle.objects.filter(hunt=puzzle.hunt)
+                query = models.Puzzle.objects.filter(hunt=puzzle.episode.hunt)
                 kwargs["queryset"] = query.order_by('puzzle_id')
             except IndexError:
                 pass
@@ -122,22 +122,27 @@ class PuzzleAdminForm(forms.ModelForm):
 
     def clean_answer(self):
         data = self.cleaned_data.get('answer')
-        if(re.fullmatch(r"[a-zA-Z0-9]+", data.upper()) is None):
-            raise forms.ValidationError("Answer must only contain the characters A-Z and digits.")
+        if(re.fullmatch(r"[a-zA-Z0-9 \(\)]+", data.upper()) is None):
+            raise forms.ValidationError("Answer must only contain the characters A-Z- -(-) and digits.")
+        return data
+
+    def clean_answer_regex(self):
+        data = self.cleaned_data.get('answer_regex')
+        if(re.fullmatch(r".* .*", data)):
+            raise forms.ValidationError("Answer regex must not contain spaces.")
+        if (data == "" and re.fullmatch(r".*[\(\)].*", self.cleaned_data.get('answer'))):
+            raise forms.ValidationError("Answer regex is empty but Answer contains non-alphanumerical character: the puzzle has no answer.")
         return data
 
     class Meta:
         model = models.Puzzle
-        fields = ('episode', 'puzzle_name', 'puzzle_number', 'puzzle_id', 'answer', 'is_meta',
+        fields = ('episode', 'puzzle_name', 'puzzle_number', 'puzzle_id', 'answer', 'answer_regex', 'is_meta',
                   'doesnt_count', 'puzzle_page_type', 'puzzle_file', 'resource_file',
-                  'solution_file', 'extra_data', 'num_required_to_unlock', 'unlock_type',
-                  'points_cost', 'points_value', 'solution_is_webpage', 'solution_resource_file')
+                  'solution_file', 'extra_data', 'num_required_to_unlock', 'points_cost',
+                  'points_value', 'solution_is_webpage', 'solution_resource_file')
 
 
 class PuzzleAdmin(admin.ModelAdmin):
-    class Media:
-        js = ("huntserver/admin_change_puzzle.js",)
-
     form = PuzzleAdminForm
 
     list_filter = ('episode',)
@@ -146,11 +151,10 @@ class PuzzleAdmin(admin.ModelAdmin):
     list_display_links = ['combined_id', 'puzzle_name']
     ordering = ['-episode', 'puzzle_number']
     inlines = (EurekaInline,HintInline,)
-    radio_fields = {"unlock_type": admin.VERTICAL}
     fieldsets = (
         (None, {
-            'fields': ('episode', 'puzzle_name', 'answer', 'puzzle_number', 'puzzle_id', 'is_meta',
-                       'doesnt_count', 'extra_data', 'unlock_type')
+            'fields': ('episode', 'puzzle_name', 'answer', 'answer_regex', 'puzzle_number',
+                       'puzzle_id', 'is_meta', 'doesnt_count', 'extra_data')
         }),
         ('Resources', {
             'classes': ('formset_border', 'resources'),

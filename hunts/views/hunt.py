@@ -176,14 +176,12 @@ class PuzzleView(View):
 
         limited = False
         if(request.team is not None):
-            request.ratelimit_key = request.team.team_name
-
-            limited = is_ratelimited(request, fn=PuzzleView.as_view(), key='user', rate='20/m', method='POST',
+            request.ratelimit_key = request.user.username
+            limited = is_ratelimited(request, fn=PuzzleView.as_view(), key='user', rate='1/7s', method='POST', 
                            increment=True)
         #if (not limited and not request.hunt.is_public):
         #    limited = is_ratelimited(request, fn=PuzzleView.as_view(), key=get_ratelimit_key, rate='5/m', method='POST',
         #                   increment=True)
-
 
         return limited or getattr(request, 'limited', False)
 
@@ -222,8 +220,8 @@ class PuzzleView(View):
         # Dealing with answer guesss, proper procedure is to create a guess
         # object and then rely on Guess.respond for automatic responses.
         if(team is None):
-            if(puzzle.hunt.is_public):
-                team = puzzle.hunt.dummy_team
+            if(puzzle.episode.hunt.is_public):
+                team = puzzle.episode.hunt.dummy_team
             else:
                 # If the hunt isn't public and you aren't signed in, please stop...
                 return JsonResponse({'error':'fail'})

@@ -110,7 +110,7 @@ class UserProxyObject(User):
         proxy = True
         app_label = 'teams'
         verbose_name = User._meta.verbose_name
-        verbose_name_plural = User._meta.verbose_name_plural
+        verbose_name_plural = "     Users"
         ordering = ['-pk']
 
 
@@ -124,7 +124,7 @@ class FlatPageProxyObject(FlatPage):
         proxy = True
         app_label = 'teams'
         verbose_name = "info page"
-        verbose_name_plural = "info pages"
+        verbose_name_plural = "    Info pages"
 
 
 class FlatpageProxyForm(FlatpageForm):

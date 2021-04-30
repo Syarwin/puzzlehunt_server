@@ -72,6 +72,7 @@ class Hunt(models.Model):
     """ Base class for a hunt. Contains basic details about a puzzlehunt. """
 
     class Meta:
+        verbose_name_plural = "    Hunts"
         indexes = [
             models.Index(fields=['hunt_number']),
         ]
@@ -223,6 +224,7 @@ class Episode(models.Model):
     """ Base class for a set of puzzle """
 
     class Meta:
+        verbose_name_plural = "   Episodes"
         indexes = [
             models.Index(fields=['ep_number']),
         ]
@@ -274,17 +276,11 @@ class Puzzle(models.Model):
     """ A class representing a puzzle within a hunt """
 
     class Meta:
+        verbose_name_plural = "  Puzzles"
         indexes = [
             models.Index(fields=['puzzle_id']),
         ]
         ordering = ['-episode', 'puzzle_number']
-
-    puzzle_unlock_type_choices = [
-        ("SOL", 'Solves Based Unlock'),
-        ("POT", 'Points Based Unlock'),
-        ("ETH", 'Either (OR) Unlocking Method'),
-        ("BTH", 'Both (AND) Unlocking Methods'),
-    ]
 
     PDF_PUZZLE = 'PDF'
     LINK_PUZZLE = 'LNK'
@@ -304,14 +300,19 @@ class Puzzle(models.Model):
         max_length=200,
         help_text="The name of the puzzle as it will be seen by hunt participants")
     puzzle_number = models.IntegerField(
-        help_text="The number of the puzzle within the episode, for sorting purposes")
+        help_text="The number of the puzzle within the episode, for sorting purposes (must be unique within the episode, and not too large)")
     puzzle_id = models.CharField(
         max_length=12,
         unique=True,  # hex only please
         help_text="A 3-12 character hex string that uniquely identifies the puzzle")
     answer = models.CharField(
         max_length=100,
-        help_text="The answer to the puzzle, not case sensitive")
+        help_text="The answer to the puzzle, not case nor space sensitive. Can contain parentheses to show multiple options but a regex is then mandatory.")
+    answer_regex = models.CharField(
+        max_length=100,
+        help_text="The regexp towards which the guess is checked in addition to the answer (optional)",
+        blank=True,
+        default= "")
     is_meta = models.BooleanField(
         default=False,
         verbose_name="Is a metapuzzle",
@@ -357,14 +358,6 @@ class Puzzle(models.Model):
         blank=True,
         help_text="A misc. field for any extra data to be stored with the puzzle.")
 
-    # Unlocking:
-    unlock_type = models.CharField(
-        max_length=3,
-        choices=puzzle_unlock_type_choices,
-        default="SOL",
-        blank=False,
-        help_text="The type of puzzle unlocking scheme"
-    )
     num_required_to_unlock = models.IntegerField(
         default=1,
         help_text="Number of prerequisite puzzles that need to be solved to unlock this puzzle")
@@ -509,6 +502,8 @@ class Prepuzzle(models.Model):
 
 class Eureka(models.Model):
     """ A class to represent an automated response regex """
+    class Meta:
+        verbose_name_plural = " Eurekas"
 
     puzzle = models.ForeignKey(
         Puzzle,
@@ -538,6 +533,8 @@ class Eureka(models.Model):
 
 class Hint(models.Model):
     """ A class to represent an hint """
+    class Meta:
+        verbose_name_plural = "Hints"
 
     puzzle = models.ForeignKey(
         Puzzle,
