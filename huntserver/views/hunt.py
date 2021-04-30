@@ -176,9 +176,9 @@ class PuzzleView(View):
 
         limited = False
         if(request.team is not None):
-            request.ratelimit_key = request.team.team_name
+            request.ratelimit_key = request.user.username
 
-            limited = is_ratelimited(request, fn=PuzzleView.as_view(), key='user', rate='20/m', method='POST',
+            limited = is_ratelimited(request, fn=PuzzleView.as_view(), key='user', rate='20000/s', method='POST', #TODO (BS) changed it for stress test, should be '1/3s' or sth similar
                            increment=True)
         #if (not limited and not request.hunt.is_public):
         #    limited = is_ratelimited(request, fn=PuzzleView.as_view(), key=get_ratelimit_key, rate='5/m', method='POST',
