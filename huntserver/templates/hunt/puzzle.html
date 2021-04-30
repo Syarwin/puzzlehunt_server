@@ -30,7 +30,7 @@
     <div id="guess-feedback" class="container py-3"></div>
     <form id="guess-form" autocomplete="off" class="needs-validation">
       <div class="input-group input-group-lg has-validation">
-        <input id="answer-entry" name="answer" type="text" pattern=" *[A-Za-z0-9][A-Za-z0-9 ]+" class="form-control" placeholder="Guess" aria-label="Your guess" autocomplete="off" title="guesses should only contain letters, digits and optional spaces" />
+        <input id="answer-entry" name="answer" type="text" pattern=" *[A-Za-z0-9][A-Za-z0-9 ]*" class="form-control" placeholder="Guess" aria-label="Your guess" autocomplete="off" title="guesses should only contain letters, digits and optional spaces" />
         <button class="btn btn-primary" type="submit" id="answer-button">Submit</button>
         <div class="invalid-feedback">
             Please choose a username.

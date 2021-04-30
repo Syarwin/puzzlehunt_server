@@ -47,7 +47,7 @@ $(function() {
       error: function(xhr, status, error) {
         button.removeData('cooldown')
         if (xhr.responseJSON && xhr.responseJSON.error == 'too fast') {
-          message('Slow down there, sparky! You\'re supposed to wait 5s between guesss.', '')
+          message('You have to wait a few seconds beween consecutive guesses.', '')
         } else if (xhr.responseJSON && xhr.responseJSON.error == 'already answered') {
           message('Your team has already correctly answered this puzzle!', '')
         } else {
