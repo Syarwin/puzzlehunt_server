@@ -270,6 +270,39 @@ class Episode(models.Model):
                     return hunt_prepuzzle(request, hunt_num)
 """
 
+class PuzzleManager(models.Manager):
+    """ Manager to reorder correctly puzzles """
+
+    def reorder(self, puz, old_number, old_episode):
+        """ Reorder the puzzles after a change of number/episode for puz """
+        
+        qs = self.get_queryset()
+        num_puzzles = len(puz.episode.puzzle_set.all())
+
+        # If necessary, we clip the value of puzzle_number
+        if puz.puzzle_number>num_puzzles:
+            puz.puzzle_number = num_puzzles
+            puz.save()
+        if puz.puzzle_number<1:
+            puz.puzzle_number = 1
+            puz.save()
+
+        with transaction.atomic():
+            # Reordering methods depends if the episode was changed
+            # and if it should be moved up or down.
+            puz_number = puz.puzzle_number
+            print(puz_number)
+            print(old_number)
+            if puz.episode.ep_number!=old_episode.ep_number:
+                old_number = num_puzzles+1
+            if puz_number < int(old_number):
+                qs.filter(episode=puz.episode, puzzle_number__lt=old_number, puzzle_number__gte=puz_number) \
+                    .exclude(pk=puz.pk) \
+                    .update(puzzle_number=models.F('puzzle_number') + 1)
+            else:
+                qs.filter(episode=puz.episode, puzzle_number__lte=puz_number, puzzle_number__gt=old_number) \
+                    .exclude(pk=puz.pk) \
+                    .update(puzzle_number=models.F('puzzle_number') - 1)
 
 
 class Puzzle(models.Model):
@@ -300,6 +333,7 @@ class Puzzle(models.Model):
         max_length=200,
         help_text="The name of the puzzle as it will be seen by hunt participants")
     puzzle_number = models.IntegerField(
+        default=1,
         help_text="The number of the puzzle within the episode, for sorting purposes (must be unique within the episode, and not too large)")
     puzzle_id = models.CharField(
         max_length=12,
@@ -372,6 +406,8 @@ class Puzzle(models.Model):
     points_value = models.IntegerField(
         default=0,
         help_text="The number of points this puzzle grants upon solving.")
+
+    objects = PuzzleManager()
 
     # Overridden to delete old files on clear
     def save(self, *args, **kwargs):
