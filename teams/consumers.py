@@ -275,8 +275,8 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
 
 
     @pre_save_handler
-    def _saved_eurekaUnlock(cls, old, sender, eurekaUnlock, raw, *args, **kwargs):
-        cls.send_new_eureka(eurekaUnlock.eureka, eurekaUnlock.team)
+    def _saved_teamEurekaLink(cls, old, sender, teamEurekaLink, raw, *args, **kwargs):
+        cls.send_new_eureka(teamEurekaLink.eureka, teamEurekaLink.team)
 
 
     def receive_json(self, content):
@@ -342,4 +342,4 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
 
 
 pre_save.connect(PuzzleWebsocket._saved_guess, sender=Guess)
-pre_save.connect(PuzzleWebsocket._saved_eurekaUnlock, sender=TeamEurekaLink)
+pre_save.connect(PuzzleWebsocket._saved_teamEurekaLink, sender=TeamEurekaLink)
