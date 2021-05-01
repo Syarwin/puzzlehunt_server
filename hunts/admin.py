@@ -203,7 +203,7 @@ class HintAdmin(admin.ModelAdmin):
 
 admin.site.register(models.Hunt,       HuntAdmin)
 admin.site.register(models.Episode,    EpisodeAdmin)
-#admin.site.register(models.Prepuzzle,  PrepuzzleAdmin)
+admin.site.register(models.Prepuzzle,  PrepuzzleAdmin)
 admin.site.register(models.Puzzle,     PuzzleAdmin)
 admin.site.register(models.Eureka,     EurekaAdmin)
 admin.site.register(models.Hint,       HintAdmin)
