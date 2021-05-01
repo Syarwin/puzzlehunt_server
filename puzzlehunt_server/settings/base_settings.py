@@ -165,7 +165,7 @@ LOGGING = {
 }
 
 # Email settings
-CONTACT_EMAIL = 'puzzlehunt-staff@lists.andrew.cmu.edu'
+CONTACT_EMAIL = 'TODO@TODO.com'
 
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
