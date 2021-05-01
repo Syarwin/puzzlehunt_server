@@ -207,8 +207,7 @@ class PuzzleView(View):
         template = Template(request.puzzle.template).render(RequestContext(request, {'URL' : settings.PROTECTED_URL + "puzzles/" + request.puzzle.puzzle_id }))
         episodes = sorted(request.hunt.get_episodes(request.user, request.team), key=lambda p: p.ep_number)
         puzzles = request.hunt.get_puzzle_list(request.user, request.team)
-        context = {'hunt': request.hunt, 'episodes': episodes, 'puzzles' : puzzles, 'puzzle': request.puzzle, 'team': request.team,
-            'template':template, 'PROTECTED_URL': settings.PROTECTED_URL}
+        context = {'hunt': request.hunt, 'episodes': episodes, 'puzzles' : puzzles, 'puzzle': request.puzzle, 'eureka': len(request.puzzle.eureka_set.all())>0, 'team': request.team,             'template':template, 'PROTECTED_URL': settings.PROTECTED_URL}
         return render(request, 'puzzle/puzzle.html', context)
 
 
