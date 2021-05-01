@@ -157,6 +157,7 @@ class Team(models.Model):
 
     def reset(self):
         """ Resets/deletes all of the team's progress """
+        self.teampuzzlelink_set.all().delete()
         self.unlocked.clear()
         self.puzzlesolve_set.all().delete()
         self.solved.clear()

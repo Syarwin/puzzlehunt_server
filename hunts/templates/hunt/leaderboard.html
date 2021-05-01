@@ -1,0 +1,61 @@
+
+{% extends "hunt/hunt_base.html" %}
+{% block title %} Team Leaderboard {% endblock title %}
+
+{% block includes %}
+<script src="{{ STATIC_URL }}jquery.min.js"></script>
+{% endblock includes %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      <h1 style="text-align: center;"> Team Leaderboard </h1>
+      <br>
+      <table class="table table-striped table-condensed">
+        <tr>
+          <th>Rank</th>
+          <th>Team</th>
+          <th>Solves</th>
+          <th>Last Solve Time</th>
+        </tr>
+        {% for team in team_data %}
+        <tr>
+          <td>{{forloop.counter}}</td>
+          <td>{{team.team_name|truncatechars:30}}</td>
+          <td>{{team.solves}}</td>
+          <td>{{team.last_time|date:"M nS, h:i a" }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      <h1 style="text-align: center;"> Team Progress </h1>
+      <br>
+      <table class="table table-striped table-condensed">
+        <tr>
+          <th>Number</th>
+          <th>Puzzle</th>
+          <th>Duration</th>
+          <th>Solve time</th>
+        </tr>
+        {% for solve in solve_data %}
+        <tr>
+          <td>{{forloop.counter}}</td>
+          <td>{{solve.name}}</td>
+          <td>{{solve.duration}}</td>
+          <td>{{solve.sol_time|date:"M nS, h:i a" }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock content %}

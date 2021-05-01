@@ -19,6 +19,7 @@ from django.urls import reverse_lazy, reverse
 from pathlib import Path
 from django.db.models import F, Max, Count, Min, Subquery, OuterRef
 from django.db.models.fields import PositiveIntegerField
+from django.core.exceptions import ObjectDoesNotExist
 import json
 import os
 import re
@@ -298,16 +299,22 @@ def leaderboard(request):
     all_teams = all_teams.order_by(F('solves').desc(nulls_last=True),
                                    F('last_time').asc(nulls_last=True))[:10]
                                    
-#    team = Hunt.objects.get(is_current_hunt=True).team_from_user(request.user)
-#    if(team is None):
-#      solves_data = []
-#    else
-#      solves = team.puzzlesolve.annotate(time='guess__guess_time', puzId = 'puzzle__puzzle_id', name = 'puzzle__puzzle_name').order_by('time')
-#      unlocks = team.teampuzzlelink.annotate(puzId = 'puzzle__puzzle_id').order_by('time')
-#      solves_data = [ {'name' : solve.name, 'sol_time': solve.time, 'duration':  }  for solve in solves] 
-#      solves = solves.all().order_by('time')
-#      # name time_solve duration
-    context = {'team_data': all_teams}
+    team = Hunt.objects.get(is_current_hunt=True).team_from_user(request.user)
+    if(team is None):
+      solves_data = []
+    else:
+      solves = team.puzzlesolve_set.annotate(time=F('guess__guess_time'), puzId = F('puzzle__puzzle_id')).order_by('time')
+      unlocks = team.teampuzzlelink_set.annotate(puzId = F('puzzle__puzzle_id'), name = F('puzzle__puzzle_name')).order_by('time')
+      
+      solves_data = []
+      for unlock in unlocks.all():
+        try:
+          solve = solves.get(puzId=unlock.puzId)
+          solves_data.append({'name' : unlock.name, 'sol_time': solve.time, 'duration':  str(timedelta(seconds=int((solve.time-unlock.time).total_seconds())))})
+        except ObjectDoesNotExist:
+          solves_data.append({'name' : unlock.name, 'sol_time': '' , 'duration':  str(timedelta(seconds=int((timezone.now()-unlock.time).total_seconds())))})
+      
+    context = {'team_data': all_teams, 'solve_data': solves_data}
     return render(request, 'hunt/leaderboard.html', context)
 
 
