@@ -113,12 +113,46 @@ class PuzzleAdminForm(forms.ModelForm):
             choices = self.instance.episode.puzzle_set.values_list('pk', 'puzzle_name')
             self.fields['reverse_unlocks'].choices = choices
 
-    def save(self, *args, **kwargs):
-        instance = super(PuzzleAdminForm, self).save(*args, **kwargs)
-        if instance.pk:
-            instance.puzzle_set.clear()
-            instance.puzzle_set.add(*self.cleaned_data['reverse_unlocks'])
-        return instance
+    def save(self, *args, **kwargs):        
+        if self.instance.pk:
+            old_puz = models.Puzzle.objects.get(pk=self.instance.pk)
+            old_episode = old_puz.episode
+            old_number = old_puz.puzzle_number
+        else:
+            # If the puzzle is new, we force reordering by assuming that the (virtual) old
+            # puzzle is at the end
+            old_episode = self.cleaned_data.get('episode')
+            old_number = len(self.instance.episode.puzzle_set.all())+1
+
+        puz = super(PuzzleAdminForm, self).save(*args, **kwargs)
+        models.Puzzle.objects.reorder(puz, old_number, old_episode) 
+
+        # if self.instance.pk:
+        #     # we reorder the puzzles
+        #     puz = models.Puzzle.objects.get(pk=self.instance.pk)
+        #     puz_number = self.cleaned_data.get('puzzle_number')
+        #     episode = self.cleaned_data.get('episode')
+        #     models.Puzzle.objects.move(puz, puz_number, episode) 
+
+        #     # we save the form data and update the reverse unlocks
+        #     puz = super(PuzzleAdminForm, self).save(*args, **kwargs) 
+        #     puz.puzzle_set.clear()
+        #     puz.puzzle_set.add(*self.cleaned_data['reverse_unlocks'])
+        # else:
+        #     # We backup the user-defined puzzle_number, but initially push the new puzzle at the end.
+        #     kwargs["commit"] = False
+        #     puz = super(PuzzleAdminForm, self).save(*args, **kwargs)
+        #     puz.puzzle_number = len(puz.episode.puzzle_set.all())+1
+        #     puz.save()
+
+        #     # We then move the new puzzle to the user-defined position in the form
+        #     puz_number = self.cleaned_data.get('puzzle_number')
+        #     episode = self.cleaned_data.get('episode')
+        #     models.Puzzle.objects.move(puz, puz_number, episode) 
+        #     puz.puzzle_number = puz_number
+        #     puz.save()
+
+        return puz
 
     def clean_answer(self):
         data = self.cleaned_data.get('answer')
