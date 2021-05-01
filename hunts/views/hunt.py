@@ -296,7 +296,17 @@ def leaderboard(request):
     all_teams = teams.annotate(solves=Count('solved'))
     all_teams = all_teams.annotate(last_time=Max('puzzlesolve__guess__guess_time'))
     all_teams = all_teams.order_by(F('solves').desc(nulls_last=True),
-                                   F('last_time').asc(nulls_last=True))
+                                   F('last_time').asc(nulls_last=True))[:10]
+                                   
+#    team = Hunt.objects.get(is_current_hunt=True).team_from_user(request.user)
+#    if(team is None):
+#      solves_data = []
+#    else
+#      solves = team.puzzlesolve.annotate(time='guess__guess_time', puzId = 'puzzle__puzzle_id', name = 'puzzle__puzzle_name').order_by('time')
+#      unlocks = team.teampuzzlelink.annotate(puzId = 'puzzle__puzzle_id').order_by('time')
+#      solves_data = [ {'name' : solve.name, 'sol_time': solve.time, 'duration':  }  for solve in solves] 
+#      solves = solves.all().order_by('time')
+#      # name time_solve duration
     context = {'team_data': all_teams}
     return render(request, 'hunt/leaderboard.html', context)
 
