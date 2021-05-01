@@ -17,11 +17,14 @@ from django.utils.encoding import smart_str
 from django.db.models import F
 from django.urls import reverse_lazy, reverse
 from pathlib import Path
+from django.db.models import F, Max, Count, Min, Subquery, OuterRef
+from django.db.models.fields import PositiveIntegerField
 import json
 import os
 import re
 
 from hunts.models import Puzzle, Hunt, Guess, Unlockable, Prepuzzle
+from teams.models import PuzzleSolve
 from .mixin import RequiredTeamMixin
 
 import logging
@@ -205,7 +208,7 @@ class PuzzleView(View):
         puzzles = request.hunt.get_puzzle_list(request.user, request.team)
         context = {'hunt': request.hunt, 'episodes': episodes, 'puzzles' : puzzles, 'puzzle': request.puzzle, 'team': request.team,
             'template':template, 'PROTECTED_URL': settings.PROTECTED_URL}
-        return render(request, 'hunt/puzzle.html', context)
+        return render(request, 'puzzle/puzzle.html', context)
 
 
     def post(self, request, puzzle_id):
@@ -282,3 +285,20 @@ def unlockables(request):
         return render(request, 'access_error.html', {'reason': "team"})
     unlockables = Unlockable.objects.filter(puzzle__in=team.solved.all())
     return render(request, 'hunt/unlockables.html', {'unlockables': unlockables, 'team': team})
+    
+    
+    
+    
+@login_required
+def leaderboard(request):
+    curr_hunt = get_object_or_404(Hunt, is_current_hunt=True)
+    teams = curr_hunt.real_teams.all()
+    all_teams = teams.annotate(solves=Count('solved'))
+    all_teams = all_teams.annotate(last_time=Max('puzzlesolve__guess__guess_time'))
+    all_teams = all_teams.order_by(F('solves').desc(nulls_last=True),
+                                   F('last_time').asc(nulls_last=True))
+    context = {'team_data': all_teams}
+    return render(request, 'hunt/leaderboard.html', context)
+
+
+
