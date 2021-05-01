@@ -289,7 +289,7 @@ def unlockables(request):
     
     
     
-    
+#TODO: clean time format + clear useless info out of all_teams before sending
 @login_required
 def leaderboard(request):
     curr_hunt = get_object_or_404(Hunt, is_current_hunt=True)
