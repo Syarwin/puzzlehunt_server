@@ -332,7 +332,7 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
                 self.send_new_hint_to_team(self.team, hint)
 
     def send_old_unlocks(self):
-        eurekas = self.team.eurekas.filter(puzzle=self.puzzle).order_by('eurekaunlock__time')
+        eurekas = self.team.eurekas.filter(puzzle=self.puzzle).order_by('teameurekalink__time')
 
         for u in eurekas:
             self.send_json({

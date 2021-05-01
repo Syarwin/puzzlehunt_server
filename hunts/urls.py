@@ -35,4 +35,5 @@ urlpatterns = [
     #url(r'^prepuzzle/(?P<prepuzzle_num>[0-9]+)/$', hunt_views.prepuzzle, name='prepuzzle'),
     #url(r'^objects/$', hunt_views.unlockables, name='unlockables'),
     url(r'^protected/(?P<file_path>.+)$', views.hunt.protected_static, name='protected_static'),
+    url(r'^leaderboard/$', views.hunt.leaderboard, name='leaderboard'),
 ]
