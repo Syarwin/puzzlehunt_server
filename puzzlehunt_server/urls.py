@@ -3,8 +3,12 @@ from django.contrib import admin
 from django.contrib.auth import views as base_auth_views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import reverse_lazy
 from django.views.generic import RedirectView
+
+from hunts.urls import urlpatterns as hunts_patterns
+from teams.urls import urlpatterns as teams_patterns
 
 urlpatterns = [
     # Admin redirections/views
@@ -13,14 +17,11 @@ urlpatterns = [
     url(r'^staff/login/$', RedirectView.as_view(url=reverse_lazy(settings.LOGIN_URL),
                                                 query_string=True)),
     url(r'^admin/$', RedirectView.as_view(url=reverse_lazy('admin:app_list',
-                                          args=('huntserver',)))),
+                                          args=('teams',)))),
     url(r'^staff/$', RedirectView.as_view(url=reverse_lazy('admin:app_list',
-                                          args=('huntserver',)))),
+                                          args=('teams',)))),
     url(r'^staff/', admin.site.urls),
     url(r'^admin/', admin.site.urls),
-
-    # All of the huntserver URLs
-    url(r'^', include('huntserver.urls', namespace="huntserver")),
 
     # User auth/password reset
     url(r'^accounts/logout/$', base_auth_views.LogoutView.as_view(),
@@ -33,7 +34,11 @@ urlpatterns = [
         base_auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     url(r'^reset/done/$', base_auth_views.PasswordResetCompleteView.as_view(),
         name='password_reset_complete'),
-]
+] \
+    + staticfiles_urlpatterns() \
+    + hunts_patterns \
+    + teams_patterns
+
 
 # Use silk if enabled
 if 'silk' in settings.INSTALLED_APPS:

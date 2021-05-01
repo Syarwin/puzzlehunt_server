@@ -1,0 +1,36 @@
+{% extends "hunt/hunt_base.html" %}
+{% load hunt_tags %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div id="puzzles" class="content">
+      <h1 class="title">Unlocked Objects</h1>
+      <table>
+        <thead>
+          <tr>
+            <th style='width: 320px;'>Puzzle Name</th>
+            <th style='width: 100px;'>Object unlocked</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for unlockable in unlockables %}
+          <tr id='puzzle{{ puzzle.puzzle_number }}' class='puzzle'>
+          <td style="padding-right: 15px;">
+            <p class="puzzle-name">P{{unlockable.puzzle.puzzle_number}} - {{ unlockable.puzzle.puzzle_name }}</p>
+          </td>
+          <td style="width: 50%;">
+            {% if unlockable.content_type == "TXT" %}
+              {{unlockable.content}}
+            {% elif unlockable.content_type == "WEB" %}
+              <a href="{{unlockable.content}}"> {{unlockable.content}} </a>
+            {% endif %}
+          </td>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p>For assistance, email <a href="mailto:{% contact_email %}">{% contact_email %}</a>.</p>
+  </div>
+</div>
+{% endblock content %}

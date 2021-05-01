@@ -2,13 +2,14 @@ from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 
-import huntserver.routing
+import teams.routing
+
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     'websocket':
         AuthMiddlewareStack(
             URLRouter(
-                huntserver.routing.websocket_urlpatterns
+                teams.routing.websocket_urlpatterns
             )
         )
 })

@@ -25,7 +25,8 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django.contrib.sites',
     'django.contrib.flatpages',
-    'huntserver',
+    'teams',
+    'hunts',
     'crispy_forms',
     'huey.contrib.djhuey',
     "crispy_bootstrap5",
@@ -41,8 +42,8 @@ MIDDLEWARE = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'huntserver.middleware.HuntMiddleware',
-    'huntserver.middleware.TeamMiddleware',
+    'teams.middleware.HuntMiddleware',
+    'teams.middleware.TeamMiddleware',
 )
 
 ROOT_URLCONF = 'puzzlehunt_server.urls'
@@ -53,8 +54,8 @@ TEMPLATES = [
         'APP_DIRS': True,
         'DIRS': [os.path.join(BASE_DIR, 'puzzlehunt_server/templates')],
         'OPTIONS': {
-            'builtins': ['huntserver.templatetags.hunt_tags',
-                         'huntserver.templatetags.prepuzzle_tags'],
+            'builtins': ['hunts.templatetags.hunt_tags',
+                         'hunts.templatetags.prepuzzle_tags'],
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
@@ -103,7 +104,7 @@ CHANNEL_LAYERS = {
 # URL settings
 LOGIN_REDIRECT_URL = '/'
 PROTECTED_URL = '/protected/'
-LOGIN_URL = 'huntserver:login'
+LOGIN_URL = 'login'
 
 # Random settings
 SILENCED_SYSTEM_CHECKS = ["urls.W005"]  # silences admin url override warning
@@ -145,7 +146,12 @@ LOGGING = {
             'level': 'WARNING',
             'propagate': True,
         },
-        'huntserver': {
+        'teams': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'hunts': {
             'handlers': ['file'],
             'level': 'INFO',
             'propagate': True,

@@ -9,7 +9,7 @@ django.setup()
 
 # your imports, e.g. Django models
 from django.contrib.auth.models import User
-from huntserver.models import Hunt, Team, Person
+from teams.models import Hunt, Team, Person
 
 from django.core.management import call_command
 
