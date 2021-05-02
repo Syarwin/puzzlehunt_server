@@ -238,9 +238,9 @@ class Episode(models.Model):
         help_text="The name of the episode as the public will see it")
     ep_number = models.IntegerField(
         unique=True,
-        help_text="A number used internally for hunt sorting, must be unique")
+        help_text="A number used internally for episode sorting, must be unique")
     start_date = models.DateTimeField(
-        help_text="The date/time at which a hunt will become visible to registered users")
+        help_text="The date/time at which this episode will become visible to registered users (without headstarts)")
 
     @property
     def is_locked(self):
