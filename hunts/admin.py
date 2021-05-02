@@ -24,7 +24,6 @@ class HuntAdmin(admin.ModelAdmin):
         ('Basic Info', {'fields': ('hunt_name', 'hunt_number', 'team_size',
                         ('start_date', 'display_start_date'), ('end_date', 'display_end_date'),
                         'is_current_hunt')}),
-        ('Hunt Behaviour', {'fields': ('points_per_minute',)}),
         ('Resources/Template', {'fields': ('resource_file', 'extra_data', 'template')}),
     )
 
@@ -137,7 +136,6 @@ class PuzzleAdminForm(forms.ModelForm):
             raise forms.ValidationError("Answer must only contain the characters A-Z- -(-) and digits.")
         return data
 
-
     def clean_answer_regex(self):
         data = self.cleaned_data.get('answer_regex')
         if(re.fullmatch(r".* .*", data)):
@@ -148,10 +146,10 @@ class PuzzleAdminForm(forms.ModelForm):
 
     class Meta:
         model = models.Puzzle
-        fields = ('episode', 'puzzle_name', 'puzzle_number', 'puzzle_id', 'answer', 'answer_regex', 'is_meta',
-                  'doesnt_count', 'puzzle_page_type', 'puzzle_file', 'resource_file',
-                  'solution_file', 'extra_data', 'num_required_to_unlock', 'points_cost',
-                  'points_value', 'solution_is_webpage', 'solution_resource_file')
+        fields = ('episode', 'puzzle_name', 'puzzle_number', 'puzzle_id', 'answer', 'answer_regex',
+                  'is_meta', 'doesnt_count', 'puzzle_page_type', 'puzzle_file', 'resource_file',
+                  'solution_file', 'extra_data', 'num_required_to_unlock', 'solution_is_webpage',
+                  'solution_resource_file')
 
 
 class PuzzleAdmin(admin.ModelAdmin):
@@ -176,11 +174,7 @@ class PuzzleAdmin(admin.ModelAdmin):
         ('Solve Unlocking', {
             'classes': ('formset_border', 'solve_unlocking'),
             'fields': ('reverse_unlocks', 'num_required_to_unlock')
-        }),
-        ('Points Unlocking', {
-            'classes': ('formset_border', 'points_unlocking'),
-            'fields': ('points_cost', 'points_value')
-        }),
+        })
     )
 
     def combined_id(self, puzzle):

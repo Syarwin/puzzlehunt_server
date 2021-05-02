@@ -106,9 +106,6 @@ class Hunt(models.Model):
     template = models.TextField(
         default="",
         help_text="The template string to be rendered to HTML on the hunt page")
-    points_per_minute = models.IntegerField(
-        default=0,
-        help_text="The number of points granted per minute during the hunt")
     eureka_feedback = models.CharField(
         max_length=255,
         blank=True,
@@ -404,12 +401,6 @@ class Puzzle(models.Model):
         blank=True,
         symmetrical=False,
         help_text="Puzzles that this puzzle is a possible prerequisite for")
-    points_cost = models.IntegerField(
-        default=0,
-        help_text="The number of points needed to unlock this puzzle.")
-    points_value = models.IntegerField(
-        default=0,
-        help_text="The number of points this puzzle grants upon solving.")
 
     objects = PuzzleManager()
 

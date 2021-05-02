@@ -82,9 +82,6 @@ class Team(models.Model):
     num_waiting_messages = models.IntegerField(
         default=0,
         help_text="The number of unseen messages a team has waiting")
-    num_unlock_points = models.IntegerField(
-        default=0,
-        help_text="The number of points the team has earned")
 
     objects = TeamManager()
 
@@ -162,7 +159,6 @@ class Team(models.Model):
         self.puzzlesolve_set.all().delete()
         self.solved.clear()
         self.guess_set.all().delete()
-        self.num_unlock_points = 0
         self.save()
 
     def __str__(self):
@@ -286,7 +282,6 @@ class Guess(models.Model):
                 if(self.puzzle not in self.team.solved.all()):
                     self.create_solve()
                     t = self.team
-                    t.num_unlock_points = models.F('num_unlock_points') + self.puzzle.points_value
                     t.save()
                     t.refresh_from_db()
                     t.unlock_puzzles()
