@@ -271,30 +271,34 @@ class Episode(models.Model):
 """
 
 class PuzzleManager(models.Manager):
-    """ Manager to reorder correctly puzzles """
+    """ Manager to reorder correctly puzzles within an episode """
 
     def reorder(self, puz, old_number, old_episode):
         """ Reorder the puzzles after a change of number/episode for puz """
         
         qs = self.get_queryset()
         num_puzzles = len(puz.episode.puzzle_set.all())
+        ep_changed = (puz.episode.ep_number!=old_episode.ep_number)
 
         # If necessary, we clip the value of puzzle_number
         if puz.puzzle_number>num_puzzles:
-            puz.puzzle_number = num_puzzles
+            puz.puzzle_number = num_puzzles+1 if ep_changed else num_puzzles
             puz.save()
         if puz.puzzle_number<1:
             puz.puzzle_number = 1
             puz.save()
 
         with transaction.atomic():
-            # Reordering methods depends if the episode was changed
-            # and if it should be moved up or down.
             puz_number = puz.puzzle_number
-            print(puz_number)
-            print(old_number)
-            if puz.episode.ep_number!=old_episode.ep_number:
+            if ep_changed:
+                # If the episode was changed, we first reorder the old episode, and then
+                # reorder the new one by assuming that puz was added at the end
+                qs.filter(episode=old_episode, puzzle_number__gt=old_number) \
+                    .exclude(pk=puz.pk) \
+                    .update(puzzle_number=models.F('puzzle_number') - 1)
                 old_number = num_puzzles+1
+
+            # Reordering in the new episode depends on whether puz should be moved up or down
             if puz_number < int(old_number):
                 qs.filter(episode=puz.episode, puzzle_number__lt=old_number, puzzle_number__gte=puz_number) \
                     .exclude(pk=puz.pk) \
