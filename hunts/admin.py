@@ -195,7 +195,7 @@ class EurekaAdmin(admin.ModelAdmin):
     puzzle_just_name.short_description = "Puzzle"
 
 class HintAdmin(admin.ModelAdmin):
-    list_display = ['puzzle_just_name', 'text', 'time', 'short_time']
+    list_display = ['puzzle_just_name', 'text', 'time', 'number_eurekas', 'short_time']
     list_display_links = ['text']
     search_fields = ['text']
     ordering = ['-puzzle']

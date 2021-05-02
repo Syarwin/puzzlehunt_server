@@ -579,6 +579,11 @@ class Hint(models.Model):
         help_text=('Time after anyone on the team first loads the puzzle'),
         validators=(MinValueValidator(timedelta(seconds=0)),),
     )
+    number_eurekas = models.IntegerField(
+        verbose_name='Number required',
+        help_text=('How many Eurekas are reguired to trigger the shorter time'),
+        default = 1,
+    )
     eurekas = models.ManyToManyField(
         'Eureka',
         verbose_name='Eureka conditions',
@@ -616,10 +621,17 @@ class Hint(models.Model):
             return self.time
         else:
             if self.eurekas.all().count() > 0:
-                for eureka in self.eurekas.all():
-                    if not eureka in team.eurekas.all():
-                        return self.time
-                return self.short_time
+              teams_eurekas = team.teameurekalink_set.all()
+              start_time = self.starting_time_for_team(team)
+              eureka_times = []
+              for eureka in self.eurekas.all():
+                for team_eureka in teams_eurekas:
+                  if eureka == team_eureka.eureka:
+                      eureka_times.append(team_eureka.time - start_time)
+              if len(eureka_times) >= self.number_eurekas: 
+                return min(self.time, max(eureka_times) + self.short_time)
+              else:
+                return self.time
             else:
                 return self.time
 
