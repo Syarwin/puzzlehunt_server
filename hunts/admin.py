@@ -125,8 +125,10 @@ class PuzzleAdminForm(forms.ModelForm):
             old_number = len(self.instance.episode.puzzle_set.all())+1
 
         puz = super(PuzzleAdminForm, self).save(*args, **kwargs)
-        models.Puzzle.objects.reorder(puz, old_number, old_episode) 
-
+        models.Puzzle.objects.reorder(puz, old_number, old_episode)
+        if puz.pk:
+            puz.puzzle_set.clear()
+            puz.puzzle_set.add(*self.cleaned_data['reverse_unlocks'])
         return puz
 
     def clean_answer(self):
@@ -159,7 +161,7 @@ class PuzzleAdmin(admin.ModelAdmin):
     search_fields = ['puzzle_id', 'puzzle_name']
     list_display = ['combined_id', 'puzzle_name', 'episode', 'is_meta']
     list_display_links = ['combined_id', 'puzzle_name']
-    ordering = ['-episode', 'puzzle_number']
+    ordering = ['episode', 'puzzle_number']
     inlines = (EurekaInline,HintInline,)
     fieldsets = (
         (None, {
