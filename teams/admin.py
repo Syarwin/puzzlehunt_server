@@ -102,6 +102,8 @@ class TeamPuzzleLinkAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'time']
     autocomplete_fields = ['team']
 
+class TeamHeadstartEpisodeAdmin(admin.ModelAdmin):
+    list_display = ['__str__', 'time']
 
 class UserProxyObject(User):
     class Meta:
@@ -171,5 +173,6 @@ admin.site.register(models.Team,          TeamAdmin)
 admin.site.register(models.PuzzleSolve,   PuzzleSolveAdmin)
 admin.site.register(models.TeamPuzzleLink,TeamPuzzleLinkAdmin)
 admin.site.register(models.TeamEurekaLink,TeamEurekaLinkAdmin)
+admin.site.register(models.TeamHeadstartEpisode,TeamHeadstartEpisodeAdmin)
 admin.site.register(UserProxyObject,      UserProxyAdmin)
 admin.site.register(FlatPageProxyObject,  FlatPageProxyAdmin)

@@ -408,3 +408,34 @@ class TeamEurekaLink(models.Model):
 
     def __str__(self):
         return self.team.short_name + ": " + self.eureka.answer
+        
+        
+class TeamHeadstartEpisode(models.Model):
+    """ A class that links a team and an episode to represent a headstart gained by the team (start the episode before its release date """
+    class Meta:
+        unique_together = ('episode', 'team',)
+        verbose_name_plural = "Headstart gained by teams"
+
+    episode = models.ForeignKey(
+        "hunts.Episode",
+        on_delete=models.CASCADE,
+        help_text="The episode associated")
+    team = models.ForeignKey(
+        Team,
+        on_delete=models.CASCADE,
+        help_text="The team that this headstart is for")
+    time = models.DurationField(
+        help_text="The headstart value for this team (HAS NO EFFECT YET)",
+        default = "00")
+
+    # TODO not sure what this is for...
+    def serialize_for_ajax(self):
+        """ Serializes the puzzle, team, and status fields for ajax transmission """
+        message = dict()
+        message['episode'] = self.episode.pk
+        message['team_pk'] = self.team.pk
+        message['status_type'] = "headstart"
+        return message
+
+    def __str__(self):
+        return self.team.short_name + ": " + self.episode.ep_name
