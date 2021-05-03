@@ -131,26 +131,27 @@ class Team(models.Model):
         """ Unlocks all puzzles a team is currently supposed to have unlocked """
 
         # puzzles and associated numbers
-        puzzles = [puzzle for episode in self.hunt.episode_set.all() for puzzle in episode.puzzle_set.all()]
-        puz_numbers = [puz.puzzle_number for puz in puzzles]
+        for ep in self.hunt.episode_set.all():
+            puzzles = [puzzle for puzzle in ep.puzzle_set.all()]
+            puz_numbers = [puz.puzzle_number for puz in puzzles]
 
-        # mapping between a puzzle number and the number of prerequisite puzzles already solved by a team
-        mapping = [0]*(max(puz_numbers) + 1)
+            # mapping between a puzzle number and the number of prerequisite puzzles already solved by a team
+            mapping = [0]*(max(puz_numbers) + 1)
 
-        # go through each solved puzzle and add to mapping for each puzzle it unlocks
-        for puz in self.solved.all():
-            for num in puz.unlocks.values_list('puzzle_number', flat=True):
-                mapping[num] += 1
+            # go through each solved puzzle and add to mapping for each puzzle it unlocks
+            for puz in self.solved.filter(episode=ep):
+                for num in puz.unlocks.values_list('puzzle_number', flat=True):
+                    mapping[num] += 1
 
-        # See if we can unlock any given puzzle
-        unlocked_numbers = [puz.puzzle_number for puz in self.unlocked.all()]
-        for puz in puzzles:
-            if (puz.puzzle_number in unlocked_numbers):
-                continue
-            if(puz.num_required_to_unlock <= mapping[puz.puzzle_number]):
-                logger.info("Team %s unlocked puzzle %s with solves" % (str(self.team_name),
-                            str(puz.puzzle_id)))
-                TeamPuzzleLink.objects.create(team=self, puzzle=puz, time=timezone.now())
+            # See if we can unlock any given puzzle
+            unlocked_numbers = [puz.puzzle_number for puz in self.unlocked.filter(episode=ep)]
+            for puz in puzzles:
+                if (puz.puzzle_number in unlocked_numbers):
+                    continue
+                if(puz.num_required_to_unlock <= mapping[puz.puzzle_number]):
+                    logger.info("Team %s unlocked puzzle %s with solves" % (str(self.team_name),
+                                str(puz.puzzle_id)))
+                    TeamPuzzleLink.objects.create(team=self, puzzle=puz, time=timezone.now())
 
     def reset(self):
         """ Resets/deletes all of the team's progress """
