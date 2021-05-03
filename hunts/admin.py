@@ -186,8 +186,9 @@ class PuzzleAdmin(admin.ModelAdmin):
 class EurekaAdmin(admin.ModelAdmin):
     list_display = ['puzzle_just_name', 'answer', 'regex', 'feedback']
     list_display_links = ['answer', 'regex', 'feedback']
-    search_fields = ['answer', 'regex', 'feedback']
+    search_fields = ['answer', 'regex', 'feedback','puzzle__puzzle_name']
     ordering = ['-puzzle']
+    list_filter = ['puzzle']
 
     def puzzle_just_name(self, response):
         return response.puzzle.puzzle_name
@@ -199,6 +200,7 @@ class HintAdmin(admin.ModelAdmin):
     list_display_links = ['text']
     search_fields = ['text']
     ordering = ['-puzzle']
+    list_filter =  ['puzzle']
 
     def puzzle_just_name(self, response):
         return response.puzzle.puzzle_name

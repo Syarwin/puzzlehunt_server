@@ -38,15 +38,18 @@ class PersonAdmin(admin.ModelAdmin):
 class PuzzleSolveAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'solve_time']
     autocomplete_fields = ['team', 'guess']
+    list_filter= ('team', 'puzzle',)
+    search_fields = ['team__team_name','puzzle__puzzle_name']
 
     def solve_time(self, solve):
         return solve.guess.guess_time
 
 
 class GuessAdmin(admin.ModelAdmin):
-    search_fields = ['guess_text']
+    search_fields = ['guess_text','team__team_name','puzzle__puzzle_name']
     list_display = ['guess_text', short_team_name, 'guess_time']
     autocomplete_fields = ['team']
+    list_filter= ('team', 'puzzle',)
 
 
 class TeamAdminForm(forms.ModelForm):
@@ -96,16 +99,26 @@ class TeamAdmin(admin.ModelAdmin):
 
 
 class TeamEurekaLinkAdmin(admin.ModelAdmin):
-    list_display = ['__str__', 'time', 'team']
-    search_fields = ['team']
+    list_display = ['__str__', 'time', 'puzzle_just_name']
+    search_fields = ['team__team_name','eureka__puzzle__puzzle_name', 'eureka__answer']
     list_filter= ('team', 'eureka__puzzle',)
+    
+    
+    def puzzle_just_name(self, response):
+        return response.eureka.puzzle.puzzle_name
+
+    puzzle_just_name.short_description = "Puzzle"
 
 class TeamPuzzleLinkAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'time']
     autocomplete_fields = ['team']
+    search_fields = ['team__team_name', 'puzzle__puzzle_name']
+    list_filter= ('team', 'puzzle',)
+    
 
 class TeamHeadstartEpisodeAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'time']
+    list_filter= ('team', 'episode')
 
 class UserProxyObject(User):
     class Meta:
