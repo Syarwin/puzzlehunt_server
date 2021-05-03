@@ -294,7 +294,10 @@ class Guess(models.Model):
                 if(re.fullmatch(resp.regex.replace(" ",""), noSpace, re.IGNORECASE)):
                     if(resp not in self.team.eurekas.all()):
                         TeamEurekaLink.objects.create(team=self.team, eureka=resp, time=timezone.now())
-                    return {"status": "eureka", "message": resp.get_feedback}
+                    if resp.admin_only:
+                      return {"status" : "wrong", "message" : "Wrong Answer" }
+                    else:
+                      return {"status": "eureka", "message": resp.get_feedback}
             else:  # Give a default response if no regex matches
                 # Current philosphy is to auto-can wrong answers: If it's not right, it's wrong
                 return {"status" : "wrong", "message" : "Wrong Answer" }

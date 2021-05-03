@@ -250,6 +250,7 @@ def overview(request):
                        'guesses': {'nb' : '-' , 'last': '...', 'time': '-' },
                        'eurekas': {'nb' : 0 , 'last': '...', 'time': '-', 'total': 1},
                        'hints': {'nb' : 0 , 'last_time': '-', 'next_time': '-', 'total': 1},
+                       'admin_eurekas' : []
                        })
         continue
       puzzle = puzzle_unlock.puzzle
@@ -260,18 +261,23 @@ def overview(request):
       lastguess = guesses.last()
       text_lastguess = '' if lastguess == None else lastguess.guess_text
       time_lastguess = 0 if lastguess == None else int((timezone.now() - lastguess.guess_time).total_seconds()/60)
-      team_eurekas = team.eurekas.filter(puzzle=puzzle).annotate(time=F('teameurekalink__time')).order_by('time')
+      team_eurekas = team.eurekas.filter(puzzle=puzzle, admin_only=False).annotate(time=F('teameurekalink__time')).order_by('time')
       lasteureka = team_eurekas.last()
       time_lasteureka = 0 if lasteureka == None else int((timezone.now() - lasteureka.time).total_seconds()/60)
       text_lasteureka = '' if lasteureka== None else lasteureka.answer
-      total_eureka = puzzle.eureka_set.count()
+      total_eureka = puzzle.eureka_set.filter(admin_only=False).count()
       
-      hints = puzzle.hint_set.all()
+      admin_eurekas = team.eurekas.filter(puzzle=puzzle, admin_only=True).annotate(time=F('teameurekalink__time')).order_by('time')
+      list_admin_eurekas = []
+      for eureka in admin_eurekas.all():
+        list_admin_eurekas.append({'txt': eureka.answer, 'time': int((timezone.now() - eureka.time).total_seconds()/60)})
+      
+      hints = puzzle.hint_set
       total_hints = hints.count()
       team_hints = 0
       last_hint_time = 360
       next_hint_time = 360 # default max time: 6h
-      for hint in hints:
+      for hint in hints.all():
           delay = hint.delay_for_team(team) - (timezone.now() - hint.starting_time_for_team(team))
           delay = delay.total_seconds()
           if delay < 0:
@@ -289,6 +295,7 @@ def overview(request):
                        'guesses': {'nb' : nb_guess , 'last': text_lastguess, 'time': time_lastguess },
                        'eurekas': {'nb' : team_eurekas.count() , 'last': text_lasteureka, 'time': time_lasteureka, 'total': total_eureka},
                        'hints': {'nb' : team_hints , 'last_time': last_hint_time, 'next_time': next_hint_time, 'total': total_hints},
+                       'admin_eurekas' : list_admin_eurekas,
                        })
 
     context = {'data': sol_list}

@@ -550,6 +550,9 @@ class Eureka(models.Model):
         max_length=255,
         blank=True,
         help_text="The feedback message sent when this eureka is found - if blank, use the default feedback of the hunt")
+    admin_only = models.BooleanField(
+        help_text="Only show it in admin panels and not to users",
+        default=False)
 
     def __str__(self):
         return self.answer + " (" + self.regex + ") => " + self.feedback

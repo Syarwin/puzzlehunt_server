@@ -277,7 +277,8 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
     @pre_save_handler
     def _saved_teamEurekaLink(cls, old, sender, teamEurekaLink, raw, *args, **kwargs):
         eureka = teamEurekaLink.eureka
-        cls.send_new_eureka(eureka, teamEurekaLink.team)
+        if eureka.admin_only == False:
+          cls.send_new_eureka(eureka, teamEurekaLink.team)
         for hint in eureka.puzzle.hint_set.all():
           if eureka in hint.eurekas.all(): #semi-check: hint may not be sped up yet, but prevents creating too many websockets
             layer = get_channel_layer()
@@ -339,7 +340,7 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
                 self.send_new_hint_to_team(self.team, hint)
 
     def send_old_unlocks(self):
-        eurekas = self.team.eurekas.filter(puzzle=self.puzzle).order_by('teameurekalink__time')
+        eurekas = self.team.eurekas.filter(puzzle=self.puzzle, admin_only=False).order_by('teameurekalink__time')
 
         for u in eurekas:
             self.send_json({
