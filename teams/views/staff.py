@@ -232,25 +232,24 @@ def progress(request):
 @staff_member_required
 def overview(request):
     """
-    A view to show the current state of each team on their current puzzle.
+    A view to show the current state of each team on their last unlocked puzzle (if it is not solved)
     """
-
+    # not relevant if puzzles unlocked before are unsolved
+    
+    # TODO no idea about the performance of this code, in terms of prefecthing database accesses
     curr_hunt = Hunt.objects.get(is_current_hunt=True)
     teams = curr_hunt.real_teams.all().order_by('team_name')
 
     sol_list = []
     for team in teams:
-      # nb puzzles solved
       nb_solve = team.solved.count()
-      # last puzzle unlocked
       puzzle_unlock = team.teampuzzlelink_set.order_by('time').last()
-      if (puzzle_unlock == None):
+      if (puzzle_unlock == None or (puzzle_unlock.puzzle in team.solved.all())):
         sol_list.append({'team': team.team_name,
-                       'nb_solves' : 0,
-                       'puzzle_name': '',
-                       'guesses': {'nb' : 0 , 'last': '', 'time': 0 },
-                       'eurekas': {'nb' : 0 , 'last': '', 'time': 0, 'total': 1},
-                       'hints': {'nb' : 0 , 'last_time': 0, 'next_time': 0, 'total': 1},
+                       'puzzle': {'name': 'None found', 'time': '-', 'index': nb_solve},
+                       'guesses': {'nb' : '-' , 'last': '...', 'time': '-' },
+                       'eurekas': {'nb' : 0 , 'last': '...', 'time': '-', 'total': 1},
+                       'hints': {'nb' : 0 , 'last_time': '-', 'next_time': '-', 'total': 1},
                        })
         continue
       puzzle = puzzle_unlock.puzzle
@@ -270,8 +269,8 @@ def overview(request):
       hints = puzzle.hint_set.all()
       total_hints = hints.count()
       team_hints = 0
-      last_hint_time = 360*60
-      next_hint_time = 360*60 # default max time
+      last_hint_time = 360
+      next_hint_time = 360 # default max time: 6h
       for hint in hints:
           delay = hint.delay_for_team(team) - (timezone.now() - hint.starting_time_for_team(team))
           delay = delay.total_seconds()
@@ -280,10 +279,13 @@ def overview(request):
             last_hint_time = int(min(last_hint_time, -delay/60))
           else:
             next_hint_time = int(min(next_hint_time, delay/60))
+      if last_hint_time == 360:
+        last_hint_time = -1
+      if next_hint_time == 360:
+        next_hint_time = -1
       
       sol_list.append({'team': team.team_name,
-                       'nb_solves' : nb_solve,
-                       'puzzle': {'name': puzzle_name, 'time': time_stuck},
+                       'puzzle': {'name': puzzle_name, 'time': time_stuck, 'index': nb_solve+1},
                        'guesses': {'nb' : nb_guess , 'last': text_lastguess, 'time': time_lastguess },
                        'eurekas': {'nb' : team_eurekas.count() , 'last': text_lasteureka, 'time': time_lasteureka, 'total': total_eureka},
                        'hints': {'nb' : team_hints , 'last_time': last_hint_time, 'next_time': next_hint_time, 'total': total_hints},

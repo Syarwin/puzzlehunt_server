@@ -37,8 +37,12 @@ class EpisodeAdminForm(forms.ModelForm):
 
 class EpisodeAdmin(admin.ModelAdmin):
     form = EpisodeAdminForm
-    list_display = ['ep_name', 'start_date']
+    list_display = ['ep_name', 'start_date', 'hunt_just_name']
+    
+    def hunt_just_name(self, response):
+        return response.hunt.hunt_name
 
+    hunt_just_name.short_description = "Hunt"
 
 
 class PrepuzzleAdminForm(forms.ModelForm):

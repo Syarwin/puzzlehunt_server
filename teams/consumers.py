@@ -276,8 +276,15 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
 
     @pre_save_handler
     def _saved_teamEurekaLink(cls, old, sender, teamEurekaLink, raw, *args, **kwargs):
-        cls.send_new_eureka(teamEurekaLink.eureka, teamEurekaLink.team)
-
+        eureka = teamEurekaLink.eureka
+        cls.send_new_eureka(eureka, teamEurekaLink.team)
+        for hint in eureka.puzzle.hint_set.all():
+          if eureka in hint.eurekas.all(): #semi-check: hint may not be sped up yet, but prevents creating too many websockets
+            layer = get_channel_layer()
+            async_to_sync(layer.group_send)(cls._puzzle_groupname(eureka.puzzle, teamEurekaLink.team), {
+                'type': 'schedule_hint_msg',
+                'hint_uid': str(hint.id)
+            })
 
     def receive_json(self, content):
         if 'type' not in content:

@@ -22,6 +22,7 @@ short_team_name.short_description = "Team name"
 
 class PersonAdmin(admin.ModelAdmin):
     list_display = ['user_full_name', 'user_username']
+    list_display_links = ['user_full_name', 'user_username']
     search_fields = ['user__email', 'user__username', 'user__first_name', 'user__last_name']
     filter_horizontal = ['teams']
 
