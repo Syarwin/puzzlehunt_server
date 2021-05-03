@@ -555,7 +555,7 @@ class Eureka(models.Model):
         default=False)
 
     def __str__(self):
-        return self.answer + " (" + self.regex + ") => " + self.feedback
+        return self.answer + " (" + self.regex + ") => " + self.feedback + " [" + self.puzzle.puzzle_name + "]"
 
     @property
     def get_feedback(self):

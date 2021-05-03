@@ -99,6 +99,15 @@ class EurekaInline(admin.TabularInline):
 class HintInline(admin.TabularInline):
     model = models.Hint
     extra = 1
+    
+    #remove eurekas belonging to other puzzles
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "eurekas":
+                parent_obj_id = request.resolver_match.kwargs['object_id']
+                puzzle = models.Puzzle.objects.get(id=parent_obj_id)
+                query = models.Eureka.objects.filter(puzzle=puzzle)
+                kwargs["queryset"] = query
+        return super(HintInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class PuzzleAdminForm(forms.ModelForm):
