@@ -96,7 +96,9 @@ class TeamAdmin(admin.ModelAdmin):
 
 
 class TeamEurekaLinkAdmin(admin.ModelAdmin):
-    list_display = ['__str__', 'time']
+    list_display = ['__str__', 'time', 'team']
+    search_fields = ['team']
+    list_filter= ('team', 'eureka__puzzle',)
 
 class TeamPuzzleLinkAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'time']

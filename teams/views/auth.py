@@ -196,4 +196,4 @@ def profile(request):
     user_form = UserForm(instance=request.user)
     person_form = PersonForm(instance=request.user.person)
     context = {'user_form': user_form, 'person_form': person_form}
-    return render(request, "user_profile.html", context)
+    return render(request, "auth/user_profile.html", context)

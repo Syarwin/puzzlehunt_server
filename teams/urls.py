@@ -33,6 +33,7 @@ urlpatterns = [
     url(r'^staff/', include([
         url(r'^queue/$', views.staff.queue, name='queue'),
         url(r'^progress/$', views.staff.progress, name='progress'),
+        url(r'^overview/$', views.staff.overview, name='overview'),
         url(r'^charts/$', views.staff.charts, name='charts'),
         url(r'^control/$', views.staff.control, name='control'),
         url(r'^teams/$', RedirectView.as_view(url='/admin/teams/team/', permanent=False)),

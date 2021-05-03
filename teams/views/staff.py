@@ -227,6 +227,73 @@ def progress(request):
         return render(request, 'staff/progress.html', add_apps_to_context(context, request))
 
 
+
+
+@staff_member_required
+def overview(request):
+    """
+    A view to show the current state of each team on their current puzzle.
+    """
+
+    curr_hunt = Hunt.objects.get(is_current_hunt=True)
+    teams = curr_hunt.real_teams.all().order_by('team_name')
+
+    sol_list = []
+    for team in teams:
+      # nb puzzles solved
+      nb_solve = team.solved.count()
+      # last puzzle unlocked
+      puzzle_unlock = team.teampuzzlelink_set.order_by('time').last()
+      if (puzzle_unlock == None):
+        sol_list.append({'team': team.team_name,
+                       'nb_solves' : 0,
+                       'puzzle_name': '',
+                       'guesses': {'nb' : 0 , 'last': '', 'time': 0 },
+                       'eurekas': {'nb' : 0 , 'last': '', 'time': 0, 'total': 1},
+                       'hints': {'nb' : 0 , 'last_time': 0, 'next_time': 0, 'total': 1},
+                       })
+        continue
+      puzzle = puzzle_unlock.puzzle
+      puzzle_name = puzzle.puzzle_name
+      time_stuck = int((timezone.now() - puzzle_unlock.time).total_seconds()/60)
+      guesses = Guess.objects.filter(puzzle=puzzle, team=team).order_by('guess_time')
+      nb_guess = guesses.count()
+      lastguess = guesses.last()
+      text_lastguess = '' if lastguess == None else lastguess.guess_text
+      time_lastguess = 0 if lastguess == None else int((timezone.now() - lastguess.guess_time).total_seconds()/60)
+      team_eurekas = team.eurekas.filter(puzzle=puzzle).annotate(time=F('teameurekalink__time')).order_by('time')
+      lasteureka = team_eurekas.last()
+      time_lasteureka = 0 if lasteureka == None else int((timezone.now() - lasteureka.time).total_seconds()/60)
+      text_lasteureka = '' if lasteureka== None else lasteureka.answer
+      total_eureka = puzzle.eureka_set.count()
+      
+      hints = puzzle.hint_set.all()
+      total_hints = hints.count()
+      team_hints = 0
+      last_hint_time = 360*60
+      next_hint_time = 360*60 # default max time
+      for hint in hints:
+          delay = hint.delay_for_team(team) - (timezone.now() - hint.starting_time_for_team(team))
+          delay = delay.total_seconds()
+          if delay < 0:
+            team_hints += 1
+            last_hint_time = int(min(last_hint_time, -delay/60))
+          else:
+            next_hint_time = int(min(next_hint_time, delay/60))
+      
+      sol_list.append({'team': team.team_name,
+                       'nb_solves' : nb_solve,
+                       'puzzle': {'name': puzzle_name, 'time': time_stuck},
+                       'guesses': {'nb' : nb_guess , 'last': text_lastguess, 'time': time_lastguess },
+                       'eurekas': {'nb' : team_eurekas.count() , 'last': text_lasteureka, 'time': time_lasteureka, 'total': total_eureka},
+                       'hints': {'nb' : team_hints , 'last_time': last_hint_time, 'next_time': next_hint_time, 'total': total_hints},
+                       })
+
+    context = {'data': sol_list}
+    return render(request, 'staff/overview.html', add_apps_to_context(context, request))
+
+
+
 @staff_member_required
 def charts(request):
     """ A view to render the charts page. Mostly just collecting and organizing data """
@@ -247,7 +314,7 @@ def charts(request):
 
     solves = puzzles.annotate(solved=Count('puzzlesolve')).values_list('solved', flat=True)
     subs = puzzles.annotate(subs=Count('guess')).values_list('subs', flat=True)
-    unlocks = puzzles.annotate(unlocked=Count('puzzleunlock')).values_list('unlocked', flat=True)
+    unlocks = puzzles.annotate(unlocked=Count('teampuzzlelink')).values_list('unlocked', flat=True)
     hints = puzzles.annotate(hints=Count('hint')).values_list('hints', flat=True)
     puzzle_data = zip(names, solves, subs, unlocks, hints)
     for puzzle in puzzle_data:

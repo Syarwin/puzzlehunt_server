@@ -63,6 +63,9 @@
             <li {% if "progress" in request.path %}class="active"{% endif %}>
               <a href="/staff/progress">Progress</a>
             </li>
+            <li {% if "overview" in request.path %}class="active"{% endif %}>
+              <a href="/staff/overview">Overview</a>
+            </li>
             <li {% if "queue" in request.path %}class="active"{% endif %}>
               <a href="/staff/queue">Queue</a>
             </li>

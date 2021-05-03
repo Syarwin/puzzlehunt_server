@@ -12,17 +12,17 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='TeamHeadstartEpisode',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('time', models.DurationField(default='00', help_text='The headstart value for this team (HAS NO EFFECT YET)')),
-                ('episode', models.ForeignKey(help_text='The episode associated', on_delete=django.db.models.deletion.CASCADE, to='hunts.episode')),
-                ('team', models.ForeignKey(help_text='The team that this headstart is for', on_delete=django.db.models.deletion.CASCADE, to='teams.team')),
-            ],
-            options={
-                'verbose_name_plural': 'Headstart gained by teams',
-                'unique_together': {('episode', 'team')},
-            },
-        ),
+#        migrations.CreateModel(
+#            name='TeamHeadstartEpisode',
+#            fields=[
+#                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+#                ('time', models.DurationField(default='00', help_text='The headstart value for this team (HAS NO EFFECT YET)')),
+#                ('episode', models.ForeignKey(help_text='The episode associated', on_delete=django.db.models.deletion.CASCADE, to='hunts.episode')),
+#                ('team', models.ForeignKey(help_text='The team that this headstart is for', on_delete=django.db.models.deletion.CASCADE, to='teams.team')),
+#            ],
+#            options={
+#                'verbose_name_plural': 'Headstart gained by teams',
+#                'unique_together': {('episode', 'team')},
+#            },
+#        ),
     ]
