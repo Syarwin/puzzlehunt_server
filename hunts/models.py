@@ -1,4 +1,3 @@
-from django.core.files.storage import FileSystemStorage
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
@@ -34,40 +33,6 @@ def get_hunt_file_path(hunt, filename):
 
 
 
-class PuzzleOverwriteStorage(FileSystemStorage):
-    """ A custom storage class that just overwrites existing files rather than erroring """
-    def get_available_name(self, name, max_length=None):
-        # If the filename already exists, remove it as if it was a true file system
-        if self.exists(name):
-            os.remove(os.path.join(settings.MEDIA_ROOT, name))
-            extension = name.split('.')[-1]
-            folder = "".join(name.split('.')[:-1])
-            if(extension == "zip"):
-                shutil.rmtree(os.path.join(settings.MEDIA_ROOT, folder), ignore_errors=True)
-        return name
-
-    def url(self, name):
-        return settings.PROTECTED_URL + name
-
-    def _save(self, name, content):
-        rc = super(PuzzleOverwriteStorage, self)._save(name, content)
-        extension = name.split('.')[-1]
-        folder = "".join(name.split('.')[:-1])
-        if(extension == "zip"):
-            with zipfile.ZipFile(os.path.join(settings.MEDIA_ROOT, name), "r") as zip_ref:
-                zip_ref.extractall(path=os.path.join(settings.MEDIA_ROOT, folder))
-        return rc
-
-
-class OverwriteStorage(FileSystemStorage):
-    """ A custom storage class that just overwrites existing files rather than erroring """
-    def get_available_name(self, name, max_length=None):
-        # If the filename already exists, remove it as if it was a true file system
-        if self.exists(name):
-            os.remove(os.path.join(settings.MEDIA_ROOT, name))
-        return name
-
-
 class Hunt(models.Model):
     """ Base class for a hunt. Contains basic details about a puzzlehunt. """
 
@@ -92,20 +57,8 @@ class Hunt(models.Model):
         help_text="The start date/time displayed to users")
     display_end_date = models.DateTimeField(
         help_text="The end date/time displayed to users")
-    resource_file = models.FileField(
-        upload_to=get_hunt_file_path,
-        storage=PuzzleOverwriteStorage(),
-        blank=True,
-        help_text="Hunt resources, MUST BE A ZIP FILE.")
     is_current_hunt = models.BooleanField(
         default=False)
-    extra_data = models.CharField(
-        max_length=200,
-        blank=True,
-        help_text="A misc. field for any extra data to be stored with the hunt.")
-    template = models.TextField(
-        default="",
-        help_text="The template string to be rendered to HTML on the hunt page")
     eureka_feedback = models.CharField(
         max_length=255,
         blank=True,
@@ -142,11 +95,6 @@ class Hunt(models.Model):
         return timezone.now() >= self.start_date and timezone.now() < self.end_date
 
     @property
-    def is_public(self):
-        """ A boolean indicating whether or not the hunt is open to the public """
-        return timezone.now() > self.end_date
-
-    @property
     def is_day_of_hunt(self):
         """ A boolean indicating whether or not today is the day of the hunt """
         return timezone.now().date() == self.start_date.date()
@@ -155,31 +103,6 @@ class Hunt(models.Model):
     def in_reg_lockdown(self):
         """ A boolean indicating whether or not registration has locked for this hunt """
         return (self.start_date - timezone.now()).days <= settings.HUNT_REGISTRATION_LOCKOUT
-
-    @property
-    def season(self):
-        """ Gets a season string from the hunt dates """
-        if(self.start_date.month >= 1 and self.start_date.month <= 5):
-            return "Spring"
-        elif(self.start_date.month >= 8 and self.start_date.month <= 12):
-            return "Fall"
-        else:
-            return "Summer"
-
-    @property
-    def real_teams(self):
-        """ A queryset of all non-dummy teams in the hunt """
-        return self.team_set.exclude(location="DUMMY").all()
-
-    @property
-    def dummy_team(self):
-        """ The dummy team for the hunt, useful once the hunt is over """
-        try:
-            team = self.team_set.get(location="DUMMY")
-        except Team.DoesNotExist:
-            team = Team.objects.create(team_name=self.hunt_name + "_DUMMY", hunt=self,
-                                       location="DUMMY", join_code="WRONG")
-        return team
 
     def __str__(self):
         if(self.is_current_hunt):
@@ -195,21 +118,25 @@ class Hunt(models.Model):
         return teams[0] if (len(teams) > 0) else None
 
     def can_access(self, user, team):
-        return self.is_public or user.is_staff or (team and team.is_playtester_team and team.playtest_started)
+        return user.is_staff or (team and (self.is_open or (team.is_playtester_team and team.playtest_started)))
 
     def get_episodes(self, user, team):
-        if (self.is_public or user.is_staff):
+        """ Return the list of episodes that a user/team can see"""
+        if (user.is_staff):
             episode_list = self.episode_set.all()
         else:
+            headstarts = team.headstarts_set.get()
+            # TODO : use headstarts to change time
+            # TODO : implement episode unlock
             episode_list = self.episode_set.filter(start_date__lte=timezone.now())
 
         return episode_list
 
     def get_puzzle_list(self, user, team):
-        if (self.is_public or user.is_staff):
+        """ Return the list of puzzles that a user/team can see"""
+        if (user.is_staff):
             puzzle_list = [puzzle for episode in self.episode_set.all() for puzzle in episode.puzzle_set.all()]
-
-        elif(team and team.is_playtester_team and team.playtest_started):
+        elif(self.can_access(user, team)):
             puzzle_list = team.unlocked.filter(episode__hunt=self)
         else:
             puzzle_list = ()
@@ -226,10 +153,6 @@ class Episode(models.Model):
             models.Index(fields=['ep_number']),
         ]
 
-    hunt = models.ForeignKey(
-        Hunt,
-        on_delete=models.CASCADE,
-        help_text="The hunt that this episode is a part of")
     ep_name = models.CharField(
         max_length=200,
         help_text="The name of the episode as the public will see it")
@@ -238,6 +161,11 @@ class Episode(models.Model):
         help_text="A number used internally for episode sorting, must be unique")
     start_date = models.DateTimeField(
         help_text="The date/time at which this episode will become visible to registered users (without headstarts)")
+
+    hunt = models.ForeignKey(
+        Hunt,
+        on_delete=models.CASCADE,
+        help_text="The hunt that this episode is a part of")
 
     @property
     def is_locked(self):
@@ -252,27 +180,14 @@ class Episode(models.Model):
     def __str__(self):
         return self.ep_name
 
-"""
-            if (hunt.is_public or request.user.is_staff):
-                puzzle_list = hunt.puzzle_set.all()
 
-            elif(team and team.is_playtester_team and team.playtest_started):
-                puzzle_list = team.unlocked.filter(hunt=hunt)
-
-            # Hunt has not yet started
-            elif(hunt.is_locked):
-                if(hunt.is_day_of_hunt):
-                    return render(request, 'access_error.html', {'reason': "hunt"})
-                else:
-                    return hunt_prepuzzle(request, hunt_num)
-"""
 
 class PuzzleManager(models.Manager):
     """ Manager to reorder correctly puzzles within an episode """
 
     def reorder(self, puz, old_number, old_episode, puz_is_new):
         """ Reorder the puzzles after a change of number/episode for puz """
-        
+
         qs = self.get_queryset()
         num_puzzles = len(puz.episode.puzzle_set.all())
         ep_changed = (puz.episode.ep_number!=old_episode.ep_number)
@@ -316,16 +231,6 @@ class Puzzle(models.Model):
         ]
         ordering = ['-episode', 'puzzle_number']
 
-    PDF_PUZZLE = 'PDF'
-    LINK_PUZZLE = 'LNK'
-    WEB_PUZZLE = 'WEB'
-
-    puzzle_page_type_choices = [
-        (PDF_PUZZLE, 'Puzzle page displays a PDF'),
-        (LINK_PUZZLE, 'Puzzle page links a webpage'),
-        (WEB_PUZZLE, 'Puzzle page displays a webpage'),
-    ]
-
     episode = models.ForeignKey(
         Episode,
         on_delete=models.CASCADE,
@@ -338,8 +243,8 @@ class Puzzle(models.Model):
         help_text="The number of the puzzle within the episode, for sorting purposes (must be unique within the episode, and not too large)")
     puzzle_id = models.CharField(
         max_length=12,
-        unique=True,  # hex only please
-        help_text="A 3-12 character hex string that uniquely identifies the puzzle")
+        unique=True,
+        help_text="A 3-12 characters string that uniquely identifies the puzzle")
     answer = models.CharField(
         max_length=100,
         help_text="The answer to the puzzle, not case nor space sensitive. Can contain parentheses to show multiple options but a regex is then mandatory.")
@@ -348,46 +253,9 @@ class Puzzle(models.Model):
         help_text="The regexp towards which the guess is checked in addition to the answer (optional)",
         blank=True,
         default= "")
-    is_meta = models.BooleanField(
-        default=False,
-        verbose_name="Is a metapuzzle",
-        help_text="Is this puzzle a meta-puzzle?")
-    puzzle_page_type = models.CharField(
-        max_length=3,
-        choices=puzzle_page_type_choices,
-        default=WEB_PUZZLE,
-        blank=False,
-        help_text="The type of webpage for this puzzle."
-    )
-    doesnt_count = models.BooleanField(
-        default=False,
-        help_text="Should this puzzle not count towards scoring?")
-    puzzle_file = models.FileField(
-        upload_to=get_puzzle_file_path,
-        storage=PuzzleOverwriteStorage(),
-        blank=True,
-        help_text="Puzzle file. MUST BE A PDF")
-    resource_file = models.FileField(
-        upload_to=get_puzzle_file_path,
-        storage=PuzzleOverwriteStorage(),
-        blank=True,
-        help_text="Puzzle resources, MUST BE A ZIP FILE.")
     template = models.TextField(
         default="",
         help_text="The template string to be rendered to HTML on the puzzle page")
-    solution_is_webpage = models.BooleanField(
-        default=False,
-        help_text="Is this solution an html webpage?")
-    solution_file = models.FileField(
-        upload_to=get_solution_file_path,
-        storage=PuzzleOverwriteStorage(),
-        blank=True,
-        help_text="Puzzle solution. MUST BE A PDF.")
-    solution_resource_file = models.FileField(
-        upload_to=get_solution_file_path,
-        storage=PuzzleOverwriteStorage(),
-        blank=True,
-        help_text="Puzzle solution resources, MUST BE A ZIP FILE.")
     extra_data = models.CharField(
         max_length=200,
         blank=True,
@@ -404,46 +272,6 @@ class Puzzle(models.Model):
 
     objects = PuzzleManager()
 
-    # Overridden to delete old files on clear
-    def save(self, *args, **kwargs):
-        if(self.pk):
-            # TODO: Clean up this repetitive code
-            old_obj = Puzzle.objects.get(pk=self.pk)
-            if(self.puzzle_file.name == "" and old_obj.puzzle_file.name != ""):
-                full_name = os.path.join(settings.MEDIA_ROOT, old_obj.puzzle_file.name)
-                extension = old_obj.puzzle_file.name.split('.')[-1]
-                folder = "".join(old_obj.puzzle_file.name.split('.')[:-1])
-                if(extension == "zip"):
-                    shutil.rmtree(os.path.join(settings.MEDIA_ROOT, folder), ignore_errors=True)
-                if os.path.exists(full_name):
-                    os.remove(full_name)
-            if(self.resource_file.name == "" and old_obj.resource_file.name != ""):
-                full_name = os.path.join(settings.MEDIA_ROOT, old_obj.resource_file.name)
-                extension = old_obj.resource_file.name.split('.')[-1]
-                folder = "".join(old_obj.resource_file.name.split('.')[:-1])
-                if(extension == "zip"):
-                    shutil.rmtree(os.path.join(settings.MEDIA_ROOT, folder), ignore_errors=True)
-                if os.path.exists(full_name):
-                    os.remove(full_name)
-            if(self.solution_file.name == "" and old_obj.solution_file.name != ""):
-                full_name = os.path.join(settings.MEDIA_ROOT, old_obj.solution_file.name)
-                extension = old_obj.solution_file.name.split('.')[-1]
-                folder = "".join(old_obj.solution_file.name.split('.')[:-1])
-                if(extension == "zip"):
-                    shutil.rmtree(os.path.join(settings.MEDIA_ROOT, folder), ignore_errors=True)
-                if os.path.exists(full_name):
-                    os.remove(full_name)
-            old_name = old_obj.solution_resource_file.name
-            if(self.solution_resource_file.name == "" and old_name != ""):
-                full_name = os.path.join(settings.MEDIA_ROOT, old_obj.solution_resource_file.name)
-                extension = old_obj.solution_resource_file.name.split('.')[-1]
-                folder = "".join(old_obj.solution_resource_file.name.split('.')[:-1])
-                if(extension == "zip"):
-                    shutil.rmtree(os.path.join(settings.MEDIA_ROOT, folder), ignore_errors=True)
-                if os.path.exists(full_name):
-                    os.remove(full_name)
-
-        super(Puzzle, self).save(*args, **kwargs)
 
     def serialize_for_ajax(self):
         """ Serializes the ID, puzzle_number and puzzle_name fields for ajax transmission """
@@ -480,6 +308,55 @@ class Puzzle(models.Model):
                     return episode.start_date
 
 
+def puzzle_file_path(instance, filename):
+    return 'puzzles/{0}/{1}'.format(instance.puzzle.id, filename)
+
+
+def solution_file_path(instance, filename):
+    return 'solutions/{0}/{1}'.format(instance.puzzle.id, filename)
+
+
+class PuzzleFile(models.Model):
+    puzzle = models.ForeignKey(Puzzle, on_delete=models.CASCADE)
+    slug = models.CharField(
+        max_length=50, blank=True, null=True,
+        verbose_name='Template Slug',
+        help_text="Include the URL of the file in puzzle content using $slug or ${slug}.",
+    )
+    url_path = models.CharField(
+        max_length=50,
+        verbose_name='URL Filename',
+        help_text='The file path you want to appear in the URL. Can include "directories" using /',
+    )
+    file = models.FileField(
+        upload_to=puzzle_file_path,
+        help_text='The extension of the uploaded file will determine the Content-Type of the file when served',
+    )
+
+    class Meta:
+        unique_together = (('puzzle', 'slug'), ('puzzle', 'url_path'))
+
+
+class SolutionFile(models.Model):
+    puzzle = models.ForeignKey(Puzzle, on_delete=models.CASCADE)
+    slug = models.CharField(
+        max_length=50, blank=True, null=True,
+        verbose_name='Template Slug',
+        help_text="Include the URL of the file in puzzle content using $slug or ${slug}.",
+    )
+    url_path = models.CharField(
+        max_length=50,
+        verbose_name='URL Filename',
+        help_text='The file path you want to appear in the URL. Can include "directories" using /',
+    )
+    file = models.FileField(
+        upload_to=solution_file_path,
+        help_text='The extension of the uploaded file will determine the Content-Type of the file when served',
+    )
+
+    class Meta:
+        unique_together = (('puzzle', 'slug'), ('puzzle', 'url_path'))
+
 
 class Prepuzzle(models.Model):
     """ A class representing a pre-puzzle within a hunt """
@@ -502,11 +379,6 @@ class Prepuzzle(models.Model):
         default='{% extends "puzzle/prepuzzle.html" %}\r\n{% load prepuzzle_tags %}\r\n' +
                 '\r\n{% block content %}\r\n{% endblock content %}',
         help_text="The template string to be rendered to HTML on the hunt page")
-    resource_file = models.FileField(
-        upload_to=get_prepuzzle_file_path,
-        storage=PuzzleOverwriteStorage(),
-        blank=True,
-        help_text="Prepuzzle resources, MUST BE A ZIP FILE.")
     response_string = models.TextField(
         default="",
         help_text="Data returned to the webpage for use upon solving.")
@@ -631,7 +503,7 @@ class Hint(models.Model):
                 for team_eureka in teams_eurekas:
                   if eureka == team_eureka.eureka:
                       eureka_times.append(team_eureka.time - start_time)
-              if len(eureka_times) >= self.number_eurekas: 
+              if len(eureka_times) >= self.number_eurekas:
                 return min(self.time, max(eureka_times) + self.short_time)
               else:
                 return self.time
@@ -642,13 +514,6 @@ class Hint(models.Model):
         return self.puzzle.starting_time_for_team(team)
 
 
-
-class HuntAssetFile(models.Model):
-    """ A class to represent an asset file for a puzzlehunt """
-    file = models.FileField(upload_to='hunt/assets/', storage=OverwriteStorage())
-
-    def __str__(self):
-        return os.path.basename(self.file.name)
 
 
 

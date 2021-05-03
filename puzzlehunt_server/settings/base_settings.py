@@ -42,7 +42,7 @@ MIDDLEWARE = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'teams.middleware.HuntMiddleware',
+    'hunts.middleware.HuntMiddleware',
     'teams.middleware.TeamMiddleware',
 )
 
