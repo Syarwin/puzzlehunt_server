@@ -137,7 +137,7 @@ class PuzzleAdminForm(forms.ModelForm):
             old_number = len(self.instance.episode.puzzle_set.all())+1
 
         puz = super(PuzzleAdminForm, self).save(*args, **kwargs)
-        models.Puzzle.objects.reorder(puz, old_number, old_episode)
+        models.Puzzle.objects.reorder(puz, old_number, old_episode, not self.instance.pk)
         if puz.pk:
             puz.puzzle_set.clear()
             puz.puzzle_set.add(*self.cleaned_data['reverse_unlocks'])

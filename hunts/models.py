@@ -185,7 +185,7 @@ class Episode(models.Model):
 class PuzzleManager(models.Manager):
     """ Manager to reorder correctly puzzles within an episode """
 
-    def reorder(self, puz, old_number, old_episode):
+    def reorder(self, puz, old_number, old_episode, puz_is_new):
         """ Reorder the puzzles after a change of number/episode for puz """
 
         qs = self.get_queryset()
@@ -194,7 +194,7 @@ class PuzzleManager(models.Manager):
 
         # If necessary, we clip the value of puzzle_number
         if puz.puzzle_number>num_puzzles:
-            puz.puzzle_number = num_puzzles+1 if ep_changed else num_puzzles
+            puz.puzzle_number = num_puzzles+1 if (ep_changed or puz_is_new) else num_puzzles
             puz.save()
         if puz.puzzle_number<1:
             puz.puzzle_number = 1
