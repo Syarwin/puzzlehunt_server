@@ -326,7 +326,7 @@ def unlockables(request):
 @login_required
 def leaderboard(request):
     curr_hunt = get_object_or_404(Hunt, is_current_hunt=True)
-    teams = curr_hunt.real_teams.all()
+    teams = curr_hunt.team_set.all()
     all_teams = teams.annotate(solves=Count('solved'))
     all_teams = all_teams.annotate(last_time=Max('puzzlesolve__guess__guess_time'))
     all_teams = all_teams.order_by(F('solves').desc(nulls_last=True),

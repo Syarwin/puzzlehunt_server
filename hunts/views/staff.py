@@ -174,7 +174,7 @@ def progress(request):
 
     else:
         curr_hunt = Hunt.objects.get(is_current_hunt=True)
-        teams = curr_hunt.real_teams.all().order_by('team_name')
+        teams = curr_hunt.team_set.all().order_by('team_name')
 #        puzzles = curr_hunt.puzzle_set.all().order_by('puzzle_number')
         puzzles = [p  for episode in curr_hunt.episode_set.all() for p in episode.puzzle_set.order_by('puzzle_number')]
         # An array of solves, organized by team then by puzzle
@@ -238,7 +238,7 @@ def overview(request):
     
     # TODO no idea about the performance of this code, in terms of prefecthing database accesses
     curr_hunt = Hunt.objects.get(is_current_hunt=True)
-    teams = curr_hunt.real_teams.all().order_by('team_name')
+    teams = curr_hunt.team_set.all().order_by('team_name')
 
     sol_list = []
     for team in teams:
@@ -310,7 +310,7 @@ def charts(request):
     curr_hunt = Hunt.objects.get(is_current_hunt=True)
 #    puzzles = curr_hunt.puzzle_set.order_by('puzzle_number')
     puzzles = [episode.puzzle_set.order_by('puzzle_number') for episode in curr_hunt.episode_set.all()][0] #dirty but should work for now (11/04/2021)
-    teams = curr_hunt.real_teams.exclude(location="DUMMY")
+    teams = curr_hunt.team_set.exclude(location="DUMMY")
     num_teams = teams.count()
     num_puzzles = puzzles.count()
 
@@ -491,7 +491,7 @@ def hunt_info(request):
                     return HttpResponse('bad data')
         return HttpResponse('teams updated!')
     else:
-        teams = curr_hunt.real_teams
+        teams = curr_hunt.team_set
         people = Person.objects.filter(teams__hunt=curr_hunt)
         try:
             old_hunt = Hunt.objects.get(hunt_number=curr_hunt.hunt_number - 1)

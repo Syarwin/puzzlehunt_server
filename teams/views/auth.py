@@ -90,7 +90,7 @@ class Registration(LoginRequiredMixin, View):
         if(team is not None):
             return redirect(reverse('manage-team'))
         else:
-            teams = curr_hunt.real_teams.order_by(Lower('team_name'))
+            teams = curr_hunt.team_set.order_by(Lower('team_name'))
             return render(request, "auth/registration.html",
                           {'teams': teams, 'curr_hunt': curr_hunt})
 
@@ -121,7 +121,7 @@ class Registration(LoginRequiredMixin, View):
                 request.user.person.teams.add(team)
                 logger.info("User %s joined team %s" % (str(request.user), str(team)))
 
-        teams = curr_hunt.real_teams.order_by(Lower('team_name'))
+        teams = curr_hunt.team_set.order_by(Lower('team_name'))
         return render(request, "auth/registration.html",
                       {'teams': teams, 'curr_hunt': curr_hunt})
 
