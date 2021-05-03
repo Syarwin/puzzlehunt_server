@@ -36,4 +36,19 @@ urlpatterns = [
     #url(r'^objects/$', hunt_views.unlockables, name='unlockables'),
     url(r'^protected/(?P<file_path>.+)$', views.hunt.protected_static, name='protected_static'),
     url(r'^leaderboard/$', views.hunt.leaderboard, name='leaderboard'),
+
+    # Staff pages
+    url(r'^staff/', include([
+        url(r'^queue/$', views.staff.queue, name='queue'),
+        url(r'^progress/$', views.staff.progress, name='progress'),
+        url(r'^overview/$', views.staff.overview, name='overview'),
+        url(r'^charts/$', views.staff.charts, name='charts'),
+        url(r'^control/$', views.staff.control, name='control'),
+        url(r'^teams/$', RedirectView.as_view(url='/admin/teams/team/', permanent=False)),
+        url(r'^puzzles/$', RedirectView.as_view(url='/admin/hunts/puzzle/', permanent=False)),
+#        url(r'^emails/$', views.staff.emails, name='emails'),
+        url(r'^management/$', views.staff.hunt_management, name='hunt_management'),
+        url(r'^info/$', views.staff.hunt_info, name='hunt_info'),
+        url(r'^lookup/$', views.staff.lookup, name='lookup'),
+    ])),
 ]

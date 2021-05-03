@@ -28,19 +28,4 @@ urlpatterns = [
     url(r'^registration/$', views.auth.Registration.as_view(), name='registration'),
     url(r'^manage-team/$', views.auth.ManageTeam.as_view(), name='manage-team'),
     url(r'^profile/$', views.auth.profile, name='profile'),
-
-    # Staff pages
-    url(r'^staff/', include([
-        url(r'^queue/$', views.staff.queue, name='queue'),
-        url(r'^progress/$', views.staff.progress, name='progress'),
-        url(r'^overview/$', views.staff.overview, name='overview'),
-        url(r'^charts/$', views.staff.charts, name='charts'),
-        url(r'^control/$', views.staff.control, name='control'),
-        url(r'^teams/$', RedirectView.as_view(url='/admin/teams/team/', permanent=False)),
-        url(r'^puzzles/$', RedirectView.as_view(url='/admin/hunts/puzzle/', permanent=False)),
-#        url(r'^emails/$', views.staff.emails, name='emails'),
-        url(r'^management/$', views.staff.hunt_management, name='hunt_management'),
-        url(r'^info/$', views.staff.hunt_info, name='hunt_info'),
-        url(r'^lookup/$', views.staff.lookup, name='lookup'),
-    ])),
 ]
