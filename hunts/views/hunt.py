@@ -1,3 +1,4 @@
+from string import Template
 from datetime import datetime
 from dateutil import tz
 from django.conf import settings
@@ -9,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseForbidden
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
-from django.template import Template, RequestContext
+from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.views import View
@@ -20,6 +21,7 @@ from pathlib import Path
 from django.db.models import F, Max, Count, Min, Subquery, OuterRef
 from django.db.models.fields import PositiveIntegerField
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.mixins import LoginRequiredMixin
 import json
 import os
 import re
@@ -78,6 +80,24 @@ def protected_static(request, file_path):
 
     return HttpResponseNotFound('<h1>Page not found</h1>')
 
+# TODO : add PuzzleUnlockedMixin
+class PuzzleFile(RequiredTeamMixin, View):
+    def get(self, request, puzzle_id, file_path):
+        print("Coucou")
+        puzzle = get_object_or_404(Puzzle, puzzle_id__iexact=puzzle_id)
+        puzzle_file = get_object_or_404(puzzle.puzzlefile_set, url_path=file_path)
+
+        pathname = smart_str(os.path.join(settings.MEDIA_ROOT, puzzle_file.file.path))
+        try:
+           with open(pathname, "rb") as f:
+              return HttpResponse(f.read(), content_type="image/png")
+        except IOError:
+           return HttpResponseNotFound('<h1>Page not found</h1>')
+
+        #return sendfile(request, puzzle_file.file.path)
+
+
+
 
 def current_hunt(request):
     """ A simple view that calls ``teams.hunt_views.hunt`` with the current hunt's number. """
@@ -105,8 +125,8 @@ class HuntIndex(View):
         episodes = sorted(hunt.get_episodes(user, team), key=lambda p: p.ep_number)
         puzzles = hunt.get_puzzle_list(user, team)
         context = {'hunt': hunt, 'episodes': episodes, 'team': team, 'puzzles':puzzles}
-     #   return render(request, 'hunt/hunt_example.html', context)
-        return HttpResponse(Template(hunt.template).render(RequestContext(request, context)))
+        return render(request, 'hunt/hunt_example.html', context)
+        #return HttpResponse(Template(hunt.template).render(RequestContext(request, context)))
 
 
 def prepuzzle(request, prepuzzle_num):
@@ -181,7 +201,7 @@ class PuzzleView(View):
         limited = False
         if(request.team is not None):
             request.ratelimit_key = request.user.username
-            limited = is_ratelimited(request, fn=PuzzleView.as_view(), key='user', rate='1/7s', method='POST', 
+            limited = is_ratelimited(request, fn=PuzzleView.as_view(), key='user', rate='1/7s', method='POST',
                            increment=True)
         #if (not limited and not request.hunt.is_public):
         #    limited = is_ratelimited(request, fn=PuzzleView.as_view(), key=get_ratelimit_key, rate='5/m', method='POST',
@@ -196,18 +216,32 @@ class PuzzleView(View):
 
 
         # Only allowed access if the hunt is public or if unlocked by team
-        if(not request.hunt.is_public):
-            if(not request.user.is_authenticated):
-                return redirect('%s?next=%s' % (reverse_lazy(settings.LOGIN_URL), request.path))
+        if(not request.user.is_authenticated):
+            return redirect('%s?next=%s' % (reverse_lazy(settings.LOGIN_URL), request.path))
 
-            if (not request.user.is_staff):
-                if(request.team is None or request.puzzle not in request.team.unlocked.all()):
-                    return redirect(reverse('hunt', kwargs={'hunt_num' : request.hunt.hunt_number }))
+        if (not request.user.is_staff):
+            if(request.team is None or request.puzzle not in request.team.unlocked.all()):
+                return redirect(reverse('hunt', kwargs={'hunt_num' : request.hunt.hunt_number }))
 
-        template = Template(request.puzzle.template).render(RequestContext(request, {'URL' : settings.PROTECTED_URL + "puzzles/" + request.puzzle.puzzle_id }))
+        puzzle_files = {f.slug: reverse(
+            'puzzle_file',
+            kwargs={
+                'puzzle_id': puzzle_id,
+                'file_path': f.url_path,
+            }) for f in request.puzzle.puzzlefile_set.filter(slug__isnull=False)
+        }
+        text = Template(request.puzzle.template).safe_substitute(**puzzle_files)
         episodes = sorted(request.hunt.get_episodes(request.user, request.team), key=lambda p: p.ep_number)
         puzzles = request.hunt.get_puzzle_list(request.user, request.team)
-        context = {'hunt': request.hunt, 'episodes': episodes, 'puzzles' : puzzles, 'puzzle': request.puzzle, 'eureka': len(request.puzzle.eureka_set.all())>0, 'team': request.team,             'template':template, 'PROTECTED_URL': settings.PROTECTED_URL}
+        context = {
+            'hunt': request.hunt,
+            'episodes': episodes,
+            'puzzles' : puzzles,
+            'puzzle': request.puzzle,
+            'eureka': len(request.puzzle.eureka_set.all())>0,
+            'team': request.team,
+            'text':text
+        }
         return render(request, 'puzzle/puzzle.html', context)
 
 
@@ -285,9 +319,9 @@ def unlockables(request):
         return render(request, 'access_error.html', {'reason': "team"})
     unlockables = Unlockable.objects.filter(puzzle__in=team.solved.all())
     return render(request, 'hunt/unlockables.html', {'unlockables': unlockables, 'team': team})
-    
-    
-    
+
+
+
 #TODO: clean time format + clear useless info out of all_teams before sending
 @login_required
 def leaderboard(request):
@@ -297,14 +331,14 @@ def leaderboard(request):
     all_teams = all_teams.annotate(last_time=Max('puzzlesolve__guess__guess_time'))
     all_teams = all_teams.order_by(F('solves').desc(nulls_last=True),
                                    F('last_time').asc(nulls_last=True))[:10]
-                                   
+
     team = Hunt.objects.get(is_current_hunt=True).team_from_user(request.user)
     if(team is None):
       solves_data = []
     else:
       solves = team.puzzlesolve_set.annotate(time=F('guess__guess_time'), puzId = F('puzzle__puzzle_id')).order_by('time')
       unlocks = team.teampuzzlelink_set.annotate(puzId = F('puzzle__puzzle_id'), name = F('puzzle__puzzle_name')).order_by('time')
-      
+
       solves_data = []
       for unlock in unlocks.all():
         try:
@@ -312,9 +346,6 @@ def leaderboard(request):
           solves_data.append({'name' : unlock.name, 'sol_time': solve.time, 'duration':  str(timedelta(seconds=int((solve.time-unlock.time).total_seconds())))})
         except ObjectDoesNotExist:
           solves_data.append({'name' : unlock.name, 'sol_time': '' , 'duration':  str(timedelta(seconds=int((timezone.now()-unlock.time).total_seconds())))})
-      
+
     context = {'team_data': all_teams, 'solve_data': solves_data}
     return render(request, 'hunt/leaderboard.html', context)
-
-
-

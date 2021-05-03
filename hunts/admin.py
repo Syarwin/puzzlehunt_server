@@ -17,17 +17,16 @@ class HuntAdminForm(forms.ModelForm):
             'template': HtmlEditor(attrs={'style': 'width: 90%; height: 400px;'}),
         }
 
-
 class HuntAdmin(admin.ModelAdmin):
     form = HuntAdminForm
     fieldsets = (
         ('Basic Info', {'fields': ('hunt_name', 'hunt_number', 'team_size',
                         ('start_date', 'display_start_date'), ('end_date', 'display_end_date'),
                         'is_current_hunt')}),
-        ('Resources/Template', {'fields': ('resource_file', 'extra_data', 'template')}),
     )
 
     list_display = ['hunt_name', 'team_size', 'start_date', 'is_current_hunt']
+
 
 
 class EpisodeAdminForm(forms.ModelForm):
@@ -38,7 +37,7 @@ class EpisodeAdminForm(forms.ModelForm):
 class EpisodeAdmin(admin.ModelAdmin):
     form = EpisodeAdminForm
     list_display = ['ep_name', 'start_date', 'hunt_just_name']
-    
+
     def hunt_just_name(self, response):
         return response.hunt.hunt_name
 
@@ -48,7 +47,7 @@ class EpisodeAdmin(admin.ModelAdmin):
 class PrepuzzleAdminForm(forms.ModelForm):
     class Meta:
         model = models.Prepuzzle
-        fields = ['puzzle_name', 'released', 'hunt', 'answer', 'resource_file', 'template',
+        fields = ['puzzle_name', 'released', 'hunt', 'answer', 'template',
                   'response_string']
         widgets = {
             'template': HtmlEditor(attrs={'style': 'width: 90%; height: 400px;'}),
@@ -72,6 +71,8 @@ class PrepuzzleAdmin(admin.ModelAdmin):
         return mark_safe(html)
 
     puzzle_url.short_description = 'Puzzle URL: (Not editable)'
+
+
 
 class UnlockInline(admin.TabularInline):
     model = models.Puzzle.unlocks.through
@@ -100,6 +101,14 @@ class HintInline(admin.TabularInline):
     model = models.Hint
     extra = 1
 
+class PuzzleFileInline(admin.TabularInline):
+    model = models.PuzzleFile
+    extra = 0
+
+class SolutionFileInline(admin.TabularInline):
+    model = models.SolutionFile
+    extra = 0
+
 
 class PuzzleAdminForm(forms.ModelForm):
     reverse_unlocks = forms.ModelMultipleChoiceField(
@@ -116,7 +125,7 @@ class PuzzleAdminForm(forms.ModelForm):
             choices = self.instance.episode.puzzle_set.values_list('pk', 'puzzle_name')
             self.fields['reverse_unlocks'].choices = choices
 
-    def save(self, *args, **kwargs):        
+    def save(self, *args, **kwargs):
         if self.instance.pk:
             old_puz = models.Puzzle.objects.get(pk=self.instance.pk)
             old_episode = old_puz.episode
@@ -151,9 +160,7 @@ class PuzzleAdminForm(forms.ModelForm):
     class Meta:
         model = models.Puzzle
         fields = ('episode', 'puzzle_name', 'puzzle_number', 'puzzle_id', 'answer', 'answer_regex',
-                  'is_meta', 'doesnt_count', 'puzzle_page_type', 'puzzle_file', 'resource_file',
-                  'solution_file', 'extra_data', 'num_required_to_unlock', 'solution_is_webpage',
-                  'solution_resource_file')
+                  'num_required_to_unlock',)
 
 
 class PuzzleAdmin(admin.ModelAdmin):
@@ -161,19 +168,18 @@ class PuzzleAdmin(admin.ModelAdmin):
 
     list_filter = ('episode',)
     search_fields = ['puzzle_id', 'puzzle_name']
-    list_display = ['combined_id', 'puzzle_name', 'episode', 'is_meta']
+    list_display = ['combined_id', 'puzzle_name', 'episode']
     list_display_links = ['combined_id', 'puzzle_name']
     ordering = ['episode', 'puzzle_number']
-    inlines = (EurekaInline,HintInline,)
+    inlines = (PuzzleFileInline,SolutionFileInline,EurekaInline,HintInline,)
     fieldsets = (
         (None, {
             'fields': ('episode', 'puzzle_name', 'answer', 'answer_regex', 'puzzle_number',
-                       'puzzle_id', 'is_meta', 'doesnt_count', 'extra_data')
+                       'puzzle_id', 'extra_data')
         }),
         ('Resources', {
             'classes': ('formset_border', 'resources'),
-            'fields': ('puzzle_page_type', 'puzzle_file', 'resource_file', 'template',
-                   'solution_is_webpage', 'solution_file', 'solution_resource_file',)
+            'fields': ('template',)
         }),
         ('Solve Unlocking', {
             'classes': ('formset_border', 'solve_unlocking'),

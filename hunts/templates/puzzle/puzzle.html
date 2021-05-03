@@ -14,16 +14,7 @@
     {{ puzzle.puzzle_name }}
   </div>
   <div class="puzzle-holder">
-    {% if puzzle.puzzle_page_type == puzzle.LINK_PUZZLE %}
-        <h4>
-          This puzzle is a web-based puzzle:
-          <a href="{{ PROTECTED_URL }}puzzles/{{ puzzle.puzzle_id }}/index.html">Click here to go to the puzzle.</a>
-        </h4>
-    {% elif puzzle.puzzle_page_type == puzzle.PDF_PUZZLE %}
-        <embed width="100%" height="1000px" src="{{ PROTECTED_URL }}puzzles/{{ puzzle.puzzle_id }}.pdf" type="application/pdf"></embed>
-    {% elif puzzle.puzzle_page_type == puzzle.WEB_PUZZLE %}
-        {{ template }}
-    {% endif %}
+    {{ text | safe }}
   </div>
 
   <div id="guess-bar">

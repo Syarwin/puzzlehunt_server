@@ -14,13 +14,6 @@ urlpatterns = [
     # Admin redirections/views
     url(r'^admin/login/$', RedirectView.as_view(url=reverse_lazy(settings.LOGIN_URL),
                                                 query_string=True)),
-    url(r'^staff/login/$', RedirectView.as_view(url=reverse_lazy(settings.LOGIN_URL),
-                                                query_string=True)),
-    url(r'^admin/$', RedirectView.as_view(url=reverse_lazy('admin:app_list',
-                                          args=('teams',)))),
-    url(r'^staff/$', RedirectView.as_view(url=reverse_lazy('admin:app_list',
-                                          args=('teams',)))),
-    url(r'^staff/', admin.site.urls),
     url(r'^admin/', admin.site.urls),
 
     # User auth/password reset
@@ -43,9 +36,3 @@ urlpatterns = [
 # Use silk if enabled
 if 'silk' in settings.INSTALLED_APPS:
     urlpatterns.append(url(r'^silk/', include('silk.urls', namespace='silk')))
-
-# Hack for using development server
-if(settings.DEBUG):
-    import debug_toolbar
-    urlpatterns = urlpatterns + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns.append(url(r'^__debug__/', include(debug_toolbar.urls)))

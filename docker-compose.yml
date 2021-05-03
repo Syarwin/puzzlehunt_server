@@ -31,6 +31,8 @@ services:
       - static:/static
       - media:/media
       - ./docker/volumes/logs:/var/log/external
+      - uploads_puzzles:/uploads/puzzles
+      - uploads_solutions:/uploads/solutions
     environment:
       - DOMAIN
       - DJANGO_SECRET_KEY
@@ -84,3 +86,5 @@ services:
 volumes:
   static:
   media:
+  uploads_puzzles: {}
+  uploads_solutions: {}

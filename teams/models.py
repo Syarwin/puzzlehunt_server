@@ -39,6 +39,26 @@ class Team(models.Model):
         blank=True,
         null=True,
         help_text="The country the members of the team are from")
+    join_code = models.CharField(
+        max_length=5,
+        help_text="The 5 character random alphanumeric password needed for a user to join a team")
+    playtester = models.BooleanField(
+        default=False,
+        help_text="A boolean to indicate if the team is a playtest team and will get early access")
+    playtest_start_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="The date/time at which a hunt will become to the playtesters")
+    playtest_end_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="The date/time at which a hunt will no longer be available to playtesters")
+
+    hunt = models.ForeignKey(
+        "hunts.Hunt",
+        on_delete=models.CASCADE,
+        help_text="The hunt that the team is a part of")
+
     solved = models.ManyToManyField(
         "hunts.Puzzle",
         blank=True,
@@ -61,27 +81,12 @@ class Team(models.Model):
         "hunts.Unlockable",
         blank=True,
         help_text="The unlockables the team has earned")
-    hunt = models.ForeignKey(
-        "hunts.Hunt",
-        on_delete=models.CASCADE,
-        help_text="The hunt that the team is a part of")
-    join_code = models.CharField(
-        max_length=5,
-        help_text="The 5 character random alphanumeric password needed for a user to join a team")
-    playtester = models.BooleanField(
-        default=False,
-        help_text="A boolean to indicate if the team is a playtest team and will get early access")
-    playtest_start_date = models.DateTimeField(
-        null=True,
+    headstarts = models.ManyToManyField(
+        "hunts.Episode",
         blank=True,
-        help_text="The date/time at which a hunt will become to the playtesters")
-    playtest_end_date = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="The date/time at which a hunt will no longer be available to playtesters")
-    num_waiting_messages = models.IntegerField(
-        default=0,
-        help_text="The number of unseen messages a team has waiting")
+        related_name='headstarts_for',
+        through="TeamHeadstartEpisode",
+        help_text="The headstarts of the team")
 
     objects = TeamManager()
 
@@ -248,7 +253,7 @@ class Guess(models.Model):
         """ A boolean indicating if the guess given is exactly correct (matches either the
         answer or the non-empty regex). Spaces do not matter so are removed. """
         noSpace = self.guess_text.upper().replace(" ","")
-        return ( noSpace == self.puzzle.answer.upper().replace(" ","") or 
+        return ( noSpace == self.puzzle.answer.upper().replace(" ","") or
                  (self.puzzle.answer_regex!="" and re.fullmatch(self.puzzle.answer_regex, noSpace, re.IGNORECASE)) )
 
     @property
@@ -273,7 +278,7 @@ class Guess(models.Model):
     def respond(self):
         """ Takes the guess's text and uses various methods to craft and populate a response.
             If the response is correct a solve is created and the correct puzzles are unlocked"""
-      
+
         noSpace = self.guess_text.upper().replace(" ","")
         # Compare against correct answer
         if(self.is_correct):
@@ -332,7 +337,7 @@ class PuzzleSolve(models.Model):
         Guess,
         blank=True,
         on_delete=models.CASCADE,
-        help_text="The guess object that the team submitted to solve the puzzle")        
+        help_text="The guess object that the team submitted to solve the puzzle")
 
     def serialize_for_ajax(self):
         """ Serializes the puzzle, team, time, and status fields for ajax transmission """
@@ -366,7 +371,7 @@ class TeamPuzzleLink(models.Model):
         help_text="The team that this unlocked puzzle is for")
     time = models.DateTimeField(
         help_text="The time this puzzle was unlocked for this team")
-    
+
 
     def serialize_for_ajax(self):
         """ Serializes the puzzle, team, and status fields for ajax transmission """
@@ -400,7 +405,7 @@ class TeamEurekaLink(models.Model):
     time = models.DateTimeField(
         help_text="The time this eureka was unlocked for this team")
 
-    
+
     def serialize_for_ajax(self):
         """ Serializes the puzzle, team, and status fields for ajax transmission """
         message = dict()
@@ -411,8 +416,8 @@ class TeamEurekaLink(models.Model):
 
     def __str__(self):
         return self.team.short_name + ": " + self.eureka.answer
-        
-        
+
+
 class TeamHeadstartEpisode(models.Model):
     """ A class that links a team and an episode to represent a headstart gained by the team (start the episode before its release date """
     class Meta:
