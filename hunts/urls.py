@@ -63,6 +63,7 @@ urlpatterns = [
     ])),
     
     # Stats pages
+    url(r'^stats/$', views.stats.stats, name='statsi'),
     url(r'^stats/', include([
         url(r'^stats/$', views.stats.stats, name='stats'),
         url(r'^teams/$', views.stats.teams, name='teams'),

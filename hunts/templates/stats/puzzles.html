@@ -10,21 +10,29 @@
 <div class="container">
   <div class="row">
     <div class="col-md-12 content">
-      <h1 style="text-align: center;"> TODO Puzzle Stats for the hunt '{{ hunt.hunt_name }}' ({{hunt.start_date|date:"M nS" }}) </h1>
+      <h1 style="text-align: center;"> Puzzle Stats for the hunt '{{ hunt.hunt_name }}' ({{hunt.start_date|date:"M nS" }}) </h1>
       <br>
       <table class="table table-striped table-condensed">
         <tr>
-          <th>Rank</th>
-          <th>Team</th>
+          <th>Puzzle</th>
           <th>Solves</th>
-          <th>Last Puzzle Solved</th>
+          <th>First</th>
+          <th>Fastest</th>
+          <th>Average duration</th>
+          <th>Average number of guesses</th>
+          <th>Minimum number of hints</th>
+          <th>Average number of hints</th>          
         </tr>
-        {% for team in team_data %}
+        {% for puz in data %}
         <tr>
-          <td>{{forloop.counter}}</td>
-          <td>{{team.team_name|truncatechars:30}}</td>
-          <td>{{team.solves}} / {{ hunt.puz }} </td>
-          <td>{{team.last_time|date:"M nS, h:i a" }}</td>
+          <td><a href="/stats/puzzle/?puzzle={{puz.pk}}">{{forloop.counter}} {{ puz.name }}</a></td>
+          <td>{{ puz.success }} </td>
+          <td>{{ puz.min_time|date:'d/m H:i' }} </td>
+          <td>{{ puz.min_dur }} </td>
+          <td>{{ puz.av_dur }} </td>
+          <td>{{ puz.guesses }} </td>
+          <td>{{ puz.min_hints }} </td>
+          <td>{{ puz.av_hints }} </td>
         </tr>
         {% endfor %}
       </table>

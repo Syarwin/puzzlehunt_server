@@ -269,7 +269,12 @@ class Guess(models.Model):
 
     def create_solve(self):
         """ Creates a solve based on this guess """
-        PuzzleSolve.objects.create(puzzle=self.puzzle, team=self.team, guess=self)
+        unlock = self.team.teampuzzlelink_set.filter(puzzle=self.puzzle)
+        if unlock.count() == 1: #normal case
+          duration = self.guess_time - unlock[0].time
+        else:
+          duration = "00"
+        PuzzleSolve.objects.create(puzzle=self.puzzle, team=self.team, guess=self, duration=duration)
         logger.info("Team %s correctly solved puzzle %s" % (str(self.team.team_name),
                                                             str(self.puzzle.puzzle_id)))
 
@@ -338,6 +343,10 @@ class PuzzleSolve(models.Model):
         blank=True,
         on_delete=models.CASCADE,
         help_text="The guess object that the team submitted to solve the puzzle")
+    duration = models.DurationField(
+        default="00",
+        help_text="Time between the puzzle unlocked and its solve" 
+    )
 
     def serialize_for_ajax(self):
         """ Serializes the puzzle, team, time, and status fields for ajax transmission """

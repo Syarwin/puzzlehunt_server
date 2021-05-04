@@ -22,7 +22,7 @@
         {% for team in team_data %}
         <tr>
           <td>{{forloop.counter}}</td>
-          <td>{{team.team_name|truncatechars:30}}</td>
+          <td><a href="/stats/team/?team={{team.pk}}">{{team.team_name|truncatechars:30}}</a></td>
           <td>{{team.solves}} / {{ hunt.puz }} </td>
           <td>{{team.last_time|date:"M nS, h:i a" }}</td>
         </tr>

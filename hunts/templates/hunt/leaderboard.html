@@ -24,7 +24,7 @@
           <td>{{forloop.counter}}</td>
           <td>{{team.team_name|truncatechars:30}}</td>
        <!--   <td>{{team.solves}}</td>
-          <td>{{team.last_time|date:"M nS, h:i a" }}</td>-->
+          <td>{{team.last_time|date:'d/m H:i' }}</td>-->
         </tr>
         {% endfor %}
       </table>
@@ -51,7 +51,7 @@
           <td>{{forloop.counter}}</td>
           <td>{{solve.name}}</td>
           <td>{{solve.duration}}</td>
-          <td>{{solve.sol_time|date:"M nS, h:i a" }}</td>
+          <td>{{solve.sol_time|date:'d/m H:i' }}</td>
         </tr>
         {% endfor %}
       </table>
