@@ -61,4 +61,14 @@ urlpatterns = [
         url(r'^info/$', views.staff.hunt_info, name='hunt_info'),
         url(r'^lookup/$', views.staff.lookup, name='lookup'),
     ])),
+    
+    # Stats pages
+    url(r'^stats/', include([
+        url(r'^stats/$', views.stats.stats, name='stats'),
+        url(r'^teams/$', views.stats.teams, name='teams'),
+        url(r'^team/$', views.stats.team, name='team'),
+        url(r'^puzzles/$', views.stats.puzzles, name='puzzles'),
+        url(r'^puzzle/$', views.stats.puzzle, name='puzzle'),
+        url(r'^charts/$', views.stats.charts, name='charts'),
+    ])),
 ]

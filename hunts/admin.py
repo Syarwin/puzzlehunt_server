@@ -113,7 +113,7 @@ class HintInline(admin.TabularInline):
                 pass
             except KeyError:
                 pass
-        return super(HintInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+        return super(HintInline, self).formfield_for_manytomany(db_field, request, **kwargs)
 
 class PuzzleFileInline(admin.TabularInline):
     model = models.PuzzleFile
