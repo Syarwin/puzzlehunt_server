@@ -7,6 +7,7 @@ import re
 
 from . import models
 from teams.widgets import HtmlEditor
+from . import widgets
 
 
 class HuntAdminForm(forms.ModelForm):
@@ -22,7 +23,7 @@ class HuntAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Basic Info', {'fields': ('hunt_name', 'hunt_number', 'team_size',
                         ('start_date', 'display_start_date'), ('end_date', 'display_end_date'),
-                        'is_current_hunt')}),
+                        'is_current_hunt', 'eureka_feedback')}),
     )
 
     list_display = ['hunt_name', 'team_size', 'start_date', 'is_current_hunt']
@@ -100,7 +101,7 @@ class EurekaInline(admin.TabularInline):
 class HintInline(admin.TabularInline):
     model = models.Hint
     extra = 5
-    
+
     #remove eurekas belonging to other puzzles
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "eurekas":
@@ -118,6 +119,13 @@ class HintInline(admin.TabularInline):
 class PuzzleFileInline(admin.TabularInline):
     model = models.PuzzleFile
     extra = 2
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == 'file':
+            kwargs['widget'] = widgets.CustomAdminFileWidget()
+            return db_field.formfield(**kwargs)
+        return super(PuzzleFileInline,self).formfield_for_dbfield(db_field,request,**kwargs)
+
 
 class SolutionFileInline(admin.TabularInline):
     model = models.SolutionFile
