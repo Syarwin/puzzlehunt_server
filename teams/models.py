@@ -6,6 +6,9 @@ from dateutil import tz
 from django.conf import settings
 from datetime import timedelta
 from enum import Enum
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.template.defaultfilters import slugify
 
 import os
 import re
@@ -136,7 +139,7 @@ class Team(models.Model):
         """ Unlocks all puzzles a team is currently supposed to have unlocked """
 
         # puzzles and associated numbers
-        for ep in self.hunt.episode_set.all():
+        for ep in self.ep_unlocked.all():
             puzzles = [puzzle for puzzle in ep.puzzle_set.all()]
             puz_numbers = [puz.puzzle_number for puz in puzzles]
 
@@ -155,7 +158,7 @@ class Team(models.Model):
             if num_solved==len(puzzles):
                 logger.info("Team %s finished episode %s" % (str(self.team_name),
                                 str(ep.ep_number)))
-                TeamEpisodeLink.objects.create(team=self, episode=ep.unlock, time=timezone.now())
+                TeamEpisodeLink.objects.create(team=self, episode=ep.unlocks, time=timezone.now())
 
             # See if we can unlock any given puzzle
             unlocked_numbers = [puz.puzzle_number for puz in self.unlocked.filter(episode=ep)]
@@ -166,6 +169,7 @@ class Team(models.Model):
                     logger.info("Team %s unlocked puzzle %s with solves" % (str(self.team_name),
                                 str(puz.puzzle_id)))
                     TeamPuzzleLink.objects.create(team=self, puzzle=puz, time=timezone.now())
+    
 
     def reset(self):
         """ Resets/deletes all of the team's progress """
@@ -178,6 +182,7 @@ class Team(models.Model):
 
     def __str__(self):
         return str(self.size) + " (" + str(self.location) + ") " + self.short_name
+
 
 
 class PersonManager(models.Manager):
@@ -470,3 +475,9 @@ class TeamEpisodeLink(models.Model):
 
     def __str__(self):
         return self.team.short_name + ": " + self.episode.ep_name
+        
+# unlock puzzles when admin unlocks episode
+@receiver(post_save, sender=TeamEpisodeLink)
+def my_callback(sender, instance, *args, **kwargs):
+  instance.team.unlock_puzzles()
+        

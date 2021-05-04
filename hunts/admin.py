@@ -33,12 +33,21 @@ class HuntAdmin(admin.ModelAdmin):
 class EpisodeAdminForm(forms.ModelForm):
     class Meta:
         model = models.Episode
-        fields = ['hunt', 'ep_name', 'ep_number', 'start_date']
+        fields = ['hunt', 'ep_name', 'ep_number', 'unlocks', 'start_date']
 
 class EpisodeAdmin(admin.ModelAdmin):
     form = EpisodeAdminForm
-    list_display = ['ep_name', 'start_date', 'hunt_just_name']
-
+    list_display = ['ep_name', 'start_date', 'hunt_just_name', 'unlocks']
+    
+    #remove sels-reference to episode
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        self.object_id = object_id
+        return super(EpisodeAdmin, self).change_view(request, object_id, form_url, extra_context=extra_context)
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "unlocks":
+            kwargs['queryset'] = models.Episode.objects.exclude(pk=self.object_id)
+        return super(EpisodeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+    
     def hunt_just_name(self, response):
         return response.hunt.hunt_name
 

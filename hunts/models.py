@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.conf import settings
 from django.db import models, transaction
+from django.db.models import F
 from datetime import timedelta
 from teams.models import Team, Person, Guess, TeamPuzzleLink, TeamEpisodeLink
 
@@ -125,9 +126,10 @@ class Hunt(models.Model):
         if (user.is_staff):
             episode_list = self.episode_set.all()
         else:
-            episode_list = TeamEpisodeLink.objects \
+            episode_pks = TeamEpisodeLink.objects \
                 .filter(team=team, episode__start_date__lte=timezone.now()-F("headstart")) \
                 .values_list('episode', flat=True)
+            episode_list = Episode.objects.filter(pk__in=episode_pks)
 
         return episode_list
 
@@ -291,7 +293,7 @@ class Puzzle(models.Model):
         return re.sub(r'[^a-z_]', '', name)
 
     def __str__(self):
-        return str(self.puzzle_number) + "-" + str(self.puzzle_id) + " " + self.puzzle_name
+        return str(self.puzzle_number) + "-" + str(self.puzzle_id) + " " + self.puzzle_name + " (" + self.episode.ep_name + ")"
 
     def starting_time_for_team(self, team):
         episode = self.episode
