@@ -95,11 +95,11 @@ class UnlockInline(admin.TabularInline):
 
 class EurekaInline(admin.TabularInline):
     model = models.Eureka
-    extra = 1
+    extra = 3
 
 class HintInline(admin.TabularInline):
     model = models.Hint
-    extra = 1
+    extra = 5
     
     #remove eurekas belonging to other puzzles
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -117,11 +117,11 @@ class HintInline(admin.TabularInline):
 
 class PuzzleFileInline(admin.TabularInline):
     model = models.PuzzleFile
-    extra = 0
+    extra = 2
 
 class SolutionFileInline(admin.TabularInline):
     model = models.SolutionFile
-    extra = 0
+    extra = 1
 
 
 class PuzzleAdminForm(forms.ModelForm):
