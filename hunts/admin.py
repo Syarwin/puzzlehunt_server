@@ -104,10 +104,15 @@ class HintInline(admin.TabularInline):
     #remove eurekas belonging to other puzzles
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "eurekas":
+            try:
                 parent_obj_id = request.resolver_match.kwargs['object_id']
                 puzzle = models.Puzzle.objects.get(id=parent_obj_id)
                 query = models.Eureka.objects.filter(puzzle=puzzle)
                 kwargs["queryset"] = query
+            except IndexError:
+                pass
+            except KeyError:
+                pass
         return super(HintInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 class PuzzleFileInline(admin.TabularInline):
