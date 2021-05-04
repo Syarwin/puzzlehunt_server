@@ -29,7 +29,7 @@ class TeamManager(models.Manager):
 class Team(models.Model):
     """ A class representing a team within a hunt """
     class Meta:
-        verbose_name_plural = "       Teams"
+        verbose_name_plural = "        Teams"
 
     team_name = models.CharField(
         max_length=200,
@@ -81,12 +81,12 @@ class Team(models.Model):
         "hunts.Unlockable",
         blank=True,
         help_text="The unlockables the team has earned")
-    headstarts = models.ManyToManyField(
+    ep_unlocked = models.ManyToManyField(
         "hunts.Episode",
         blank=True,
-        related_name='headstarts_for',
-        through="TeamHeadstartEpisode",
-        help_text="The headstarts of the team")
+        related_name="episodes_for",
+        through="TeamEpisodeLink",
+        help_text="The episodes the team has unlocked")
 
     objects = TeamManager()
 
@@ -144,9 +144,18 @@ class Team(models.Model):
             mapping = [0]*(max(puz_numbers) + 1)
 
             # go through each solved puzzle and add to mapping for each puzzle it unlocks
+            # we also count the number of solved puzzles to determine if ep was solved
+            num_solved = 0
             for puz in self.solved.filter(episode=ep):
+                num_solved += 1
                 for num in puz.unlocks.values_list('puzzle_number', flat=True):
                     mapping[num] += 1
+
+            # See if the episode was solved
+            if num_solved==len(puzzles):
+                logger.info("Team %s finished episode %s" % (str(self.team_name),
+                                str(ep.ep_number)))
+                TeamEpisodeLink.objects.create(team=self, episode=ep.unlock, time=timezone.now())
 
             # See if we can unlock any given puzzle
             unlocked_numbers = [puz.puzzle_number for puz in self.unlocked.filter(episode=ep)]
@@ -187,7 +196,7 @@ class PersonManager(models.Manager):
 class Person(models.Model):
     """ A class to associate more personal information with the default django auth user class """
     class Meta:
-        verbose_name_plural = "      Persons"
+        verbose_name_plural = "       Persons"
 
     user = models.OneToOneField(
         User,
@@ -215,7 +224,7 @@ class Person(models.Model):
 class Guess(models.Model):
     """ A class representing a guess to a given puzzle from a given team """
     class Meta:
-        verbose_name_plural = '   Guesses'
+        verbose_name_plural = '    Guesses'
 
     user = models.ForeignKey(
         User,
@@ -327,7 +336,7 @@ class Guess(models.Model):
 class PuzzleSolve(models.Model):
     """ A class that links a team and a puzzle to indicate that the team has solved the puzzle """
     class Meta:
-        verbose_name_plural = "  Puzzles solved by teams"
+        verbose_name_plural = "   Puzzles solved by teams"
         unique_together = ('puzzle', 'team',)
 
     puzzle = models.ForeignKey(
@@ -368,7 +377,7 @@ class TeamPuzzleLink(models.Model):
     """ A class that links a team and a puzzle to indicate that the team has unlocked the puzzle """
     class Meta:
         unique_together = ('puzzle', 'team',)
-        verbose_name_plural = " Puzzles unlocked by teams"
+        verbose_name_plural = "  Puzzles unlocked by teams"
 
     puzzle = models.ForeignKey(
         "hunts.Puzzle",
@@ -401,7 +410,7 @@ class TeamEurekaLink(models.Model):
     """ A class that links a team and a eureka to indicate that the team has unlocked the eureka """
     class Meta:
         unique_together = ('eureka', 'team',)
-        verbose_name_plural = "Eurekas unlocked by teams"
+        verbose_name_plural = " Eurekas unlocked by teams"
 
     eureka = models.ForeignKey(
         "hunts.Eureka",
@@ -427,31 +436,36 @@ class TeamEurekaLink(models.Model):
         return self.team.short_name + ": " + self.eureka.answer
 
 
-class TeamHeadstartEpisode(models.Model):
-    """ A class that links a team and an episode to represent a headstart gained by the team (start the episode before its release date """
+class TeamEpisodeLink(models.Model):
+    """ A class that links a team and an episode to indicate that the team has 
+    finished the previous episode and can start working on the new one as soon 
+    as the current time is greater than the episode start time (minus an eventual
+    headstart). """
     class Meta:
         unique_together = ('episode', 'team',)
-        verbose_name_plural = "Headstart gained by teams"
+        verbose_name_plural = "Episodes unlocked by teams"
 
     episode = models.ForeignKey(
         "hunts.Episode",
         on_delete=models.CASCADE,
-        help_text="The episode associated")
+        help_text="The episode that can be unlocked when time>episode.start_time-headstart")
     team = models.ForeignKey(
         Team,
         on_delete=models.CASCADE,
-        help_text="The team that this headstart is for")
-    time = models.DurationField(
+        help_text="The team that this new episode is for")
+    time = models.DateTimeField(
+        help_text="The time the previous episode was finished by this team")
+    headstart = models.DurationField(
         help_text="The headstart value for this team (HAS NO EFFECT YET)",
         default = "00")
 
-    # TODO not sure what this is for...
+
     def serialize_for_ajax(self):
-        """ Serializes the puzzle, team, and status fields for ajax transmission """
+        """ Serializes the episode, team, and status fields for ajax transmission """
         message = dict()
-        message['episode'] = self.episode.pk
+        message['episode'] = self.episode.serialize_for_ajax()
         message['team_pk'] = self.team.pk
-        message['status_type'] = "headstart"
+        message['status_type'] = "unlock"
         return message
 
     def __str__(self):

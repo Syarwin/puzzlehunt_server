@@ -117,16 +117,17 @@ class TeamPuzzleLinkAdmin(admin.ModelAdmin):
     list_filter= ('team', 'puzzle',)
     
 
-class TeamHeadstartEpisodeAdmin(admin.ModelAdmin):
-    list_display = ['__str__', 'time']
+class TeamEpisodeLinkAdmin(admin.ModelAdmin):
+    list_display = ['__str__', 'time', 'headstart']
     list_filter= ('team', 'episode')
+
 
 class UserProxyObject(User):
     class Meta:
         proxy = True
         app_label = 'teams'
         verbose_name = User._meta.verbose_name
-        verbose_name_plural = "     Users"
+        verbose_name_plural = "      Users"
         ordering = ['-pk']
 
 
@@ -140,7 +141,7 @@ class FlatPageProxyObject(FlatPage):
         proxy = True
         app_label = 'teams'
         verbose_name = "info page"
-        verbose_name_plural = "    Info pages"
+        verbose_name_plural = "     Info pages"
 
 
 class FlatpageProxyForm(FlatpageForm):
@@ -183,12 +184,12 @@ admin.site.unregister(Group)
 admin.site.unregister(Site)
 admin.site.unregister(FlatPage)
 
-admin.site.register(models.Person,        PersonAdmin)
-admin.site.register(models.Guess,         GuessAdmin)
-admin.site.register(models.Team,          TeamAdmin)
-admin.site.register(models.PuzzleSolve,   PuzzleSolveAdmin)
-admin.site.register(models.TeamPuzzleLink,TeamPuzzleLinkAdmin)
-admin.site.register(models.TeamEurekaLink,TeamEurekaLinkAdmin)
-admin.site.register(models.TeamHeadstartEpisode,TeamHeadstartEpisodeAdmin)
-admin.site.register(UserProxyObject,      UserProxyAdmin)
-admin.site.register(FlatPageProxyObject,  FlatPageProxyAdmin)
+admin.site.register(models.Person,         PersonAdmin)
+admin.site.register(models.Guess,          GuessAdmin)
+admin.site.register(models.Team,           TeamAdmin)
+admin.site.register(models.PuzzleSolve,    PuzzleSolveAdmin)
+admin.site.register(models.TeamPuzzleLink, TeamPuzzleLinkAdmin)
+admin.site.register(models.TeamEurekaLink, TeamEurekaLinkAdmin)
+admin.site.register(models.TeamEpisodeLink,TeamEpisodeLinkAdmin)
+admin.site.register(UserProxyObject,       UserProxyAdmin)
+admin.site.register(FlatPageProxyObject,   FlatPageProxyAdmin)

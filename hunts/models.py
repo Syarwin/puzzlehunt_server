@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.db import models, transaction
 from datetime import timedelta
-from teams.models import Team, Person, Guess, TeamPuzzleLink
+from teams.models import Team, Person, Guess, TeamPuzzleLink, TeamEpisodeLink
 
 import os
 import re
@@ -125,10 +125,9 @@ class Hunt(models.Model):
         if (user.is_staff):
             episode_list = self.episode_set.all()
         else:
-            headstarts = team.headstarts_set.get()
-            # TODO : use headstarts to change time
-            # TODO : implement episode unlock
-            episode_list = self.episode_set.filter(start_date__lte=timezone.now())
+            episode_list = TeamEpisodeLink.objects \
+                .filter(team=team, episode__start_date__lte=timezone.now()-F("headstart")) \
+                .values_list('episode', flat=True)
 
         return episode_list
 
@@ -162,6 +161,11 @@ class Episode(models.Model):
     start_date = models.DateTimeField(
         help_text="The date/time at which this episode will become visible to registered users (without headstarts)")
 
+    unlocks = models.ForeignKey(
+        "self",
+        null=True,
+        on_delete=models.SET_NULL,
+        help_text="Episode that this episode is a possible prerequisite for")
     hunt = models.ForeignKey(
         Hunt,
         on_delete=models.CASCADE,
