@@ -1,10 +1,45 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %} Puzzlehunt Admin {% endblock title %}
 
 {% block extrahead %}
-	<script src="{{ STATIC_URL }}jquery.min.js"></script>
-    <!-- <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}huntserver/admin.css">
-    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}huntserver/admin_addon.css"> -->
+<link rel="stylesheet" type="text/css" href="{% static 'huntserver/hunt_base.css' %}">
 {% block includes %} {% endblock %}
 {% endblock %}
+
+
+{% block content_wrapper %}
+<main class="split-hor">
+<div id="sidebar" class="vertical-nav active">
+  <div id="sidebar-collapse">
+    <i class="bi bi-puzzle"></i>
+  </div>
+
+  <h2>Staff</h2>
+
+    <div class="list-group flex-column mb-0">
+      <a href="{% url 'queue' %}" class="list-group-item">Queue</a>
+      <a href="{% url 'progress' %}" class="list-group-item">Progress</a>
+      <a href="{% url 'overview' %}" class="list-group-item">Overview</a>
+      <a href="{% url 'charts' %}" class="list-group-item">Charts</a>
+      <a href="{% url 'hunt_management' %}" class="list-group-item">Management</a>
+    </div>
+</div>
+<div class="puzzle-container">
+{% block content %} {% endblock %}
+</div>
+</main>
+{% endblock %}
+
+url(r'^queue/$', views.staff.queue, name='queue'),
+url(r'^progress/$', views.staff.progress, name='progress'),
+url(r'^overview/$', views.staff.overview, name='overview'),
+url(r'^charts/$', views.staff.charts, name='charts'),
+url(r'^control/$', views.staff.control, name='control'),
+url(r'^teams/$', RedirectView.as_view(url='/admin/teams/team/', permanent=False)),
+url(r'^puzzles/$', RedirectView.as_view(url='/admin/hunts/puzzle/', permanent=False)),
+#        url(r'^emails/$', views.staff.emails, name='emails'),
+url(r'^management/$', views.staff.hunt_management, name='hunt_management'),
+url(r'^info/$', views.staff.hunt_info, name='hunt_info'),
+url(r'^lookup/$', views.staff.lookup, name='lookup'),

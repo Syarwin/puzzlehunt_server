@@ -25,10 +25,6 @@ from teams.forms import GuessForm, UnlockForm, EmailForm, LookupForm
 DT_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
 
-def add_apps_to_context(context, request):
-    context['available_apps'] = admin.site.get_app_list(request)
-    return context
-
 
 @staff_member_required
 def queue(request):
@@ -98,7 +94,7 @@ def queue(request):
         context = {'form': form, 'page_info': guesss, 'arg_string': arg_string,
                    'guess_list': guess_list, 'last_date': last_date, 'hunt': hunt,
                    'puzzle_id': puzzle_id, 'team_id': team_id}
-        return render(request, 'staff/queue.html', add_apps_to_context(context, request))
+        return render(request, 'staff/queue.html', context)
 
 
 @staff_member_required
@@ -224,7 +220,7 @@ def progress(request):
         context = {'puzzle_list': puzzles, 'team_list': teams, 'sol_list': sol_list,
                    'last_unlock_pk': last_unlock_pk, 'last_solve_pk': last_solve_pk,
                    'last_guess_pk': last_guess_pk}
-        return render(request, 'staff/progress.html', add_apps_to_context(context, request))
+        return render(request, 'staff/progress.html', context)
 
 
 
@@ -235,7 +231,7 @@ def overview(request):
     A view to show the current state of each team on their last unlocked puzzle (if it is not solved)
     """
     # not relevant if puzzles unlocked before are unsolved
-    
+
     # TODO no idea about the performance of this code, in terms of prefecthing database accesses
     curr_hunt = Hunt.objects.get(is_current_hunt=True)
     teams = curr_hunt.team_set.all().order_by('team_name')
@@ -266,12 +262,12 @@ def overview(request):
       time_lasteureka = 0 if lasteureka == None else int((timezone.now() - lasteureka.time).total_seconds()/60)
       text_lasteureka = '' if lasteureka== None else lasteureka.answer
       total_eureka = puzzle.eureka_set.filter(admin_only=False).count()
-      
+
       admin_eurekas = team.eurekas.filter(puzzle=puzzle, admin_only=True).annotate(time=F('teameurekalink__time')).order_by('time')
       list_admin_eurekas = []
       for eureka in admin_eurekas.all():
         list_admin_eurekas.append({'txt': eureka.answer, 'time': int((timezone.now() - eureka.time).total_seconds()/60)})
-      
+
       hints = puzzle.hint_set
       total_hints = hints.count()
       team_hints = 0
@@ -289,7 +285,7 @@ def overview(request):
         last_hint_time = -1
       if next_hint_time == 360:
         next_hint_time = -1
-      
+
       sol_list.append({'team': team.team_name,
                        'puzzle': {'name': puzzle_name, 'time': time_stuck, 'index': nb_solve+1},
                        'guesses': {'nb' : nb_guess , 'last': text_lastguess, 'time': time_lastguess },
@@ -299,7 +295,7 @@ def overview(request):
                        })
 
     context = {'data': sol_list}
-    return render(request, 'staff/overview.html', add_apps_to_context(context, request))
+    return render(request, 'staff/overview.html', context)
 
 
 
@@ -395,10 +391,10 @@ def charts(request):
     solves = solves.order_by('guess__guess_time__year',
                                                    'guess__guess_time__month',
                                                    'guess__guess_time__day',
-                                                   'guess__guess_time__hour', 
+                                                   'guess__guess_time__hour',
                                                    'guess__guess_time__minute',
                                                    'guess__guess_time__second')
-    
+
     for i,solve in enumerate(solves):
         seconds = (datetime(solve[0],solve[1],solve[2],solve[3],solve[4],solve[5]) - datetime(solves[0][0],solves[0][1],solves[0][2],solves[0][3],solves[0][4],solves[0][5])).total_seconds()
         solve_time.append({"seconds": seconds, "index": i})
@@ -408,7 +404,7 @@ def charts(request):
     # solves = solves.order_by('guess__guess_time')
 
     # team_dict = {}
-    # for team in 
+    # for team in
     #     team_dict[team] = 0
     # progress = [0] * (num_puzzles + 1)
     # progress[0] = num_teams
@@ -425,7 +421,7 @@ def charts(request):
     #     points = zip([curr_hunt.start_date] + list(points), range(len(points) + 1))
     #     solve_points.append({'puzzle': puzzle, 'points': points})
 
-    # for team in 
+    # for team in
     #     points = team.solve_set.order_by('guess__guess_time')
     #     points = points.values_list('guess__guess_time', flat=True)
     #     points = zip([curr_hunt.start_date] + list(points), range(len(points) + 1))
@@ -459,7 +455,7 @@ def charts(request):
                'data5_list': solve_time, 'teams': teams, 'num_puzzles': num_puzzles,
                'chart_rows': results, 'puzzles': puzzles, 'data6_list': solve_time_data,
                'data7_list': puzzle_info_dict7}
-    return render(request, 'staff/charts.html', add_apps_to_context(context, request))
+    return render(request, 'staff/charts.html', context)
 
 
 
@@ -470,7 +466,7 @@ def hunt_management(request):
     hunts = Hunt.objects.all()
     prepuzzles = Prepuzzle.objects.all()
     context = {'hunts': hunts, 'prepuzzles': prepuzzles}
-    return render(request, 'staff/hunt_management.html', add_apps_to_context(context, request))
+    return render(request, 'staff/hunt_management.html', context)
 
 
 @staff_member_required
@@ -512,7 +508,7 @@ def hunt_info(request):
                    'have_teams': have_teams.all(),
                    'offsite_teams': offsite_teams.all(),
                    }
-        return render(request, 'staff/staff_hunt_info.html', add_apps_to_context(context, request))
+        return render(request, 'staff/staff_hunt_info.html', context)
 
 
 @staff_member_required
@@ -592,4 +588,4 @@ def lookup(request):
         results = {}
     context = {'lookup_form': lookup_form, 'results': results, 'person': person, 'team': team,
                'curr_hunt': curr_hunt}
-    return render(request, 'staff/lookup.html', add_apps_to_context(context, request))
+    return render(request, 'staff/lookup.html', context)
