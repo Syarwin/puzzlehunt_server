@@ -1,6 +1,6 @@
 
 """
-Base Django settings for puzzlehunt_server project.
+Base Django settings for server project.
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -25,6 +25,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django.contrib.sites',
     'django.contrib.flatpages',
+    'puzzlehunt_server',
     'teams',
     'hunts',
     'crispy_forms',

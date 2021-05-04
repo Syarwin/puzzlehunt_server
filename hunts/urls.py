@@ -1,4 +1,4 @@
-"""puzzlehunt_server URL Configuration
+"""server URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/1.8/topics/http/urls/
@@ -32,8 +32,6 @@ puzzlepatterns = [
 
 urlpatterns = [
      # Info Pages
-    url(r'^$', views.info.index, name='index'),
-    #url(r'^previous-hunts/$', views.info.previous_hunts, name='previous_hunts'),
     path('info/', include('django.contrib.flatpages.urls')),
     path('info-and-rules/', flatpage_views.flatpage, {'url': '/hunt-info/'}, name='current_hunt_info'),
 
@@ -61,7 +59,7 @@ urlpatterns = [
         url(r'^info/$', views.staff.hunt_info, name='hunt_info'),
         url(r'^lookup/$', views.staff.lookup, name='lookup'),
     ])),
-    
+
     # Stats pages
     url(r'^stats/$', views.stats.stats, name='statsi'),
     url(r'^stats/', include([

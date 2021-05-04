@@ -7,10 +7,13 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import reverse_lazy
 from django.views.generic import RedirectView
 
+from . import views
 from hunts.urls import urlpatterns as hunts_patterns
 from teams.urls import urlpatterns as teams_patterns
 
 urlpatterns = [
+    url(r'^$', views.index, name='index'),
+
     # Admin redirections/views
     url(r'^admin/login/$', RedirectView.as_view(url=reverse_lazy(settings.LOGIN_URL),
                                                 query_string=True)),

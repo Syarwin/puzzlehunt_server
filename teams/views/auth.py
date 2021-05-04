@@ -10,7 +10,6 @@ from django.views import View
 import random
 import re
 
-from hunts.views import info
 from hunts.models import Hunt
 from teams.models import Person, Team
 from teams.forms import UserForm, PersonForm
