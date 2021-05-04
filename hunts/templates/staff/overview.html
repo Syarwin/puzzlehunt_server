@@ -1,0 +1,42 @@
+{% extends "staff/staff_base.html" %}
+{% block title %}Last Unlocked Puzzle Overview{% endblock title %}
+
+{% block includes %}
+<script src="{{ STATIC_URL }}jquery.min.js"></script>
+{% endblock includes %}
+
+{% block content %}
+  <h1>Last Unlocked Puzzle Overview</h1>
+  <div id=table-container>
+    <table id='overview' class="table table-bordered table-condensed">
+      <thead class="overview-thead">
+        <tr>
+          <th class="leftmost topmost">Team</th>
+          <th>Last Unlocked</th>
+          <th>Guesses</th>
+          <th>Eurekas</th>
+          <th>Hints</th>
+          <th>Admin Eurekas</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for da in data %}
+          <tr class="team_row">
+            <td class="leftmost" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+              {{ da.team|truncatechars:40 }}
+            </td>
+            <td > {{ da.puzzle.index }} : {{ da.puzzle.name|truncatechars:40 }} <br> since: {{ da.puzzle.time }} mn </td>
+            <td > {{ da.guesses.nb }} ({{ da.guesses.last }}) <br> {{ da.guesses.time }}mn</td>
+            <td > {{ da.eurekas.nb }} / {{ da.eurekas.total}} ({{ da.eurekas.time }}mn) <br>  {{ da.eurekas.last }} </td>
+            <td > {{ da.hints.nb }} / {{ da.hints.total}} <br> last: {{ da.hints.last_time }}mn -  next: {{ da.hints.next_time }}mn </td>            
+            <td >
+          {% for admin in da.admin_eurekas %}
+              {{ admin.txt }} ({{ admin.time }}mn) <br>
+          {% endfor %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock content %}
