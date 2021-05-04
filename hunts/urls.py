@@ -69,6 +69,6 @@ urlpatterns = [
         url(r'^team/$', views.stats.team, name='team'),
         url(r'^puzzles/$', views.stats.puzzles, name='puzzles'),
         url(r'^puzzle/$', views.stats.puzzle, name='puzzle'),
-        url(r'^charts/$', views.stats.charts, name='charts'),
+        url(r'^charts/$', views.stats.charts, name='charts_stats'),
     ])),
 ]
