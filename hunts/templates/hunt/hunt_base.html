@@ -5,15 +5,6 @@
 {% endblock base_includes %}
 
 {% block content_wrapper %}
-{% if hunt.is_public or puzzle.episode.hunt.is_public %}
-<div class="container" >
-  <div class="row" >
-    <div class="content col-md-12" style="padding: 10px;">
-   	  <p>This is an archived puzzle hunt. All parts may not work properly. We apologize for any issues you encounter.</p>
-    </div>
-  </div>
-</div>
-{% endif %}
 <main class="split-hor">
 {% block content %} {% endblock content %}
 </main>

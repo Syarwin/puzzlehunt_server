@@ -59,7 +59,7 @@ def protected_static(request, file_path):
         user = request.user
         disposition = 'filename="{}_{}"'.format(puzzle.safename, path.name)
         response['Content-Disposition'] = disposition
-        if (hunt.is_public or user.is_staff):
+        if (user.is_staff):
             allowed = True
         elif(base == "puzzles"):  # This is messy and the most common case, this should be fixed
             team = hunt.team_from_user(user)
@@ -257,9 +257,6 @@ class PuzzleView(View):
         # Dealing with answer guesss, proper procedure is to create a guess
         # object and then rely on Guess.respond for automatic responses.
         if(team is None):
-            if(puzzle.episode.hunt.is_public):
-                team = puzzle.episode.hunt.dummy_team
-            else:
                 # If the hunt isn't public and you aren't signed in, please stop...
                 return JsonResponse({'error':'fail'})
 

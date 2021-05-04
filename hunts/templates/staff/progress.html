@@ -12,7 +12,7 @@
 {% endblock includes %}
 
 {% block content %}
-  <h1>Puzzle Progress</h1>
+  <h1>Puzzle Progress TODO: might be broken because of METAS</h1>
   <span>
   <input type="checkbox" class="form-check-input" id="sort_check">
   <label class="form-check-label" for="sort_check">Sort?</label>
@@ -65,8 +65,7 @@
           <th>#</br>P</th>
           <th>Last&nbsp;Time</th>
           {% for puzzle in puzzle_list %}
-            <th {% if puzzle.is_meta %} class="metapuzzle" {% endif %}
-                {% if puzzle.doesnt_count %} class="nocount" {% endif %}
+            <th
                 data-id='{{ puzzle.puzzle_id }}'>
               {{ puzzle.puzzle_name }}
             </th>

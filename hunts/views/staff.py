@@ -582,13 +582,9 @@ def lookup(request):
             team = Team.objects.get(pk=request.GET.get("team_pk"))
             team.latest_guesss = team.guess_set.values_list('puzzle')
             team.latest_guesss = team.latest_guesss.annotate(Max('guess_time'))
-            sq1 = PuzzleSolve.objects.filter(team__pk=OuterRef('pk'), puzzle__is_meta=True).order_by()
-            sq1 = sq1.values('team').annotate(c=Count('*')).values('c')
-            sq1 = Subquery(sq1, output_field=PositiveIntegerField())
-            all_teams = team.hunt.team_set.annotate(metas=sq1, solves=Count('solved'))
+            all_teams = team.hunt.team_set.annotate(solves=Count('solved'))
             all_teams = all_teams.annotate(last_time=Max('solve__guess__guess_time'))
-            ids = all_teams.order_by(F('metas').desc(nulls_last=True),
-                                     F('solves').desc(nulls_last=True),
+            ids = all_teams.order_by(F('solves').desc(nulls_last=True),
                                      F('last_time').asc(nulls_last=True))
             team.rank = list(ids.values_list('pk', flat=True)).index(team.pk) + 1
 

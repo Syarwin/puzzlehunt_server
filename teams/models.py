@@ -284,13 +284,12 @@ class Guess(models.Model):
         # Compare against correct answer
         if(self.is_correct):
             # Make sure we don't have duplicate or after hunt guess objects
-            if(not self.puzzle.episode.hunt.is_public):
-                if(self.puzzle not in self.team.solved.all()):
-                    self.create_solve()
-                    t = self.team
-                    t.save()
-                    t.refresh_from_db()
-                    t.unlock_puzzles()
+            if(self.puzzle not in self.team.solved.all()):
+                self.create_solve()
+                t = self.team
+                t.save()
+                t.refresh_from_db()
+                t.unlock_puzzles()
 
             return {"status": "correct", "message": "Correct!"}
 
