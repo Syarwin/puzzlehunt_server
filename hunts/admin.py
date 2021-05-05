@@ -153,7 +153,7 @@ class PuzzleAdminForm(forms.ModelForm):
         super(PuzzleAdminForm, self).__init__(*args, **kwargs)
         if self.instance.pk:
             self.initial['reverse_unlocks'] = self.instance.puzzle_set.values_list('pk', flat=True)
-            choices = self.instance.episode.puzzle_set.values_list('pk', 'puzzle_name')
+            choices = self.instance.episode.puzzle_set.exclude(pk=self.instance.pk).values_list('pk', 'puzzle_name')
             self.fields['reverse_unlocks'].choices = choices
 
     def save(self, *args, **kwargs):
