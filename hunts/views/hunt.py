@@ -346,3 +346,9 @@ def leaderboard(request):
 
     context = {'team_data': all_teams, 'solve_data': solves_data}
     return render(request, 'hunt/leaderboard.html', context)
+    
+    
+    
+    
+    
+    

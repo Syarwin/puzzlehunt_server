@@ -155,11 +155,15 @@ class Team(models.Model):
                     mapping[num] += 1
 
             # See if the episode was solved
-            if num_solved==len(puzzles):
+            if num_solved==len(puzzles) and ep.unlocks != None and ep.unlocks not in self.ep_unlocked.all():
                 logger.info("Team %s finished episode %s" % (str(self.team_name),
                                 str(ep.ep_number)))
                 TeamEpisodeLink.objects.create(team=self, episode=ep.unlocks, time=timezone.now())
-
+                continue #all puzzles from this episode already solved so unlocked
+            
+            if num_solved == len(puzzles):
+              continue
+            
             # See if we can unlock any given puzzle
             unlocked_numbers = [puz.puzzle_number for puz in self.unlocked.filter(episode=ep)]
             for puz in puzzles:
@@ -181,7 +185,7 @@ class Team(models.Model):
         self.save()
 
     def __str__(self):
-        return str(self.size) + " (" + str(self.location) + ") " + self.short_name
+        return self.short_name
 
 
 

@@ -46,6 +46,7 @@ urlpatterns = [
     url(r'^leaderboard/$', views.hunt.leaderboard, name='leaderboard'),
 
     # Staff pages
+    url(r'^staff/$', views.staff.queue, name='staffi'),
     url(r'^staff/', include([
         url(r'^queue/$', views.staff.queue, name='queue'),
         url(r'^progress/$', views.staff.progress, name='progress'),
@@ -58,6 +59,7 @@ urlpatterns = [
         url(r'^management/$', views.staff.hunt_management, name='hunt_management'),
         url(r'^info/$', views.staff.hunt_info, name='hunt_info'),
         url(r'^lookup/$', views.staff.lookup, name='lookup'),
+        url(r'^puzzle_dag/$', views.staff.puzzle_dag, name='puzzle_dag'),
     ])),
 
     # Stats pages

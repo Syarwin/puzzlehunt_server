@@ -3,6 +3,8 @@ from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.utils.html import format_html
+
 import re
 
 from . import models
@@ -153,7 +155,7 @@ class PuzzleAdminForm(forms.ModelForm):
         super(PuzzleAdminForm, self).__init__(*args, **kwargs)
         if self.instance.pk:
             self.initial['reverse_unlocks'] = self.instance.puzzle_set.values_list('pk', flat=True)
-            choices = self.instance.episode.puzzle_set.values_list('pk', 'puzzle_name')
+            choices = self.instance.episode.puzzle_set.exclude(pk=self.instance.pk).values_list('pk', 'puzzle_name')
             self.fields['reverse_unlocks'].choices = choices
 
     def save(self, *args, **kwargs):
@@ -187,6 +189,26 @@ class PuzzleAdminForm(forms.ModelForm):
         if (data == "" and re.fullmatch(r".*[\(\)].*", self.cleaned_data.get('answer'))):
             raise forms.ValidationError("Answer regex is empty but Answer contains non-alphanumerical character: the puzzle has no answer.")
         return data
+
+    # warn if puzzle cannot be unlocked by users
+    def clean(self):
+        if ('warn_possible_duplicate' not in self.data): 
+          num = self.cleaned_data.get('num_required_to_unlock')
+          lis = self.cleaned_data.get('reverse_unlocks')
+          if num > len(lis):
+              self.add_error('num_required_to_unlock', format_html(
+                  'Puzzle cannot be unlocked by users (too many prerequisites required).'
+                  ' To add the new entry anyway, please save again.'
+                  '<input type="hidden" id="warn-possible-duplicate"' # inject hidden input with error msg itself
+                  'name="warn_possible_duplicate" value="0"/>'        # so it's returned in form `data` on second save
+              ))
+          if num == 0 and len(lis)>0:
+              self.add_error('num_required_to_unlock', format_html(
+                  'Puzzle have prerequisites which are not used: it will be unlocked by default.'
+                  ' To add the new entry anyway, please save again.'
+                  '<input type="hidden" id="warn-possible-duplicate"' # inject hidden input with error msg itself
+                  'name="warn_possible_duplicate" value="0"/>'        # so it's returned in form `data` on second save
+              ))
 
     class Meta:
         model = models.Puzzle
