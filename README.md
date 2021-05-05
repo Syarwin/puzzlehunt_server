@@ -16,4 +16,4 @@ This project uses docker-compose as it's main form of setup. You can use the fol
 docker-compose exec app python3 /code/manage.py collectstatic --noinput
 docker-compose exec app python3 /code/manage.py loaddata initial_hunt_mb
 ```
-8. You should now have the server running on a newly created VM, accessible via [https://localhost](https://localhost). The repository you cloned has been linked into the VM by docker, so any changes made to the repository on the host system should show up automatically. (A ```docker-compose restart``` may also be needed for some changes to take effect)
+8. You should now have the server running on a newly created VM, accessible via [http://localhost](http://localhost). The repository you cloned has been linked into the VM by docker, so any changes made to the repository on the host system should show up automatically. (A ```docker-compose restart``` may also be needed for some changes to take effect)
