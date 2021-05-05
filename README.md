@@ -10,6 +10,7 @@ This project uses docker-compose as it's main form of setup. You can use the fol
 3. Make a copy of ```sample.env``` named ```.env``` (yes, it starts with a dot).
 4. Edit the new ```.env``` file, filling in new values for the first block of uncommented lines. Other lines can be safely ignored as they only provide additional functionality.
 5. Edit ```docker-compose.yml``` to replace ```nginx.conf``` by ```nginxdev.conf```
+6. Add your account to the group docker (check the docker group name running ```$groups``` then run ```sudo usermod -aG DOCKER-GROUP-NAME USERNAME```)
 6. Run ```docker-compose up``` (possibly prepending ```sudo``` if needed)
 7. Once up, you'll need to run the following commands to collect all the static files (to be run any time you alter static files) and to load in an initial hunt to pacify some of the display logic (to be run only once) :
 ```
