@@ -77,7 +77,7 @@ services:
       - static:/static
       - media:/media
       - ./docker/volumes/ssl-certs/:/etc/nginx/ssl/
-      - ./docker/configs/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/configs/nginx_${NGINX_PROTOCOL}.conf:/etc/nginx/conf.d/default.conf
     environment:
       - DOMAIN
       - CONTACT_EMAIL
