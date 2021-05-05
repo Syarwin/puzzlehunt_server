@@ -18,7 +18,7 @@ import json
 from copy import deepcopy
 # from silk.profiling.profiler import silk_profile
 
-from hunts.models import Guess, Hunt, Prepuzzle
+from hunts.models import Guess, Hunt, Prepuzzle, Puzzle
 from teams.models import Team, TeamPuzzleLink, PuzzleSolve, Person
 from teams.forms import GuessForm, UnlockForm, EmailForm, LookupForm
 
@@ -376,28 +376,16 @@ def charts(request):
         solve_hours.append({"hour": time_string, "amount": solve[4]})
 
     # Chart 5
-    #TODO only works with a single team now...
+    #TODO broken for now, being fixed
     solve_time = []
-    solves = PuzzleSolve.objects.filter(puzzle__episode__hunt=curr_hunt,
-                              #    guess__guess_time__gte=curr_hunt.start_date,
-                                  guess__guess_time__lte=curr_hunt.end_date)
-    solves = solves.values_list('guess__guess_time__year',
-                                'guess__guess_time__month',
-                                'guess__guess_time__day',
-                                'guess__guess_time__hour',
-                                'guess__guess_time__minute',
-                                'guess__guess_time__second',
-                                'puzzle__puzzle_name')
-    solves = solves.order_by('guess__guess_time__year',
-                                                   'guess__guess_time__month',
-                                                   'guess__guess_time__day',
-                                                   'guess__guess_time__hour',
-                                                   'guess__guess_time__minute',
-                                                   'guess__guess_time__second')
-
-    for i,solve in enumerate(solves):
-        seconds = (datetime(solve[0],solve[1],solve[2],solve[3],solve[4],solve[5]) - datetime(solves[0][0],solves[0][1],solves[0][2],solves[0][3],solves[0][4],solves[0][5])).total_seconds()
-        solve_time.append({"seconds": seconds, "index": i})
+    teams = Team.objects.filter(hunt=curr_hunt)
+    for team in teams:
+      solves = team.puzzlesolve_set.filter(puzzle__episode__hunt=curr_hunt)
+      solves = solves.order_by('guess__guess_time').values_list('guess__guess_time', flat=True)
+      
+#      for i,solve in enumerate(solves):
+#          seconds = (datetime(solve[0],solve[1],solve[2],solve[3],solve[4],solve[5]) - datetime(solves[0][0],solves[0][1],solves[0][2],solves[0][3],solves[0][4],solves[0][5])).total_seconds()
+      solve_time.append({'solve': solves, 'name': team.team_name})#{"seconds": seconds, "index": i})
     # solves = Solve.objects.filter(puzzle__hunt=curr_hunt,
     #                               guess__guess_time__gte=curr_hunt.start_date,
     #                               guess__guess_time__lte=curr_hunt.end_date)
@@ -465,7 +453,10 @@ def hunt_management(request):
 
     hunts = Hunt.objects.all()
     prepuzzles = Prepuzzle.objects.all()
-    context = {'hunts': hunts, 'prepuzzles': prepuzzles}
+    
+    puzzles = Puzzle.objects.all()
+    
+    context = {'hunts': hunts, 'prepuzzles': prepuzzles, 'puzzles': puzzles}
     return render(request, 'staff/hunt_management.html', context)
 
 
@@ -589,3 +580,13 @@ def lookup(request):
     context = {'lookup_form': lookup_form, 'results': results, 'person': person, 'team': team,
                'curr_hunt': curr_hunt}
     return render(request, 'staff/lookup.html', context)
+    
+
+@staff_member_required
+def puzzle_dag(request):
+    """ A view to render the DAG of puzzles unlocking relations """
+    
+    puzzles = Puzzle.objects.all()
+    
+    context = {'puzzles': puzzles}
+    return render(request, 'staff/puzzle_dag.html', context)

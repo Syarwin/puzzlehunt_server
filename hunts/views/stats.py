@@ -212,7 +212,10 @@ def charts(request):
       context = {'hunt': None}
       return render(request, 'stats/charts.html', context)
       
-    context = {'hunt': hunt}
+    spams      = Guess.objects.filter(puzzle__episode__hunt=hunt).values(name=F('user__username' )).annotate(c=Count('name')).order_by('-c')[:10]
+    spam_teams = Guess.objects.filter(puzzle__episode__hunt=hunt).values(name=F('team__team_name'), iid=F('team__pk')).annotate(c=Count('name')).order_by('-c')[:10]
+      
+    context = {'hunt': hunt, 'spammers' : spams, 'spam_teams': spam_teams}
     return render(request, 'stats/charts.html', context)
     
     
