@@ -137,6 +137,9 @@ class Team(models.Model):
 
     def unlock_puzzles(self):
         """ Unlocks all puzzles a team is currently supposed to have unlocked """
+        if self.ep_unlocked.count() == 0:
+            for ep in self.hunt.episode_set.filter(episode=None):
+                TeamEpisodeLink.objects.create(team=self, episode=ep, time=timezone.now())
 
         # puzzles and associated numbers
         for ep in self.ep_unlocked.all():
@@ -172,8 +175,8 @@ class Team(models.Model):
                 if(puz.num_required_to_unlock <= mapping[puz.puzzle_number]):
                     logger.info("Team %s unlocked puzzle %s with solves" % (str(self.team_name),
                                 str(puz.puzzle_id)))
-                    TeamPuzzleLink.objects.create(team=self, puzzle=puz, time=timezone.now())
-    
+                    TeamPuzzleLink.objects.create(team=self, puzzle=puz, time=max(timezone.now(),ep.start_date))
+        
 
     def reset(self):
         """ Resets/deletes all of the team's progress """
@@ -463,7 +466,7 @@ class TeamEpisodeLink(models.Model):
         on_delete=models.CASCADE,
         help_text="The team that this new episode is for")
     time = models.DateTimeField(
-        help_text="The time the previous episode was finished by this team")
+        help_text="The time the previous episode was finished by this team") # TODO (BS) is this ever used? 
     headstart = models.DurationField(
         help_text="The headstart value for this team (HAS NO EFFECT YET)",
         default = "00")
@@ -482,6 +485,11 @@ class TeamEpisodeLink(models.Model):
         
 # unlock puzzles when admin unlocks episode
 @receiver(post_save, sender=TeamEpisodeLink)
-def my_callback(sender, instance, *args, **kwargs):
+def my_callback_episode(sender, instance, *args, **kwargs):
   instance.team.unlock_puzzles()
+
+# pre-unlock episode and puzzles (lie on starting time) when a team is created 
+@receiver(post_save, sender=Team)
+def my_callback_team(sender, instance, *args, **kwargs):
+  instance.unlock_puzzles()
         
