@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Puzzlehunt_server documentation build configuration file, created by
+# server documentation build configuration file, created by
 # sphinx-quickstart on Wed Aug 19 08:57:21 2015.
 #
 # This file is execfile()d with the current directory set to its
@@ -24,7 +24,7 @@ from django.conf import settings
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('..'))
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'puzzlehunt_server.settings.travis_settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'server.settings.travis_settings')
 django.setup()
 
 # -- General configuration ------------------------------------------------
@@ -208,7 +208,7 @@ html_domain_indices = False
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Puzzlehunt_serverdoc'
+htmlhelp_basename = 'serverdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -235,7 +235,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'Puzzlehunt_server.tex', u'Puzzlehunt Server Documentation',
+  (master_doc, 'server.tex', u'Puzzlehunt Server Documentation',
    u'Dillon Lareau', 'manual'),
 ]
 
@@ -265,7 +265,7 @@ latex_domain_indices = False
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'puzzlehunt_server', u'Puzzlehunt Server Documentation',
+    (master_doc, 'server', u'Puzzlehunt Server Documentation',
      [author], 1)
 ]
 

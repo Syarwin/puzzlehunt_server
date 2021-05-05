@@ -1,4 +1,4 @@
-.. Puzzlehunt_server documentation master file, created by
+.. server documentation master file, created by
    sphinx-quickstart on Wed Aug 19 08:57:21 2015.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -26,9 +26,9 @@ a Hunt" sections. If you are here as a developer, start with the "Setup" and
 Contribute
 ----------
 
-Source Code: http://www.github.com/dlareau/puzzlehunt_server
+Source Code: http://www.github.com/dlareau/server
 
-Issue Tracker: http://www.github.com/dlareau/puzzlehunt_server/issues
+Issue Tracker: http://www.github.com/dlareau/server/issues
 
 If you are having issues, please let us know.
 Email dlareau@cmu.edu

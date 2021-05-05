@@ -125,9 +125,9 @@ It is recommended to start your template out with the following code:
   {% endblock content %}
 
 The above code inherits the
-`hunt_base.html <https://github.com/dlareau/puzzlehunt_server/blob/master/huntserver/templates/hunt_base.html>`_
+`hunt_base.html <https://github.com/dlareau/server/blob/master/huntserver/templates/hunt_base.html>`_
 template, which in turns inherits the
-`base.html <https://github.com/dlareau/puzzlehunt_server/blob/master/huntserver/templates/base.html>`_
+`base.html <https://github.com/dlareau/server/blob/master/huntserver/templates/base.html>`_
 template. You don't need to know the contents of those two files, just that they
 provide the basic functionality like the site header and they define the
 following blocks that you can override for additional custom behavior:

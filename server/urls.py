@@ -7,13 +7,11 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import reverse_lazy
 from django.views.generic import RedirectView
 
-from . import views
+from base_site.urls import urlpatterns as base_patterns
 from hunts.urls import urlpatterns as hunts_patterns
 from teams.urls import urlpatterns as teams_patterns
 
 urlpatterns = [
-    url(r'^$', views.index, name='index'),
-
     # Admin redirections/views
     url(r'^admin/login/$', RedirectView.as_view(url=reverse_lazy(settings.LOGIN_URL),
                                                 query_string=True)),
@@ -33,6 +31,7 @@ urlpatterns = [
 ] \
     + staticfiles_urlpatterns() \
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) \
+    + base_patterns \
     + hunts_patterns \
     + teams_patterns
 

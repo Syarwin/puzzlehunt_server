@@ -5,6 +5,7 @@ Base Django settings for server project.
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import dj_database_url
 from os.path import dirname, abspath
 import codecs
 codecs.register(lambda name: codecs.lookup('utf8') if name == 'utf8mb4' else None)
@@ -25,7 +26,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django.contrib.sites',
     'django.contrib.flatpages',
-    'puzzlehunt_server',
+    'base_site',
     'teams',
     'hunts',
     'crispy_forms',
@@ -47,13 +48,13 @@ MIDDLEWARE = (
     'teams.middleware.TeamMiddleware',
 )
 
-ROOT_URLCONF = 'puzzlehunt_server.urls'
+ROOT_URLCONF = 'server.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'APP_DIRS': True,
-        'DIRS': [os.path.join(BASE_DIR, 'puzzlehunt_server/templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'server/templates')],
         'OPTIONS': {
             'builtins': ['hunts.templatetags.hunt_tags',
                          'hunts.templatetags.prepuzzle_tags'],
@@ -93,8 +94,8 @@ HUEY = {
 }
 
 
-WSGI_APPLICATION = 'puzzlehunt_server.wsgi.application'
-ASGI_APPLICATION = 'puzzlehunt_server.routing.application'
+WSGI_APPLICATION = 'server.wsgi.application'
+ASGI_APPLICATION = 'server.routing.application'
 
 CHANNEL_LAYERS = {
     'default': {
@@ -192,3 +193,20 @@ if os.environ.get("SENTRY_DSN"):
         # Sends which user caused the error
         send_default_pii=True
     )
+
+
+
+# ENV settings
+DEBUG = os.getenv("DJANGO_ENABLE_DEBUG", default="False").lower() == "true"
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+DATABASES = {'default': dj_database_url.config(conn_max_age=600)}
+
+if(DATABASES['default']['ENGINE'] == 'django.db.backends.mysql'):
+    DATABASES['default']['OPTIONS'] = {'charset': 'utf8mb4'}
+
+INTERNAL_IPS = ['127.0.0.1', 'localhost']
+EMAIL_HOST_USER = os.environ.get("DJANGO_EMAIL_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("DJANGO_EMAIL_PASSWORD")
+DOMAIN = os.getenv("DOMAIN", default="default.com")
+
+ALLOWED_HOSTS = ['*']
