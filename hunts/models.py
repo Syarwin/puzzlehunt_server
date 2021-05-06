@@ -301,17 +301,11 @@ class Puzzle(models.Model):
             return episode.start_date
         else:
             try:
-                unlock = TeamPuzzleLink.objects.get(puzzle=self, team=team)
-                return unlock.time
+                puz_unlock = TeamPuzzleLink.objects.get(puzzle=self, team=team)
+                ep_unlock = TeamEpisodeLink.objects.get(episode=episode, team=team)
+                return max(puz_unlock.time,episode.start_date-ep_unlock.headstart)
             except TeamPuzzleLink.DoesNotExist:
-                try:
-                    guess = Guess.objects.filter(puzzle=self, team=team).order_by("guess_time").first()
-                    if guess is None:
-                       return episode.start_date
-                    else:
-                       return guess.guess_time
-                except Guess.DoesNotExist:
-                    return episode.start_date
+                return episode.start_date
 
 
 def puzzle_file_path(instance, filename):
@@ -484,14 +478,6 @@ class Hint(models.Model):
     @property
     def compact_id(self):
         return self.id
-
-    def unlocks_at(self, team):
-        """Returns when the hint unlocks for the given team.
-
-        Parameters as for `unlocked_by`.
-        """
-        # TODO
-        return timezone.now() + self.time
 
     def delay_for_team(self, team):
         """Returns how long until the hint unlocks for the given team.
