@@ -80,7 +80,7 @@
       {% for puzzle in team.hunt.puzzle_set.all %}
         <tr>
           <td>{{puzzle.puzzle_name}}</td>
-            {% if puzzle in team.solved.all %}
+            {% if puzzle in team.puz_solved.all %}
             <td style="background: hsla(128, 100%, 75%, 1);">
               Solved
             </td>
@@ -91,7 +91,7 @@
                 {% endif %}
               {% endfor %}
             </td>
-            {% elif puzzle in team.unlocked.all %}
+            {% elif puzzle in team.puz_unlocked.all %}
             <td style="background: hsla(55, 100%, 75%, 1);">
               Unlocked
             </td>

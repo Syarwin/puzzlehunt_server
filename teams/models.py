@@ -32,7 +32,7 @@ class TeamManager(models.Manager):
 class Team(models.Model):
     """ A class representing a team within a hunt """
     class Meta:
-        verbose_name_plural = "        Teams"
+        verbose_name_plural = "         Teams"
 
     team_name = models.CharField(
         max_length=200,
@@ -62,18 +62,30 @@ class Team(models.Model):
         on_delete=models.CASCADE,
         help_text="The hunt that the team is a part of")
 
-    solved = models.ManyToManyField(
+    puz_solved = models.ManyToManyField(
         "hunts.Puzzle",
         blank=True,
         related_name='solved_for',
         through="PuzzleSolve",
         help_text="The puzzles the team has solved")
-    unlocked = models.ManyToManyField(
+    puz_unlocked = models.ManyToManyField(
         "hunts.Puzzle",
         blank=True,
         related_name='unlocked_for',
         through="TeamPuzzleLink",
         help_text="The puzzles the team has unlocked")
+    ep_solved = models.ManyToManyField(
+        "hunts.Episode",
+        blank=True,
+        related_name="ep_solved_for",
+        through="EpisodeSolve",
+        help_text="The episodes the team has solved")
+    ep_unlocked = models.ManyToManyField(
+        "hunts.Episode",
+        blank=True,
+        related_name="ep_unlocked_for",
+        through="TeamEpisodeLink",
+        help_text="The episodes the team has unlocked")
     eurekas = models.ManyToManyField(
         "hunts.Eureka",
         blank=True,
@@ -84,12 +96,6 @@ class Team(models.Model):
         "hunts.Unlockable",
         blank=True,
         help_text="The unlockables the team has earned")
-    ep_unlocked = models.ManyToManyField(
-        "hunts.Episode",
-        blank=True,
-        related_name="episodes_for",
-        through="TeamEpisodeLink",
-        help_text="The episodes the team has unlocked")
 
     objects = TeamManager()
 
@@ -141,9 +147,13 @@ class Team(models.Model):
         # Unlock the first episodes that do not have prerequisites
         if self.ep_unlocked.count() == 0:
             for ep in self.hunt.episode_set.filter(episode=None):
-                TeamEpisodeLink.objects.create(team=self, episode=ep, time=timezone.now())
+                TeamEpisodeLink.objects.create(team=self, episode=ep)
 
         for ep in self.ep_unlocked.all():
+            # skip if the episode was already solved
+            if ep in self.ep_solved.all():
+                continue
+
             # puzzles and associated numbers
             puzzles = [puzzle for puzzle in ep.puzzle_set.all()]
             puz_numbers = [puz.puzzle_number for puz in puzzles]
@@ -154,23 +164,26 @@ class Team(models.Model):
             # go through each solved puzzle and add to mapping for each puzzle it unlocks
             # we also count the number of solved puzzles to determine if ep was solved
             num_solved = 0
-            for puz in self.solved.filter(episode=ep):
+            for puz in self.puz_solved.filter(episode=ep):
                 num_solved += 1
                 for num in puz.unlocks.values_list('puzzle_number', flat=True):
                     mapping[num] += 1
 
-            # See if the episode was solved
+            # See if we can unlock the next episode (if there remains one)
             if num_solved==len(puzzles) and ep.unlocks!=None and ep.unlocks not in self.ep_unlocked.all():
                 logger.info("Team %s finished episode %s" % (str(self.team_name),
                                 str(ep.ep_number)))
-                TeamEpisodeLink.objects.create(team=self, episode=ep.unlocks, time=timezone.now())
+                EpisodeSolve.objects.create(team=self, episode=ep, time=timezone.now())
+                TeamEpisodeLink.objects.create(team=self, episode=ep.unlocks)
                 continue #all puzzles from this episode already solved so unlocked
             
-            if num_solved == len(puzzles):
-              continue
+            # If ep do not have an unlocks but was finished, only create an EpisodeSolve
+            if num_solved==len(puzzles):
+                EpisodeSolve.objects.create(team=self, episode=ep, time=timezone.now())
+                continue
             
             # See if we can unlock any given puzzle
-            unlocked_numbers = [puz.puzzle_number for puz in self.unlocked.filter(episode=ep)]
+            unlocked_numbers = [puz.puzzle_number for puz in self.puz_unlocked.filter(episode=ep)]
             for puz in puzzles:
                 if (puz.puzzle_number in unlocked_numbers):
                     continue
@@ -183,10 +196,16 @@ class Team(models.Model):
     def reset(self):
         """ Resets/deletes all of the team's progress """
         self.teampuzzlelink_set.all().delete()
-        self.unlocked.clear()
         self.puzzlesolve_set.all().delete()
-        self.solved.clear()
+        self.teamepisodelink_set.all().delete()
+        self.episodesolve_set.all().delete()
+        self.teameurekalink_set.all().delete()
+        self.puz_solved.clear()
+        self.puz_unlocked.clear()
+        self.ep_solved.clear()
+        self.ep_unlocked.clear()
         self.guess_set.all().delete()
+        self.eureka
         self.save()
 
     def __str__(self):
@@ -210,7 +229,7 @@ class PersonManager(models.Manager):
 class Person(models.Model):
     """ A class to associate more personal information with the default django auth user class """
     class Meta:
-        verbose_name_plural = "       Persons"
+        verbose_name_plural = "        Persons"
 
     user = models.OneToOneField(
         User,
@@ -238,7 +257,7 @@ class Person(models.Model):
 class Guess(models.Model):
     """ A class representing a guess to a given puzzle from a given team """
     class Meta:
-        verbose_name_plural = '    Guesses'
+        verbose_name_plural = '     Guesses'
 
     user = models.ForeignKey(
         User,
@@ -312,7 +331,7 @@ class Guess(models.Model):
         # Compare against correct answer
         if(self.is_correct):
             # Make sure we don't have duplicate or after hunt guess objects
-            if(self.puzzle not in self.team.solved.all()):
+            if(self.puzzle not in self.team.puz_solved.all()):
                 self.create_solve()
                 t = self.team
                 t.save()
@@ -350,7 +369,7 @@ class Guess(models.Model):
 class PuzzleSolve(models.Model):
     """ A class that links a team and a puzzle to indicate that the team has solved the puzzle """
     class Meta:
-        verbose_name_plural = "   Puzzles solved by teams"
+        verbose_name_plural = "    Puzzles solved by teams"
         unique_together = ('puzzle', 'team',)
 
     puzzle = models.ForeignKey(
@@ -386,12 +405,11 @@ class PuzzleSolve(models.Model):
         return self.team.short_name + " => " + self.puzzle.puzzle_name
 
 
-
 class TeamPuzzleLink(models.Model):
     """ A class that links a team and a puzzle to indicate that the team has unlocked the puzzle """
     class Meta:
         unique_together = ('puzzle', 'team',)
-        verbose_name_plural = "  Puzzles unlocked by teams"
+        verbose_name_plural = "   Puzzles unlocked by teams"
 
     puzzle = models.ForeignKey(
         "hunts.Puzzle",
@@ -417,6 +435,70 @@ class TeamPuzzleLink(models.Model):
         return self.team.short_name + ": " + self.puzzle.puzzle_name
 
 
+class EpisodeSolve(models.Model):
+    """ A class that links a team and an episode to indicate that the team has solved the episode """
+    class Meta:
+        verbose_name_plural = "  Episode solved by teams"
+        unique_together = ('episode', 'team',)
+
+    episode = models.ForeignKey(
+        "hunts.Episode",
+        on_delete=models.CASCADE,
+        help_text="The puzzle that this is a solve for")
+    team = models.ForeignKey(
+        Team,
+        on_delete=models.CASCADE,
+        help_text="The team that this solve is from")
+    time = models.DateTimeField(
+        help_text="The time the episode was finished by this team")
+
+    def serialize_for_ajax(self):
+        """ Serializes the puzzle, team, time, and status fields for ajax transmission """
+        message = dict()
+        message['puzzle'] = self.puzzle.serialize_for_ajax()
+        message['team_pk'] = self.team.pk
+        time = self.guess.guess_time
+        df = DateFormat(time.astimezone(time_zone))
+        message['time_str'] = df.format("h:i a")
+        message['status_type'] = "solve"
+        return message
+
+    def __str__(self):
+        return self.team.short_name + " => " + self.puzzle.puzzle_name
+
+
+class TeamEpisodeLink(models.Model):
+    """ A class that links a team and an episode to indicate that the team has 
+    finished the previous episode and can start working on the new one as soon 
+    as the current time is greater than the episode start time (minus an eventual
+    headstart). """
+    class Meta:
+        unique_together = ('episode', 'team',)
+        verbose_name_plural = " Episodes unlocked by teams"
+
+    episode = models.ForeignKey(
+        "hunts.Episode",
+        on_delete=models.CASCADE,
+        help_text="The episode that can be unlocked when time>episode.start_time-headstart")
+    team = models.ForeignKey(
+        Team,
+        on_delete=models.CASCADE,
+        help_text="The team that this new episode is for")
+    headstart = models.DurationField(
+        help_text="The headstart value for this team (HAS NO EFFECT YET)",
+        default = "00")
+
+
+    def serialize_for_ajax(self):
+        """ Serializes the episode, team, and status fields for ajax transmission """
+        message = dict()
+        message['episode'] = self.episode.serialize_for_ajax()
+        message['team_pk'] = self.team.pk
+        message['status_type'] = "unlock"
+        return message
+
+    def __str__(self):
+        return self.team.short_name + ": " + self.episode.ep_name
 
 
 
@@ -424,7 +506,7 @@ class TeamEurekaLink(models.Model):
     """ A class that links a team and a eureka to indicate that the team has unlocked the eureka """
     class Meta:
         unique_together = ('eureka', 'team',)
-        verbose_name_plural = " Eurekas unlocked by teams"
+        verbose_name_plural = "Eurekas unlocked by teams"
 
     eureka = models.ForeignKey(
         "hunts.Eureka",
@@ -449,41 +531,6 @@ class TeamEurekaLink(models.Model):
     def __str__(self):
         return self.team.short_name + ": " + self.eureka.answer
 
-
-class TeamEpisodeLink(models.Model):
-    """ A class that links a team and an episode to indicate that the team has 
-    finished the previous episode and can start working on the new one as soon 
-    as the current time is greater than the episode start time (minus an eventual
-    headstart). """
-    class Meta:
-        unique_together = ('episode', 'team',)
-        verbose_name_plural = "Episodes unlocked by teams"
-
-    episode = models.ForeignKey(
-        "hunts.Episode",
-        on_delete=models.CASCADE,
-        help_text="The episode that can be unlocked when time>episode.start_time-headstart")
-    team = models.ForeignKey(
-        Team,
-        on_delete=models.CASCADE,
-        help_text="The team that this new episode is for")
-    time = models.DateTimeField(
-        help_text="The time the previous episode was finished by this team") # TODO (BS) is this ever used? 
-    headstart = models.DurationField(
-        help_text="The headstart value for this team (HAS NO EFFECT YET)",
-        default = "00")
-
-
-    def serialize_for_ajax(self):
-        """ Serializes the episode, team, and status fields for ajax transmission """
-        message = dict()
-        message['episode'] = self.episode.serialize_for_ajax()
-        message['team_pk'] = self.team.pk
-        message['status_type'] = "unlock"
-        return message
-
-    def __str__(self):
-        return self.team.short_name + ": " + self.episode.ep_name
         
 # unlock puzzles when admin unlocks episode
 @receiver(post_save, sender=TeamEpisodeLink)

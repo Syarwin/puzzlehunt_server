@@ -63,7 +63,7 @@ def protected_static(request, file_path):
             allowed = True
         elif(base == "puzzles"):  # This is messy and the most common case, this should be fixed
             team = hunt.team_from_user(user)
-            if (team is not None and puzzle in team.unlocked.all()):
+            if (team is not None and puzzle in team.puz_unlocked.all()):
                 allowed = True
     else:
         allowed = True
@@ -220,7 +220,7 @@ class PuzzleView(View):
             return redirect('%s?next=%s' % (reverse_lazy(settings.LOGIN_URL), request.path))
 
         if (not request.user.is_staff):
-            if(request.team is None or request.puzzle not in request.team.unlocked.all()):
+            if(request.team is None or request.puzzle not in request.team.puz_unlocked.all()):
                 return redirect(reverse('hunt', kwargs={'hunt_num' : request.hunt.hunt_number }))
 
         puzzle_files = {f.slug: reverse(
@@ -314,7 +314,7 @@ def unlockables(request):
     team = Hunt.objects.get(is_current_hunt=True).team_from_user(request.user)
     if(team is None):
         return render(request, 'access_error.html', {'reason': "team"})
-    unlockables = Unlockable.objects.filter(puzzle__in=team.solved.all())
+    unlockables = Unlockable.objects.filter(puzzle__in=team.puz_solved.all())
     return render(request, 'hunt/unlockables.html', {'unlockables': unlockables, 'team': team})
 
 

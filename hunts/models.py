@@ -138,7 +138,7 @@ class Hunt(models.Model):
         if (user.is_staff):
             puzzle_list = [puzzle for episode in self.episode_set.all() for puzzle in episode.puzzle_set.all()]
         elif(self.can_access(user, team)):
-            puzzle_list = team.unlocked.filter(episode__hunt=self)
+            puzzle_list = team.puz_unlocked.filter(episode__hunt=self)
         else:
             puzzle_list = ()
 

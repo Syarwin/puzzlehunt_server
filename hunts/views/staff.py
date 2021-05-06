@@ -112,7 +112,7 @@ def progress(request):
                 if form.is_valid():
                     t = Team.objects.get(pk=form.cleaned_data['team_id'])
                     p = Puzzle.objects.get(puzzle_id=form.cleaned_data['puzzle_id'])
-                    if(p not in t.unlocked.all()):
+                    if(p not in t.puz_unlocked.all()):
                         u = TeamPuzzleLink.objects.create(team=t, puzzle=p, time=timezone.now())
                         return HttpResponse(json.dumps(u.serialize_for_ajax()))
                     else:
@@ -121,7 +121,7 @@ def progress(request):
                 p = Puzzle.objects.get(pk=request.POST.get('puzzle_id'))
                 response = []
                 for team in p.hunt.team_set.all():
-                    if(p not in team.unlocked.all()):
+                    if(p not in team.puz_unlocked.all()):
                         u = TeamPuzzleLink.objects.create(team=team, puzzle=p, time=timezone.now())
                         response.append(u.serialize_for_ajax())
                 return HttpResponse(json.dumps(response))
@@ -148,7 +148,7 @@ def progress(request):
         last_guess_pk = request.GET.get("last_guess_pk")
         guesss = Guess.objects.filter(pk__gt=last_guess_pk)
         for guess in guesss:
-            if(not guess.team.solved.filter(pk=guess.puzzle.pk).exists()):
+            if(not guess.team.puz_solved.filter(pk=guess.puzzle.pk).exists()):
                 results.append(guess.serialize_for_ajax())
 
         if(len(results) > 0):
@@ -238,9 +238,10 @@ def overview(request):
 
     sol_list = []
     for team in teams:
-      nb_solve = team.solved.count()
+      puz_solved = team.puz_solved.count()
+      nb_solve = puz_solved.count()
       puzzle_unlock = team.teampuzzlelink_set.order_by('time').last()
-      if (puzzle_unlock == None or (puzzle_unlock.puzzle in team.solved.all())):
+      if (puzzle_unlock == None or (puzzle_unlock.puzzle in puz_solved.all())):
         sol_list.append({'team': team.team_name,
                        'puzzle': {'name': 'None found', 'time': '-', 'index': nb_solve},
                        'guesses': {'nb' : '-' , 'last': '...', 'time': '-' },
