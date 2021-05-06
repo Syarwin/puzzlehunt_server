@@ -8,6 +8,7 @@ from django.contrib.sites.models import Site
 from django.contrib.flatpages.admin import FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from django.contrib.flatpages.forms import FlatpageForm
+from django.db.models import Count
 import re
 
 from . import models
@@ -20,7 +21,18 @@ def short_team_name(teamable_object):
 
 short_team_name.short_description = "Team name"
 
+
+
+class PersonAdminForm(forms.ModelForm):
+    def clean_teams(self):
+        data = self.cleaned_data.get('teams')
+        res = data.values('hunt').annotate(c=Count('hunt')).order_by('-c')
+        if (res.count()>0 and res[0]['c']>1):
+            raise forms.ValidationError("Several teams for the same hunt")
+        return data
+
 class PersonAdmin(admin.ModelAdmin):
+    form = PersonAdminForm
     list_display = ['user_full_name', 'user_username']
     list_display_links = ['user_full_name', 'user_username']
     search_fields = ['user__email', 'user__username', 'user__first_name', 'user__last_name']
@@ -34,6 +46,7 @@ class PersonAdmin(admin.ModelAdmin):
 
     user_full_name.short_description = "Name"
     user_username.short_description = "Username"
+    
 
 
 class GuessAdmin(admin.ModelAdmin):
@@ -52,6 +65,7 @@ class TeamAdminForm(forms.ModelForm):
             is_stacked=False
         )
     )
+    
 
     class Meta:
         model = models.Team
@@ -63,6 +77,15 @@ class TeamAdminForm(forms.ModelForm):
 
         if self.instance and self.instance.pk:
             self.fields['persons'].initial = self.instance.person_set.all()
+
+    
+    def clean_persons(self):
+        data = self.cleaned_data.get('persons')        
+        for pers in data:
+          if (pers.teams.filter(hunt=self.instance.hunt).exclude(pk=self.instance.pk).count() > 0): #another team within the same hunt
+            raise forms.ValidationError("Person "+pers.user.username + " is in another team of the same hunt")
+        return data
+
 
     def save(self, commit=True):
         team = super(TeamAdminForm, self).save(commit=False)
