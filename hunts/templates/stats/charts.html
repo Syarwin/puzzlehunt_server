@@ -1,9 +1,11 @@
 
-{% extends "hunt/hunt_base.html" %}
+{% extends "stats/stats_base.html" %}
 {% block title %} Charts {% endblock title %}
 
 {% block includes %}
 <script src="{{ STATIC_URL }}jquery.min.js"></script>
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script> {% include "js/charts.js" %} </script>
 {% endblock includes %}
 
 {% block content %}
@@ -37,6 +39,13 @@
         </tr>
         {% endfor %}
       </table>
+      
+      
+  <p>These charts will not automatically refresh</p>
+  <div id="chart_div5"></div>
+  <div id="chart_div_puz"></div>
+  
+  
     </div>
   </div>
 </div>

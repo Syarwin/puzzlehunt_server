@@ -31,7 +31,12 @@ def add_apps_to_context(context, request):
     context['available_apps'] = admin.site.get_app_list(request)
     return context
 
-def get_last_hunt_or_none():
+def get_last_hunt_or_none(request):
+    if (request.user.is_staff):
+        hunt = Hunt.objects.filter(is_current_hunt=True)
+        nb_puzzle = len([0 for episode in hunt.first().episode_set.all() for puzzle in episode.puzzle_set.all()])
+        return hunt.annotate(puz=Value(nb_puzzle, output_field=PositiveIntegerField())).first()
+
     last_hunts = Hunt.objects.filter(end_date__lt=timezone.now()).order_by('-end_date')
     if last_hunts.count() == 0:
       return None
@@ -51,7 +56,7 @@ def format_duration(arg):
 @login_required
 def stats(request):
     ''' General stats of the hunt: #teams, #guesses, #puzzles solved, total time spent on the hunt... '''
-    hunt = get_last_hunt_or_none()
+    hunt = get_last_hunt_or_none(request)
     if hunt == None:
       context = {'hunt': None}
       return render(request, 'stats/stats.html', context)
@@ -70,7 +75,7 @@ def stats(request):
 @login_required
 def teams(request):
     ''' General view of all teams:  rank, number of solved puzzles, finish time (if finished) '''
-    hunt = get_last_hunt_or_none()
+    hunt = get_last_hunt_or_none(request)
     if hunt == None:
       context = {'hunt': None}
       return render(request, 'stats/teams.html', context)
@@ -89,7 +94,7 @@ def teams(request):
 def team(request):
     ''' Summary of a single team performance, asked by /?team=ID: time / duration per puzzle, rank on each, number of guesses, number of hints needed
       global param: #teammates'''
-    hunt = get_last_hunt_or_none()
+    hunt = get_last_hunt_or_none(request)
     context = {'hunt': None}
     if hunt == None:
       return render(request, 'stats/team.html', context)
@@ -141,7 +146,7 @@ def team(request):
 @login_required
 def puzzles(request):
     ''' Summary of all puzzles: #teams successful, fastest time / duration / smallest number of hints, average duration / number of hints, link to solution file '''
-    hunt = get_last_hunt_or_none()
+    hunt = get_last_hunt_or_none(request)
     if hunt == None:
       context = {'hunt': None}
       return render(request, 'stats/puzzles.html', context)
@@ -172,7 +177,7 @@ def puzzles(request):
 @login_required
 def puzzle(request):
     ''' Summary of 1 puzzle results: each team duration, time solved, guesses, number of hints seen, duration to get each eureka. Also show all eurekas / hints '''
-    hunt = get_last_hunt_or_none()
+    hunt = get_last_hunt_or_none(request)
     context = {'name': "No hunt found"}
     if hunt == None:
       return render(request, 'stats/puzzle.html', context)
@@ -206,8 +211,8 @@ def puzzle(request):
     
 @login_required
 def charts(request):
-    ''' CHARTSSSS: progress of all teams with toggles / top teams, spam contest by user / team , top teams time for each puzzle '''
-    hunt = get_last_hunt_or_none()
+    ''' CHARTSSSS: progress of all teams with toggles / top teams, spam contest by user / team , top / average teams time for each puzzle '''
+    hunt = get_last_hunt_or_none(request)
     if hunt == None:
       context = {'hunt': None}
       return render(request, 'stats/charts.html', context)
@@ -215,8 +220,29 @@ def charts(request):
     spams      = Guess.objects.filter(puzzle__episode__hunt=hunt).values(name=F('user__username' )).annotate(c=Count('name')).order_by('-c')[:10]
     spam_teams = Guess.objects.filter(puzzle__episode__hunt=hunt).values(name=F('team__team_name'), iid=F('team__pk')).annotate(c=Count('name')).order_by('-c')[:10]
       
-    context = {'hunt': hunt, 'spammers' : spams, 'spam_teams': spam_teams}
+      
+      
+      
+    # Chart solve over time TODO: split among episodes, limit teams?
+    solve_time = []
+    teams = Team.objects.filter(hunt=hunt)
+    for team in teams:
+      solves = team.puzzlesolve_set.filter(puzzle__episode__hunt=hunt)
+      solves = solves.order_by('guess__guess_time').values_list('guess__guess_time', flat=True) 
+      solve_time.append({'solve': solves, 'name': team.team_name})
+  
+    
+    #Chart fast / average puzzle solves
+    puzzle_list = [puzzle for episode in hunt.episode_set.all() for puzzle in episode.puzzle_set.all()]
+    
+    data_puz = []
+    for puz in puzzle_list:
+      solves = PuzzleSolve.objects.filter(puzzle=puz)
+      dic = solves.aggregate(av_dur= Avg('duration'), min_dur = Min('duration'))
+      data_puz.append(dic)
+      
+      
+    context = {'hunt': hunt, 'spammers' : spams, 'spam_teams': spam_teams, 'data5_list':solve_time, 'data_puz': data_puz}
     return render(request, 'stats/charts.html', context)
     
     
-

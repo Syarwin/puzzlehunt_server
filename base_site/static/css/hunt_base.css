@@ -109,6 +109,7 @@ h3.episode-header a.collapsed::after {
   display:flex;
   flex-flow:column;
   color:white;
+  overflow:auto;
 }
 
 .puzzle-title {

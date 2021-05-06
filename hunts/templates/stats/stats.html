@@ -1,5 +1,4 @@
-
-{% extends "hunt/hunt_base.html" %}
+{% extends "stats/stats_base.html" %}
 {% block title %} Stats {% endblock title %}
 
 {% block includes %}
@@ -9,11 +8,6 @@
 {% block content %}
 
 <p>
-<a href="/stats/puzzles">Puzzle stats</a> <br>
-<a href="/stats/teams">Team stats</a> <br>
-<a href="/stats/charts">Charts (TODO)</a> <br>
-
-
 That was a fun hunt: {{teams}} teams, {{people}} people, {{guesses}} guesses and {{solved}} puzzles solved!
 </p>
 

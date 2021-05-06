@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %} Puzzlehunt Admin {% endblock title %}
+
+{% block extrahead %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/hunt_base.css' %}">
+{% block includes %} {% endblock %}
+{% endblock %}
+
+
+{% block content_wrapper %}
+<main class="split-hor">
+<div id="sidebar" class="vertical-nav active">
+  <div id="sidebar-collapse">
+    <i class="bi bi-puzzle"></i>
+  </div>
+
+  <h2>Stats</h2>
+
+    <div class="list-group flex-column mb-0">
+      <a href="{% url 'stats' %}" class="list-group-item">Stats</a>
+      <a href="{% url 'puzzles' %}" class="list-group-item">Puzzles</a>
+      <a href="{% url 'teams' %}" class="list-group-item">Teams</a>
+      <a href="{% url 'charts_stats' %}" class="list-group-item">Charts</a>
+    </div>
+</div>
+<div class="puzzle-container">
+{%if hunt == None %}
+
+No data available.
+
+{%else%}
+
+{% block content %} {% endblock %}
+{%endif%}
+</div>
+</main>
+{% endblock %}
+

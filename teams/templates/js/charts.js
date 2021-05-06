@@ -4,7 +4,7 @@ google.setOnLoadCallback(drawStacked);
 
 function drawStacked() {
 
-  // Chart 1
+//   Chart 1
 //  var data1 = new google.visualization.DataTable();
 //  data1.addColumn('string', 'Puzzle Name');
 //  data1.addColumn('number', 'Solved');
@@ -196,6 +196,7 @@ function drawStacked() {
   
   var columns=[];
   
+  
   {% for team in data5_list %}
    var fdata{{forloop.counter}} = new google.visualization.DataTable();
     fdata{{forloop.counter}}.addColumn('date', 'Time');
@@ -204,7 +205,7 @@ function drawStacked() {
     fdata{{forloop.counter}}.addRows(
   [
     {% for point in team.solve %}
-      [new Date({{point.year}},{{point.month}},{{point.day}},{{point.hour}},{{point.minute}},{{point.second}}), {{forloop.counter}} ],
+      [new Date(Date.UTC({{point.year}},{{point.month}},{{point.day}},{{point.hour}},{{point.minute}},{{point.second}})), {{forloop.counter}} ],
     {%endfor%}
   ]
   );
@@ -212,9 +213,53 @@ function drawStacked() {
     columns.push({{forloop.counter}});
   {% endfor %}
     
+    
     var chart5 = new google.visualization.LineChart(document.getElementById('chart_div5'));
     chart5.draw(joind, options5);
   
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  var options_puz = {
+    title: 'Puzzle solved time (minutes)',
+    isStacked: true,
+    height: 400,
+    width: 800,
+    chartArea: {
+       top: 20,
+       left: 50,
+       height: '50%'
+    },
+    pointSize: 3,
+    hAxis: {slantedText:true, slantedTextAngle:60 },
+  };
+  
+  
+  var data_puz = new google.visualization.DataTable();
+  data_puz.addColumn('number', 'index');
+  data_puz.addColumn('number', 'Min Time');
+  data_puz.addColumn('number', 'Ave Time');
+  
+  var columns=[];
+  
+  
+  data_puz.addRows(
+  [
+    {% for point in data_puz %}
+      [ {{forloop.counter}} , {{point.min_dur.seconds}}/60, {{point.av_dur.seconds}}/60 ],
+    {%endfor%}
+  ]
+  );
+    
+    
+    var chart_puz = new google.visualization.LineChart(document.getElementById('chart_div_puz'));
+    chart_puz.draw(data_puz, options_puz);
   
 
 
