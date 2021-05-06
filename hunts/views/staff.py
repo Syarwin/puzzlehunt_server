@@ -532,7 +532,7 @@ def control(request):
             else:
                 teams = curr_hunt.team_set.filter(playtester=True).order_by('team_name')
             for team in teams:
-                team.unlock_puzzles()
+                team.unlock_puzzles_and_episodes()
             messages.success(request, "Initial puzzles released")
             return redirect('hunt_management')
         if(request.POST["action"] == "reset"):

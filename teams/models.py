@@ -135,14 +135,16 @@ class Team(models.Model):
         """ The number of people on the team """
         return self.person_set.count()
 
-    def unlock_puzzles(self):
-        """ Unlocks all puzzles a team is currently supposed to have unlocked """
+    def unlock_puzzles_and_episodes(self):
+        """ Unlocks all puzzles and episodes a team is currently supposed to have unlocked """
+
+        # Unlock the first episodes that do not have prerequisites
         if self.ep_unlocked.count() == 0:
             for ep in self.hunt.episode_set.filter(episode=None):
                 TeamEpisodeLink.objects.create(team=self, episode=ep, time=timezone.now())
 
-        # puzzles and associated numbers
         for ep in self.ep_unlocked.all():
+            # puzzles and associated numbers
             puzzles = [puzzle for puzzle in ep.puzzle_set.all()]
             puz_numbers = [puz.puzzle_number for puz in puzzles]
 
@@ -158,7 +160,7 @@ class Team(models.Model):
                     mapping[num] += 1
 
             # See if the episode was solved
-            if num_solved==len(puzzles) and ep.unlocks != None and ep.unlocks not in self.ep_unlocked.all():
+            if num_solved==len(puzzles) and ep.unlocks!=None and ep.unlocks not in self.ep_unlocked.all():
                 logger.info("Team %s finished episode %s" % (str(self.team_name),
                                 str(ep.ep_number)))
                 TeamEpisodeLink.objects.create(team=self, episode=ep.unlocks, time=timezone.now())
@@ -173,9 +175,9 @@ class Team(models.Model):
                 if (puz.puzzle_number in unlocked_numbers):
                     continue
                 if(puz.num_required_to_unlock <= mapping[puz.puzzle_number]):
-                    logger.info("Team %s unlocked puzzle %s with solves" % (str(self.team_name),
+                    logger.info("Team %s unlocked puzzle %s" % (str(self.team_name),
                                 str(puz.puzzle_id)))
-                    TeamPuzzleLink.objects.create(team=self, puzzle=puz, time=max(timezone.now(),ep.start_date))
+                    TeamPuzzleLink.objects.create(team=self, puzzle=puz, time=timezone.now())
         
 
     def reset(self):
@@ -315,7 +317,7 @@ class Guess(models.Model):
                 t = self.team
                 t.save()
                 t.refresh_from_db()
-                t.unlock_puzzles()
+                t.unlock_puzzles_and_episodes()
 
             return {"status": "correct", "message": "Correct!"}
 
@@ -486,10 +488,10 @@ class TeamEpisodeLink(models.Model):
 # unlock puzzles when admin unlocks episode
 @receiver(post_save, sender=TeamEpisodeLink)
 def my_callback_episode(sender, instance, *args, **kwargs):
-  instance.team.unlock_puzzles()
+  instance.team.unlock_puzzles_and_episodes()
 
 # pre-unlock episode and puzzles (lie on starting time) when a team is created 
 @receiver(post_save, sender=Team)
 def my_callback_team(sender, instance, *args, **kwargs):
-  instance.unlock_puzzles()
+  instance.unlock_puzzles_and_episodes()
         
