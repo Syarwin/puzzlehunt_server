@@ -41,7 +41,7 @@ class EpisodeAdmin(admin.ModelAdmin):
     form = EpisodeAdminForm
     list_display = ['ep_name', 'start_date', 'hunt_just_name', 'unlocks']
     
-    #remove sels-reference to episode
+    #remove self-reference to episode. TODO: small bug when creating an episode, cannot choose to unlock the last one opened
     def change_view(self, request, object_id, form_url='', extra_context=None):
         self.object_id = object_id
         return super(EpisodeAdmin, self).change_view(request, object_id, form_url, extra_context=extra_context)
