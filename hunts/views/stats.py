@@ -165,7 +165,10 @@ def puzzles(request):
       hints = [sum([hint.delay_for_team(sol.team) < sol.duration for hint in puz.hint_set.all()]) for sol in solves]
       dic['min_hints'] = 0 if len(hints)==0 else min(hints)
       dic['av_hints'] =  0 if len(hints)==0 else sum(hints)/len(hints)
-      dic['guesses'] = Guess.objects.filter(puzzle=puz).count() / unlocks.count()
+      if (unlocks.count() == 0):
+        dic['guesses'] = 0
+      else:
+        dic['guesses'] = Guess.objects.filter(puzzle=puz).count() / unlocks.count()
       dic['pk'] = puz.pk
       data.append(dic)
     

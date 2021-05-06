@@ -119,8 +119,7 @@
                 'text-halign': 'center',
                 'width': '150px',
                 'shape': 'rectangle',
-                'text-wrap':'wrap',
-                'text-max-width':'150px'
+                'text-max-width':'150px',
               }
             },
             {
@@ -129,7 +128,8 @@
                 'text-valign': 'top',
                 'text-halign': 'center',
                 'background-opacity': '0',
-                'text-margin-y' : '-10px'
+                'text-margin-y' : '-10px',
+                'color':'#ffffff',
               }
             },
 
@@ -150,7 +150,7 @@
             {% for puz in puzzles %}
               { data: { id: '{{puz.pk}}', 
                 name: '{{puz.puzzle_name}}{%if puz.num_required_to_unlock != puz.puzzle_set.count %} \n[{{puz.num_required_to_unlock}} to unlock]{% endif %}',
-                back: '{%if puz.num_required_to_unlock == puz.puzzle_set.count %}#aa5555{%elif puz.num_required_to_unlock < puz.puzzle_set.count%}#aaaa55{%else%}#888888{%endif%}',
+                back: '{%if puz.num_required_to_unlock == puz.puzzle_set.count %}#d46b63{%elif puz.num_required_to_unlock < puz.puzzle_set.count%}#aaaa55{%else%}#888888{%endif%}',
                 href: '/admin/hunts/puzzle/{{puz.pk}}/change/',
                 parent: 'ep{{puz.episode.pk}}',
                } },
@@ -186,15 +186,16 @@
         
 
         
-            cy.on('mouseover', 'node', function(e){
+            cy.on('mouseover', ':childless', function(e){
         $('#cy').css('cursor', 'pointer');
     });
-    cy.on('mouseout', 'node', function(e){
+    cy.on('mouseout', ':childless', function(e){
         $('#cy').css('cursor', 'default');
     });
 
         
-          cy.on('tap', 'node', function(){
+<!--          cy.on('tap', 'node', function(){-->
+          cy.on('tap', ':childless', function(){
             try { // your browser may block popups
               window.open( this.data('href') );
             } catch(e){ // fall back on url change

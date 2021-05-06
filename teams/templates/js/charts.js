@@ -252,7 +252,11 @@ function drawStacked() {
   data_puz.addRows(
   [
     {% for point in data_puz %}
+    {% if point.min_dur == None %}
+      [ {{forloop.counter}} , null, null ],
+    {% else %}      
       [ {{forloop.counter}} , {{point.min_dur.seconds}}/60, {{point.av_dur.seconds}}/60 ],
+    {%endif%}
     {%endfor%}
   ]
   );
