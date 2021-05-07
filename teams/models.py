@@ -455,16 +455,15 @@ class EpisodeSolve(models.Model):
     def serialize_for_ajax(self):
         """ Serializes the puzzle, team, time, and status fields for ajax transmission """
         message = dict()
-        message['puzzle'] = self.puzzle.serialize_for_ajax()
+        message['episode'] = self.episode.serialize_for_ajax()
         message['team_pk'] = self.team.pk
-        time = self.guess.guess_time
-        df = DateFormat(time.astimezone(time_zone))
+        df = DateFormat(self.time.astimezone(time_zone))
         message['time_str'] = df.format("h:i a")
         message['status_type'] = "solve"
         return message
 
     def __str__(self):
-        return self.team.short_name + " => " + self.puzzle.puzzle_name
+        return self.team.short_name + " => " + self.episode.ep_name
 
 
 class TeamEpisodeLink(models.Model):
