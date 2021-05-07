@@ -27,7 +27,7 @@
 
 
     <div class="card-body colored">
-      <h3 class="mb-0">The code to join this team is <b>{{registered_team.join_code}}</b></h3>
+      <h3 class="mb-0">The code to join this team on this site is <b>{{registered_team.join_code}}</b></h3>
     </div>
 
     <ul class="list-group list-group-flush">
@@ -63,8 +63,24 @@
           <input class="btn btn-danger" type="submit" value="Remove me from this team" onclick="return confirm('Are you sure?')">
         </form>
       </li>
+      
     </ul>
-  </div>
+    
+      {% if not discord_url == "" and discord_bot_id > 0  %}
+      <div class="card-body colored">
+<h3>Join your team in Discord</h3>
+</div>
+
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">
+<p>You can join team chat with text, voice and video by joining the <a href="{{ discord_url }}">event discord</a> and DM'ing <a href="https://discord.com/users/{{ discord_bot_id }}">the bot</a></p>
+<p><code>!joinTeam {{ token }}</code></p>
+<p>Keep this join code SECRET, keep it safe. Do not paste it in public channels, only in a DM to the bot.</p>
+</li>
+</ul>
+{%endif%}
+</div>
+
 </div>
 
  <script type="text/javascript">

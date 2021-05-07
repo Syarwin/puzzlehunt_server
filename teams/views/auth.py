@@ -7,6 +7,7 @@ from django.shortcuts import render, redirect, reverse
 from django.db.models.functions import Lower
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
+
 import random
 import re
 
@@ -14,6 +15,7 @@ from hunts.models import Hunt
 from teams.models import Person, Team
 from teams.forms import UserForm, PersonForm
 from teams.utils import parse_attributes
+from hunts.views.mixin import APITokenRequiredMixin
 
 import logging
 logger = logging.getLogger(__name__)
@@ -138,8 +140,13 @@ class ManageTeam(View):
         team = curr_hunt.team_from_user(request.user)
 
         if(team is not None):
+            context = {'registered_team': team, 'curr_hunt': curr_hunt}
+            context['token'] = team.token
+            context['discord_url'] = curr_hunt.discord_url
+            context['discord_bot_id'] = curr_hunt.discord_bot_id
+
             return render(request, "auth/manage-team.html",
-                          {'registered_team': team, 'curr_hunt': curr_hunt})
+                          context)
         else:
             return redirect(reverse('registration'))
 
@@ -180,6 +187,7 @@ class ManageTeam(View):
                       {'registered_team': team, 'curr_hunt': curr_hunt})
 
 
+
 @login_required
 def profile(request):
     """ A view to handle user information update POST data and render the user information form. """
@@ -198,3 +206,28 @@ def profile(request):
     person_form = PersonForm(instance=request.user.person)
     context = {'user_form': user_form, 'person_form': person_form}
     return render(request, "auth/user_profile.html", context)
+    
+
+# interface for the discord bot
+class TeamInfoView(APITokenRequiredMixin, View):
+    def get(self, request, team_token):
+        try:
+            team = models.Team.objects.get(token=team_token)
+        except models.Team.DoesNotExist:
+            return JsonResponse({
+                'result': 'Not Found',
+                'message': 'Invalid team token',
+            }, status=404)
+        except models.Team.DoesNotExist:
+            return JsonResponse({
+                'result': 'Not Found',
+                'message': 'Several teams share this token',
+            }, status=404)
+        return JsonResponse({
+            'result': 'OK',
+            'team': {
+                'name': team.name,
+            },
+        })
+
+    

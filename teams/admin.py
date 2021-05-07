@@ -104,7 +104,8 @@ class TeamAdmin(admin.ModelAdmin):
     form = TeamAdminForm
     search_fields = ['team_name']
     list_display = ['short_team_name', 'hunt', 'playtester']
-    list_filter = ['hunt']
+    list_filter = ['hunt']  
+    readonly_fields = ('token', )
 
     def short_team_name(self, team):
         return truncatechars(team.team_name, 30) + " (" + str(team.size) + ")"
@@ -117,7 +118,8 @@ class PuzzleSolveAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'solve_time']
     autocomplete_fields = ['team', 'guess']
     list_filter= ('team', 'puzzle',)
-    search_fields = ['team__team_name','puzzle__puzzle_name']
+    search_fields = ['team__team_name','puzzle__puzzle_name']  
+
 
     def solve_time(self, solve):
         return solve.guess.guess_time

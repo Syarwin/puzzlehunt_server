@@ -27,5 +27,8 @@ urlpatterns = [
     url(r'^logout/$', views.auth.account_logout, name='logout'),
     url(r'^registration/$', views.auth.Registration.as_view(), name='registration'),
     url(r'^manage-team/$', views.auth.ManageTeam.as_view(), name='manage-team'),
-    url(r'^profile/$', views.auth.profile, name='profile'),
+    url(r'^profile/$', views.auth.profile, name='profile'),    
+    #bot
+    url('teaminfo/<uuid:team_token>', views.auth.TeamInfoView.as_view(), name='team_info'),
+
 ]

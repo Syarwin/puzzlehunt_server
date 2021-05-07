@@ -25,7 +25,7 @@ class HuntAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Basic Info', {'fields': ('hunt_name', 'hunt_number', 'team_size',
                         ('start_date', 'display_start_date'), ('end_date', 'display_end_date'),
-                        'is_current_hunt', 'eureka_feedback')}),
+                        'is_current_hunt', 'eureka_feedback', 'discord_url','discord_bot_id')}),
     )
 
     list_display = ['hunt_name', 'team_size', 'start_date', 'is_current_hunt']
@@ -269,6 +269,13 @@ class HintAdmin(admin.ModelAdmin):
         return response.puzzle.puzzle_name
 
     puzzle_just_name.short_description = "Puzzle"
+
+
+#@admin.register(models.APIToken)
+class APITokenAdmin(admin.ModelAdmin):
+    readonly_fields = ('token', )
+    list_display = ('token', )
+
 
 
 admin.site.register(models.Hunt,       HuntAdmin)

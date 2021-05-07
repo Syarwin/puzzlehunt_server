@@ -12,6 +12,7 @@ from django.template.defaultfilters import slugify
 
 import os
 import re
+import uuid
 import zipfile
 import shutil
 import logging
@@ -56,6 +57,11 @@ class Team(models.Model):
         null=True,
         blank=True,
         help_text="The date/time at which a hunt will no longer be available to playtesters")
+    token = models.UUIDField(
+        default=uuid.uuid4, 
+        editable=False,
+        help_text="Secret token displayed to the team members to join their discord role"
+        )
 
     hunt = models.ForeignKey(
         "hunts.Hunt",
@@ -96,6 +102,7 @@ class Team(models.Model):
         "hunts.Unlockable",
         blank=True,
         help_text="The unlockables the team has earned")
+
 
     objects = TeamManager()
 

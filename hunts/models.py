@@ -12,8 +12,10 @@ import os
 import re
 import zipfile
 import shutil
+import uuid
 import logging
 logger = logging.getLogger(__name__)
+
 
 
 # TODO: cleanup duplicate functions
@@ -64,6 +66,17 @@ class Hunt(models.Model):
         max_length=255,
         blank=True,
         help_text="The default feedback message sent when an eureka is found")
+        
+    discord_url = models.URLField(
+        blank=True,
+        default='',
+        help_text="URL of the discord server, leave empty is none is dedicated to the hunt")
+    discord_bot_id = models.BigIntegerField(
+        null=True, 
+        blank=True,
+        default='0',
+        help_text="Dicord bot id, leave blank or zero if none is dedicated to the hunt")
+
 
     def clean(self, *args, **kwargs):
         """ Overrides the standard clean method to ensure that only one hunt is the current hunt """
@@ -534,3 +547,13 @@ class Unlockable(models.Model):
 
     def __str__(self):
         return "%s (%s)" % (self.puzzle.puzzle_name, self.content_type)
+        
+        
+        
+class APIToken(models.Model):
+    token = models.UUIDField(default=uuid.uuid4, editable=False)
+
+    def __str__(self):
+        return str(self.token)
+
+
