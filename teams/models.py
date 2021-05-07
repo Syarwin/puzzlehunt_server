@@ -183,7 +183,7 @@ class Team(models.Model):
                 EpisodeSolve.objects.create(team=self, episode=ep, time=timezone.now())
                 continue
             
-            # See if we can unlock any given puzzle
+            # See if we can unlock any given puzzle (will only be exec if len(puzzles)>0 so mapping is well-defined)
             unlocked_numbers = [puz.puzzle_number for puz in self.puz_unlocked.filter(episode=ep)]
             for puz in puzzles:
                 if (puz.puzzle_number in unlocked_numbers):
