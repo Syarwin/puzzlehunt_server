@@ -1,5 +1,5 @@
-# server
-A server for running puzzle hunts. This project is a fork from https://github.com/dlareau/server, where more information about the original project can be found. The projects aim at different kinds of puzzle hunts so focus on different features.
+# Puzzlehunt_server
+A server for running puzzle hunts. This project is a fork from https://github.com/dlareau/puzzlehunt_server, where more information about the original project can be found. The projects aim at different kinds of puzzle hunts so focus on different features.
 
 
 ### Setup
