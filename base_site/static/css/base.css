@@ -1,8 +1,9 @@
 html, body { height:100%; }
 body {
-    display:flex;
-    flex-flow:column;
-    background:radial-gradient(circle, rgb(8, 162, 91) 20%, rgb(17, 87, 55) 100%);
+  display:flex;
+  flex-flow:column;
+  background:radial-gradient(circle, rgb(8, 162, 91) 20%, rgb(17, 87, 55) 100%);
+  overflow-x: hidden;
 }
 
 @font-face {
@@ -70,9 +71,9 @@ h1.illusion {
 }
 
 .form-login input[type="password"] {
-    margin-bottom: 10px;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 
@@ -85,7 +86,7 @@ h1.illusion {
 
 .splash h1 {
   text-align: center;
-  font-size: 100px;
+  font-size: min(12vw, 100px);
   color: black;
 }
 
@@ -148,5 +149,5 @@ h1.illusion {
 
 .card-body.colored {
   border-top:1px solid gray;
-  background: rgb(244, 145, 85);  
+  background: rgb(244, 145, 85);
 }

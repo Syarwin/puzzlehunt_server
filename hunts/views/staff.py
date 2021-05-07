@@ -25,6 +25,12 @@ from teams.forms import GuessForm, UnlockForm, EmailForm, LookupForm
 DT_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
 
+@staff_member_required
+def index(request):
+    context = {}
+    return render(request, 'staff/index.html', context)
+
+
 
 @staff_member_required
 def queue(request):
@@ -387,9 +393,9 @@ def charts(request):
 #    for team in teams:
 #      solves = team.puzzlesolve_set.filter(puzzle__episode__hunt=curr_hunt)
 #      solves = solves.order_by('guess__guess_time').values_list('guess__guess_time', flat=True) # TODO may have timezone issue, maybe only in UTC
-#      
-#      
-#      
+#
+#
+#
 ##      for i,solve in enumerate(solves):
 ##          seconds = (datetime(solve[0],solve[1],solve[2],solve[3],solve[4],solve[5]) - datetime(solves[0][0],solves[0][1],solves[0][2],solves[0][3],solves[0][4],solves[0][5])).total_seconds()
 #      solve_time.append({'solve': solves, 'name': team.team_name})#{"seconds": seconds, "index": i})
@@ -460,9 +466,9 @@ def hunt_management(request):
 
     hunts = Hunt.objects.all()
     prepuzzles = Prepuzzle.objects.all()
-    
+
     puzzles = Puzzle.objects.all()
-    
+
     context = {'hunts': hunts, 'prepuzzles': prepuzzles, 'puzzles': puzzles}
     return render(request, 'staff/hunt_management.html', context)
 
@@ -587,15 +593,15 @@ def lookup(request):
     context = {'lookup_form': lookup_form, 'results': results, 'person': person, 'team': team,
                'curr_hunt': curr_hunt}
     return render(request, 'staff/lookup.html', context)
-    
+
 
 @staff_member_required
 def puzzle_dag(request):
     """ A view to render the DAG of puzzles unlocking relations """
-    
+
     puzzles = Puzzle.objects.all()
     episodes = Episode.objects.all()
     hunts = Hunt.objects.all()
-    
+
     context = {'puzzles': puzzles, 'episodes':episodes, 'hunts': hunts}
     return render(request, 'staff/puzzle_dag.html', context)

@@ -46,7 +46,7 @@ class PersonAdmin(admin.ModelAdmin):
 
     user_full_name.short_description = "Name"
     user_username.short_description = "Username"
-    
+
 
 
 class GuessAdmin(admin.ModelAdmin):
@@ -65,7 +65,7 @@ class TeamAdminForm(forms.ModelForm):
             is_stacked=False
         )
     )
-    
+
 
     class Meta:
         model = models.Team
@@ -78,9 +78,9 @@ class TeamAdminForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             self.fields['persons'].initial = self.instance.person_set.all()
 
-    
+
     def clean_persons(self):
-        data = self.cleaned_data.get('persons')        
+        data = self.cleaned_data.get('persons')
         for pers in data:
           if (pers.teams.filter(hunt=self.instance.hunt).exclude(pk=self.instance.pk).count() > 0): #another team within the same hunt
             raise forms.ValidationError("Person "+pers.user.username + " is in another team of the same hunt")
@@ -104,7 +104,7 @@ class TeamAdmin(admin.ModelAdmin):
     form = TeamAdminForm
     search_fields = ['team_name']
     list_display = ['short_team_name', 'hunt', 'playtester']
-    list_filter = ['hunt']  
+    list_filter = ['hunt']
     readonly_fields = ('token', )
 
     def short_team_name(self, team):
@@ -118,7 +118,7 @@ class PuzzleSolveAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'solve_time']
     autocomplete_fields = ['team', 'guess']
     list_filter= ('team', 'puzzle',)
-    search_fields = ['team__team_name','puzzle__puzzle_name']  
+    search_fields = ['team__team_name','puzzle__puzzle_name']
 
 
     def solve_time(self, solve):
@@ -149,8 +149,8 @@ class TeamEpisodeLinkAdmin(admin.ModelAdmin):
 class TeamEurekaLinkAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'time', 'puzzle_just_name']
     search_fields = ['team__team_name','eureka__puzzle__puzzle_name', 'eureka__answer']
-    list_filter= ('team', 'eureka__puzzle',)    
-    
+    list_filter= ('team', 'eureka__puzzle',)
+
     def puzzle_just_name(self, response):
         return response.eureka.puzzle.puzzle_name
 

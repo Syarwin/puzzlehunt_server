@@ -46,7 +46,7 @@ urlpatterns = [
     url(r'^leaderboard/$', views.hunt.leaderboard, name='leaderboard'),
 
     # Staff pages
-    url(r'^staff/$', views.staff.queue, name='staffi'),
+    url(r'^staff/$', views.staff.index, name='staffindex'),
     url(r'^staff/', include([
         url(r'^queue/$', views.staff.queue, name='queue'),
         url(r'^progress/$', views.staff.progress, name='progress'),

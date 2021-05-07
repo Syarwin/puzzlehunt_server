@@ -54,7 +54,11 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'APP_DIRS': True,
-        'DIRS': [os.path.join(BASE_DIR, 'server/templates')],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'base_site/templates'),
+            os.path.join(BASE_DIR, 'teams/templates'),
+            os.path.join(BASE_DIR, 'hunts/templates'),
+        ],
         'OPTIONS': {
             'builtins': ['hunts.templatetags.hunt_tags',
                          'hunts.templatetags.prepuzzle_tags'],

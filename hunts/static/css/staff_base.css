@@ -1,0 +1,100 @@
+body {
+  background:#e3e3e3;
+}
+
+main.split-hor {
+  flex-flow:row;
+  overflow: hidden;
+}
+
+
+.vertical-nav {
+  background:#4a4949;
+  color:#919191;
+  min-width: 17rem;
+  width: 17rem;
+  height: 100vh;
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+  transition:margin 0.8s;
+  margin-left:-17rem;
+  position:relative;
+  display:flex;
+  flex-flow: column;
+}
+.vertical-nav.active {
+  margin-left:0rem;
+}
+
+#sidebar-collapse {
+  display: none;
+  position: absolute;
+  left: 17rem;
+  top:0;
+  background: #4a4949;
+  font-size: 32px;
+  padding: 0.1rem 0.5rem;
+  border-bottom-right-radius: 25%;
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+  cursor:pointer;
+}
+
+.vertical-nav h2 {
+  text-align: center;
+  margin:0.7rem 0rem;
+  font-size:1.3rem;
+  flex-shrink: 0;
+}
+
+.vertical-nav div.list-group {
+  overflow: auto;
+}
+
+.vertical-nav .list-group-item {
+  background: #0d0c0c24;
+  color: #828282;
+  border-right: none;
+  border-left: none;
+  border-radius: 0;
+  padding: .3rem 1rem;
+  font-size: .9rem;
+  border-color: #595959;
+}
+
+.vertical-nav .list-group-item.active {
+  text-indent: .5rem;
+  background: #313030;
+  color: #bfbcbc;
+}
+
+
+.side-content {
+  flex-grow: 1;
+  display:flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.puzzle-container {
+  flex-grow:1;
+  padding:1.5rem 2rem;
+  display:flex;
+  flex-flow:column;
+  overflow:auto;
+}
+
+.puzzle-title {
+  font-size:30px;
+  font-weight: bold;
+}
+
+.puzzle-holder {
+  flex-grow:1;
+}
+
+.puzzle-holder div.centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height:100%;
+}
