@@ -96,7 +96,7 @@ class Registration(LoginRequiredMixin, View):
     def post(self, request):
         curr_hunt = Hunt.objects.get(is_current_hunt=True)
         
-        if(request.user.teams.filter(hunt=curr_hunt).count()>0):
+        if(request.user.person.teams.filter(hunt=curr_hunt).count()>0):
             messages.error(request, "You already have a team for this hunt")
         elif(request.POST["form_type"] == "create_team"):
             if(curr_hunt.team_set.filter(team_name__iexact=request.POST.get("team_name")).exists()):

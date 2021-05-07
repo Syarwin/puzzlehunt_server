@@ -166,6 +166,7 @@ class Episode(models.Model):
     unlocks = models.ForeignKey(
         "self",
         null=True,
+        blank=True,
         on_delete=models.SET_NULL,
         help_text="Episode that this episode is a possible prerequisite for")
     hunt = models.ForeignKey(

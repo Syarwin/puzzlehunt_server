@@ -157,17 +157,18 @@ class Team(models.Model):
             # puzzles and associated numbers
             puzzles = [puzzle for puzzle in ep.puzzle_set.all()]
             puz_numbers = [puz.puzzle_number for puz in puzzles]
-
-            # mapping between a puzzle number and the number of prerequisite puzzles already solved by a team
-            mapping = [0]*(max(puz_numbers) + 1)
-
-            # go through each solved puzzle and add to mapping for each puzzle it unlocks
-            # we also count the number of solved puzzles to determine if ep was solved
             num_solved = 0
-            for puz in self.puz_solved.filter(episode=ep):
-                num_solved += 1
-                for num in puz.unlocks.values_list('puzzle_number', flat=True):
-                    mapping[num] += 1
+            
+            if len(puzzles)>0:
+              # mapping between a puzzle number and the number of prerequisite puzzles already solved by a team
+              mapping = [0]*(max(puz_numbers) + 1)
+
+              # go through each solved puzzle and add to mapping for each puzzle it unlocks
+              # we also count the number of solved puzzles to determine if ep was solved
+              for puz in self.puz_solved.filter(episode=ep):
+                  num_solved += 1
+                  for num in puz.unlocks.values_list('puzzle_number', flat=True):
+                      mapping[num] += 1
 
             # See if we can unlock the next episode (if there remains one)
             if num_solved==len(puzzles) and ep.unlocks!=None and ep.unlocks not in self.ep_unlocked.all():
