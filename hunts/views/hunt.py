@@ -131,36 +131,28 @@ class HuntIndex(View):
 
 def prepuzzle(request, prepuzzle_num):
     """
-    A view to handle answer guesss via POST and render the prepuzzle's template.
+    A view to render the prepuzzle's template.
     """
-
-    puzzle = Prepuzzle.objects.get(pk=prepuzzle_num)
-
-    if request.method == 'POST':
-        form = AnswerForm(request.POST)
-        if form.is_valid():
-            user_answer = re.sub(r"[ _\-;:+,.!?]", "", form.cleaned_data['answer'])
-
-            # Compare against correct answer
-            if(puzzle.answer.lower() == user_answer.lower()):
-                is_correct = True
-                response = puzzle.response_string
-                logger.info("User %s solved prepuzzle %s." % (str(request.user), prepuzzle_num))
-            else:
-                is_correct = False
-                response = ""
-        else:
-            is_correct = None
-            response = ""
-        response_vars = {'response': response, 'is_correct': is_correct}
-        return HttpResponse(json.dumps(response_vars))
-
-    else:
-        if(not (puzzle.released or request.user.is_staff)):
-            return redirect('current_hunt_info')
-        form = AnswerForm()
-        context = {'form': form, 'puzzle': puzzle}
-        return HttpResponse(Template(puzzle.template).render(RequestContext(request, context)))
+    
+    try:
+      puzzle = Puzzle.objects.get(pk=prepuzzle_num) # TODO: easier ID
+      assert puzzle.episode.hunt.is_demo
+    except:
+      return HttpResponseNotFound('<h1>Page not found</h1>')
+    
+    puzzle_files = {f.slug: reverse(
+        'puzzle_file',
+        kwargs={
+            'puzzle_id': puzzle.puzzle_id,
+            'file_path': f.url_path,
+        }) for f in puzzle.puzzlefile_set.filter(slug__isnull=False)
+    }
+    text = Template(puzzle.template).safe_substitute(**puzzle_files)
+    context = {
+        'puzzle': puzzle,
+        'text':text
+    }
+    return render(request, 'puzzle/prepuzzle.html', context)
 
 
 def hunt_prepuzzle(request, hunt_num):

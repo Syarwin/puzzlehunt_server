@@ -25,7 +25,7 @@ class HuntAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Basic Info', {'fields': ('hunt_name', 'hunt_number', 'team_size',
                         ('start_date', 'display_start_date'), ('end_date', 'display_end_date'),
-                        'is_current_hunt', 'eureka_feedback', 'discord_url','discord_bot_id')}),
+                        'is_current_hunt', 'is_demo', 'eureka_feedback', 'discord_url','discord_bot_id')}),
     )
 
     list_display = ['hunt_name', 'team_size', 'start_date', 'is_current_hunt']

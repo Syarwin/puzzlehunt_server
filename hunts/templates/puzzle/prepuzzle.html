@@ -1,28 +1,44 @@
 {% extends "hunt/hunt_base.html" %}
-{% load prepuzzle_tags %}
-{% load static %}
+{% load hunt_tags %}
+{% load crispy_forms_tags %}
+{% block title %}Puzzle - {{ puzzle.puzzle_name }}{% endblock title %}
 
-{% block title %}{{ puzzle.puzzle_name }}{% endblock title %}
+{% block includes %}
+<script src="{{ STATIC_URL }}js/prepuzzle.js"></script>
+{% endblock includes %}
 
-{% block base_includes %}
-<script src="{{ STATIC_URL }}jquery.min.js"></script>
-<link rel="stylesheet" type="text/css" href="{% static "huntserver/navbar.css" %}">
-<script>
-function check_answer(callback, user_answer) {
-  $.ajax({
-    url : window.location.pathname,
-    type: "POST",
-    data: {answer: user_answer,
-           csrfmiddlewaretoken: "{{ csrf_token }}" },
-    error: function (jXHR, textStatus, errorThrown) {
-      console.log(jXHR.responseText);
-      alert(errorThrown);
-    },
-    success: function (response) {
-      response = JSON.parse(response);
-      callback(response);
-    }
-  });
-}
-</script>
-{% endblock base_includes %}
+{% block content %}
+<div class="puzzle-container">
+<h1> Prepuzzle: simple stuff <br> but TODO: BROKEN CHECK submit should just call a js, not refresh the page :/ </h1>
+  <div class="puzzle-title">
+    {{ puzzle.puzzle_name }}
+  </div>
+  <div class="puzzle-holder">
+    {{ text | safe }}
+  </div>
+
+  <div id="guess-bar">
+    <div id="guess-feedback" class="container py-3"></div>
+    <form id="guess-form" autocomplete="off" class="needs-validation">
+      <div class="input-group input-group-lg has-validation">
+        <input id="answer-entry" name="answer" type="text" pattern=" *[A-Za-z0-9][A-Za-z0-9 ]*" class="form-control" placeholder="Guess" aria-label="Your guess" autocomplete="off" title="guesses should only contain letters, digits and optional spaces" />
+        <button class="btn btn-primary" type="submit" id="answer-button">Submit</button>
+        <div class="invalid-feedback">
+            Please choose a username.
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<div id="right-bar" class="vertical-nav">
+  <div class="right-block">
+    <h3>Guesses</h3>
+    <ul id="guesses"></ul>
+  </div>
+</div>
+
+
+
+{% endblock content %}

@@ -62,6 +62,9 @@ class Hunt(models.Model):
         help_text="The end date/time displayed to users")
     is_current_hunt = models.BooleanField(
         default=False)
+    is_demo = models.BooleanField(
+        default=False,
+        help_text="If yes, then all puzzles are available to everybody as prepuzzles (and hints / eurekas do not work)")
     eureka_feedback = models.CharField(
         max_length=255,
         blank=True,
