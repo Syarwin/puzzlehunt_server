@@ -126,7 +126,7 @@ def progress(request):
             if request.POST.get("action") == "unlock_all":
                 p = Puzzle.objects.get(pk=request.POST.get('puzzle_id'))
                 response = []
-                for team in p.hunt.team_set.all():
+                for team in p.episode.hunt.team_set.all():
                     if(p not in team.puz_unlocked.all()):
                         u = TeamPuzzleLink.objects.create(team=team, puzzle=p, time=timezone.now())
                         response.append(u.serialize_for_ajax())

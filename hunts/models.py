@@ -323,6 +323,8 @@ class Puzzle(models.Model):
                 return max(puz_unlock.time,episode.start_date-ep_unlock.headstart)
             except TeamPuzzleLink.DoesNotExist:
                 return episode.start_date
+            except TeamEpisodeLink.DoesNotExist:
+                return episode.start_date
 
 
 def puzzle_file_path(instance, filename):

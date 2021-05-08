@@ -316,7 +316,7 @@ def unlockables(request):
 def leaderboard(request):
     curr_hunt = get_object_or_404(Hunt, is_current_hunt=True)
     teams = curr_hunt.team_set.all()
-    all_teams = teams.annotate(solves=Count('solved'))
+    all_teams = teams.annotate(solves=Count('puz_solved')).filter(solves__gt=0)
     all_teams = all_teams.annotate(last_time=Max('puzzlesolve__guess__guess_time'))
     all_teams = all_teams.order_by(F('solves').desc(nulls_last=True),
                                    F('last_time').asc(nulls_last=True))[:10]
