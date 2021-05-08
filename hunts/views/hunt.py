@@ -27,7 +27,7 @@ import os
 import re
 
 from hunts.models import Puzzle, Hunt, Guess, Unlockable, Prepuzzle
-from teams.models import PuzzleSolve
+from teams.models import PuzzleSolve, EpisodeSolve
 from .mixin import RequiredTeamMixin
 
 import logging
@@ -122,11 +122,26 @@ class HuntIndex(View):
             if(hunt.is_open):
                 return redirect(reverse('registration'))
 
-        episodes = sorted(hunt.get_episodes(user, team), key=lambda p: p.ep_number)
-        puzzles = hunt.get_puzzle_list(user, team)
-        context = {'hunt': hunt, 'episodes': episodes, 'team': team, 'puzzles':puzzles}
-        return render(request, 'hunt/hunt_example.html', context)
-        #return HttpResponse(Template(hunt.template).render(RequestContext(request, context)))
+        episodes = sorted(request.hunt.get_episodes(request.user, request.team), key=lambda p: p.ep_number)
+        
+        message = ''
+        if len(episodes)>0 and request.team.ep_solved.count() == len(episodes):
+          if len(episodes) == request.hunt.episode_set.count():
+            try:
+              time = request.team.episodesolve_set.get(episode = episodes[-1]).time
+            except:
+              return HttpResponseNotFound('<h1>Inconsistent database stucture</h1>')
+            message = 'Congratulations! You have finished the hunt at rank ' + str(EpisodeSolve.objects.filter(episode= episodes[-1], time__lte= time).count())
+          else:
+            try:
+              message = 'Congratulations on finishing Episode ' + str(len(episodes)) + '! <br> Next Episode will start at ' + episodes[-1].unlocks.start_date.strftime('%H:%M, %d/%m')
+            except:
+              return HttpResponseNotFound('<h1>Last Episode finished without unlocking the next one</h1>')
+            
+        episodes = [{'ep': ep, 'puz': request.team.puz_unlocked.filter(episode=ep)} for ep in episodes]
+        text = hunt.template
+        context = {'hunt': hunt, 'episodes': episodes, 'team': team, 'text': text, 'message': message}
+        return render(request, 'hunt/hunt.html', context) 
 
 
 def prepuzzle(request, prepuzzle_num):
@@ -224,15 +239,23 @@ class PuzzleView(View):
         }
         text = Template(request.puzzle.template).safe_substitute(**puzzle_files)
         episodes = sorted(request.hunt.get_episodes(request.user, request.team), key=lambda p: p.ep_number)
-        puzzles = request.hunt.get_puzzle_list(request.user, request.team)
+        episodes = [{'ep': ep, 'puz': request.team.puz_unlocked.filter(episode=ep)} for ep in episodes]
+        
+        try:
+          puzzle_solve = PuzzleSolve.objects.get(puzzle__puzzle_id=puzzle_id, team=request.team)
+          status = 'solved'
+        except PuzzleSolve.DoesNotExist:
+          status = 'unsolved'
+          
+        
         context = {
             'hunt': request.hunt,
             'episodes': episodes,
-            'puzzles' : puzzles,
             'puzzle': request.puzzle,
             'eureka': len(request.puzzle.eureka_set.all())>0,
             'team': request.team,
-            'text':text
+            'text':text,
+            'status': status
         }
         return render(request, 'puzzle/puzzle.html', context)
 

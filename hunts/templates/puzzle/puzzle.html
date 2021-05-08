@@ -17,6 +17,11 @@
     {{ text | safe }}
   </div>
 
+<div id='answer-container'>
+{% if status == "solved" %}
+Congratulations! The answer was indeed '{{puzzle.answer}}'.
+{% endif %}
+</div>
   <div id="guess-bar">
     <div id="guess-feedback" class="container py-3"></div>
     <form id="guess-form" autocomplete="off" class="needs-validation">

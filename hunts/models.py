@@ -69,7 +69,6 @@ class Hunt(models.Model):
         max_length=255,
         blank=True,
         help_text="The default feedback message sent when an eureka is found")
-        
     discord_url = models.URLField(
         blank=True,
         default='',
@@ -79,6 +78,9 @@ class Hunt(models.Model):
         blank=True,
         default='0',
         help_text="Dicord bot id, leave blank or zero if none is dedicated to the hunt")
+    template = models.TextField(
+        default="",
+        help_text="The template string to be rendered to HTML on the puzzle page")
 
 
     def clean(self, *args, **kwargs):

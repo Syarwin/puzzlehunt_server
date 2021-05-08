@@ -1,0 +1,27 @@
+{% extends "hunt/hunt_base.html" %}
+{% load hunt_tags %}
+
+
+{% block title %}Puzzles!{% endblock title %}
+
+{% block content %}
+{% include 'hunt/hunt_sidebar.html' with episodes=episodes hunt=hunt%}
+
+<div class = 'team-name' style = "position: absolute; right: 20px; top: 70px; z-index: 1000; color:white;">
+Team {{team.team_name | safe }}
+</div
+
+
+<div class="side-content">
+  <div class="splash">
+{% if message != '' %}
+<div class = 'hunt-message' style = "color:white; font-size:2em">
+{{message | safe}}
+</div><br>
+{%endif%}
+
+
+    {{ text | safe }}
+  </div>
+</div>
+{% endblock content %}

@@ -263,7 +263,8 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
     def _new_eureka_json(cls, eureka):
         return {
             'eureka': eureka.answer,
-            'eureka_uid': eureka.id
+            'eureka_uid': eureka.id,
+            'feedback': eureka.feedback,
         }
 
     @classmethod

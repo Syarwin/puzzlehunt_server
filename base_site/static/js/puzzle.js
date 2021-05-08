@@ -216,15 +216,15 @@ function updateHints() {
 ***************************/
 var eurekas = [];
 
-function addEureka(eureka, eureka_uid) {
+function addEureka(eureka, eureka_uid, feedback) {
   var guesses_table = $('#eurekas');
-  guesses_table.prepend('<li>' + encode(eureka) + '</li>')
+  guesses_table.prepend('<li>' + encode(eureka) + "<br> <i>" + encode(feedback)+ '</i></li>') /* TODO stupid HTML */
   eurekas.push(eureka_uid)
 }
 
 function receivedNewEureka(content) {
   if(!eurekas.includes(content.hint_uid)){
-    addEureka(content.eureka, content.eureka_uid)
+    addEureka(content.eureka, content.eureka_uid, content.feedback)
   }
 }
 
