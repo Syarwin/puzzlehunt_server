@@ -1,5 +1,4 @@
 from django.conf.urls import include, url
-from django.contrib import admin
 from django.contrib.auth import views as base_auth_views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -12,11 +11,6 @@ from hunts.urls import urlpatterns as hunts_patterns
 from teams.urls import urlpatterns as teams_patterns
 
 urlpatterns = [
-    # Admin redirections/views
-    url(r'^admin/login/$', RedirectView.as_view(url=reverse_lazy(settings.LOGIN_URL),
-                                                query_string=True)),
-    url(r'^admin/', admin.site.urls),
-
     # User auth/password reset
     url(r'^accounts/logout/$', base_auth_views.LogoutView.as_view(),
         name='logout', kwargs={'next_page': '/'}),

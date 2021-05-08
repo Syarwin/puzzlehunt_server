@@ -10,7 +10,7 @@ from os.path import dirname, abspath
 import codecs
 codecs.register(lambda name: codecs.lookup('utf8') if name == 'utf8mb4' else None)
 
-BASE_DIR = dirname(dirname(dirname(abspath(__file__))))
+BASE_DIR = dirname(dirname(abspath(__file__)))
 
 # Application definition
 SITE_TITLE = "MindBreakers"
