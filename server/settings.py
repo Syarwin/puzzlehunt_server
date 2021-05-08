@@ -3,20 +3,20 @@
 Base Django settings for server project.
 """
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import dj_database_url
 from os.path import dirname, abspath
 import codecs
 codecs.register(lambda name: codecs.lookup('utf8') if name == 'utf8mb4' else None)
 
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = dirname(dirname(abspath(__file__)))
 
 # Application definition
 SITE_TITLE = "MindBreakers"
 
 INSTALLED_APPS = (
-    'bootstrap_admin',
+    'baton',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -31,8 +31,34 @@ INSTALLED_APPS = (
     'hunts',
     'crispy_forms',
     'huey.contrib.djhuey',
-    "crispy_bootstrap5",
+    'crispy_bootstrap5',
+    'baton.autodiscover'
 )
+
+BATON = {
+    'SITE_HEADER': 'MindBreakers admin',
+    'SITE_TITLE': 'MindBreakers',
+    'INDEX_TITLE': 'Site administration',
+    'SUPPORT_HREF': 'https://github.com/otto-torino/django-baton/issues',
+    'COPYRIGHT': '',
+    'POWERED_BY': 'PhDisc',
+    'CONFIRM_UNSAVED_CHANGES': True,
+    'SHOW_MULTIPART_UPLOADING': True,
+    'ENABLE_IMAGES_PREVIEW': True,
+    'CHANGELIST_FILTERS_IN_MODAL': True,
+    'CHANGELIST_FILTERS_ALWAYS_OPEN': False,
+    'CHANGELIST_FILTERS_FORM': True,
+    'COLLAPSABLE_USER_AREA': False,
+    'MENU_ALWAYS_COLLAPSED': False,
+    'MENU_TITLE': 'Menu',
+    'MESSAGES_TOASTS': False,
+    'GRAVATAR_DEFAULT_IMG': 'retro',
+    'LOGIN_SPLASH': '/static/core/img/login-splash.png',
+    'SEARCH_FIELD': {
+        'label': 'Search contents...',
+        'url': '/search/',
+    }
+}
 
 SITE_ID = 1  # For flatpages
 
@@ -55,7 +81,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'APP_DIRS': True,
         'DIRS': [
-            os.path.join(BASE_DIR, 'base_site/templates'),
+            #os.path.join(BASE_DIR, 'base_site/templates'),
             os.path.join(BASE_DIR, 'teams/templates'),
             os.path.join(BASE_DIR, 'hunts/templates'),
         ],
