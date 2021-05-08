@@ -244,7 +244,7 @@ def overview(request):
 
     sol_list = []
     for team in teams:
-      puz_solved = team.puz_solved.count()
+      puz_solved = team.puz_solved
       nb_solve = puz_solved.count()
       puzzle_unlock = team.teampuzzlelink_set.order_by('time').last()
       if (puzzle_unlock == None or (puzzle_unlock.puzzle in puz_solved.all())):
