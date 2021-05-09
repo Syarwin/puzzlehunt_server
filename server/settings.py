@@ -17,6 +17,7 @@ SITE_TITLE = "MindBreakers"
 
 INSTALLED_APPS = (
     'baton',
+    'django_mirror',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,19 +46,20 @@ BATON = {
     'CONFIRM_UNSAVED_CHANGES': True,
     'SHOW_MULTIPART_UPLOADING': True,
     'ENABLE_IMAGES_PREVIEW': True,
-    'CHANGELIST_FILTERS_IN_MODAL': True,
-    'CHANGELIST_FILTERS_ALWAYS_OPEN': False,
+    'CHANGELIST_FILTERS_IN_MODAL': False,
+    'CHANGELIST_FILTERS_ALWAYS_OPEN': True,
     'CHANGELIST_FILTERS_FORM': True,
     'COLLAPSABLE_USER_AREA': False,
     'MENU_ALWAYS_COLLAPSED': False,
     'MENU_TITLE': 'Menu',
     'MESSAGES_TOASTS': False,
-    'GRAVATAR_DEFAULT_IMG': 'retro',
     'LOGIN_SPLASH': '/static/core/img/login-splash.png',
-    'SEARCH_FIELD': {
-        'label': 'Search contents...',
-        'url': '/search/',
-    }
+}
+
+DJANGO_MIRROR_DEFAULTS = {
+    'mode': 'rst',
+    'addons': ['mode/overlay'],
+    'line_wrapping': True,
 }
 
 SITE_ID = 1  # For flatpages
@@ -72,6 +74,7 @@ MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
     'hunts.middleware.HuntMiddleware',
     'teams.middleware.TeamMiddleware',
+    'hunts.middleware.PuzzleMiddleware',
 )
 
 ROOT_URLCONF = 'server.urls'

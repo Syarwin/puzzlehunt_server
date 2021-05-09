@@ -26,9 +26,9 @@ import json
 import os
 import re
 
-from hunts.models import Puzzle, Hunt, Guess, Unlockable, Prepuzzle
+from hunts.models import Puzzle, Hunt, Guess, Unlockable
 from teams.models import PuzzleSolve, EpisodeSolve
-from .mixin import RequiredTeamMixin
+from .mixin import RequiredTeamMixin, RequiredPuzzleAccessMixin
 
 import logging
 logger = logging.getLogger(__name__)
@@ -36,55 +36,9 @@ logger = logging.getLogger(__name__)
 DT_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
-def protected_static(request, file_path):
-    """
-    A view to serve protected static content. Does a permission check and if it passes,
-    the file is served via X-Sendfile.
-    """
-
-    allowed = False
-    path = Path(file_path)
-    base = path.parts[0]
-    response = HttpResponse()
-    if(len(path.parts) < 2):
-        return HttpResponseNotFound('<h1>Page not found</h1>')
-
-    if(base == "puzzles" or base == "solutions"):
-        puzzle_id = re.match(r'[0-9a-fA-F]+', path.parts[1])
-        if(puzzle_id is None):
-            return HttpResponseNotFound('<h1>Page not found</h1>')
-
-        puzzle = get_object_or_404(Puzzle, puzzle_id=puzzle_id.group(0))
-        hunt = puzzle.episode.hunt
-        user = request.user
-        disposition = 'filename="{}_{}"'.format(puzzle.safename, path.name)
-        response['Content-Disposition'] = disposition
-        if (user.is_staff):
-            allowed = True
-        elif(base == "puzzles"):  # This is messy and the most common case, this should be fixed
-            team = hunt.team_from_user(user)
-            if (team is not None and puzzle in team.puz_unlocked.all()):
-                allowed = True
-    else:
-        allowed = True
-
-    if allowed:
-        pathname = smart_str(os.path.join(settings.MEDIA_ROOT, file_path))
-        try:
-           with open(pathname, "rb") as f:
-              return HttpResponse(f.read(), content_type="image/png")
-        except IOError:
-           return HttpResponseNotFound('<h1>Page not found</h1>')
-    else:
-        logger.info("User %s tried to access %s and failed." % (str(request.user), file_path))
-
-    return HttpResponseNotFound('<h1>Page not found</h1>')
-
-# TODO : add PuzzleUnlockedMixin
-class PuzzleFile(RequiredTeamMixin, View):
+class PuzzleFile(RequiredPuzzleAccessMixin, View):
     def get(self, request, puzzle_id, file_path):
-        print("Coucou")
-        puzzle = get_object_or_404(Puzzle, puzzle_id__iexact=puzzle_id)
+        puzzle = request.puzzle
         puzzle_file = get_object_or_404(puzzle.puzzlefile_set, url_path=file_path)
 
         pathname = smart_str(os.path.join(settings.MEDIA_ROOT, puzzle_file.file.path))
@@ -122,71 +76,27 @@ class HuntIndex(View):
             if(hunt.is_open):
                 return redirect(reverse('registration'))
 
-        episodes = sorted(request.hunt.get_episodes(request.user, request.team), key=lambda p: p.ep_number)
-        
+        episodes = request.hunt.get_formatted_episodes(request.user, request.team)
+
         message = ''
-        if len(episodes)>0 and request.team.ep_solved.count() == len(episodes):
-          if len(episodes) == request.hunt.episode_set.count():
-            try:
-              time = request.team.episodesolve_set.get(episode = episodes[-1]).time
-            except:
-              return HttpResponseNotFound('<h1>Inconsistent database stucture</h1>')
-            message = 'Congratulations! You have finished the hunt at rank ' + str(EpisodeSolve.objects.filter(episode= episodes[-1], time__lte= time).count())
-          else:
-            try:
-              message = 'Congratulations on finishing Episode ' + str(len(episodes)) + '! <br> Next Episode will start at ' + episodes[-1].unlocks.start_date.strftime('%H:%M, %d/%m')
-            except:
-              return HttpResponseNotFound('<h1>Last Episode finished without unlocking the next one</h1>')
-            
-        episodes = [{'ep': ep, 'puz': request.team.puz_unlocked.filter(episode=ep)} for ep in episodes]
+        if not user.is_staff:
+            if len(episodes)>0 and team.ep_solved.count() == len(episodes):
+              if len(episodes) == hunt.episode_set.count():
+                try:
+                  time = team.episodesolve_set.get(episode = episodes[-1]).time
+                except:
+                  return HttpResponseNotFound('<h1>Inconsistent database stucture</h1>')
+                message = 'Congratulations! You have finished the hunt at rank ' + str(EpisodeSolve.objects.filter(episode= episodes[-1], time__lte= time).count())
+              else:
+                try:
+                  message = 'Congratulations on finishing Episode ' + str(len(episodes)) + '! <br> Next Episode will start at ' + episodes[-1].unlocks.start_date.strftime('%H:%M, %d/%m')
+                except:
+                  return HttpResponseNotFound('<h1>Last Episode finished without unlocking the next one</h1>')
+
         text = hunt.template
         context = {'hunt': hunt, 'episodes': episodes, 'team': team, 'text': text, 'message': message}
-        return render(request, 'hunt/hunt.html', context) 
+        return render(request, 'hunt/hunt.html', context)
 
-
-def prepuzzle(request, prepuzzle_num):
-    """
-    A view to render the prepuzzle's template.
-    """
-    
-    try:
-      puzzle = Puzzle.objects.get(puzzle_id=prepuzzle_num) # TODO: easier ID
-      assert puzzle.episode.hunt.is_demo
-    except:
-      return HttpResponseNotFound('<h1>Page not found</h1>')
-    
-    puzzle_files = {f.slug: reverse(
-        'puzzle_file',
-        kwargs={
-            'puzzle_id': puzzle.puzzle_id,
-            'file_path': f.url_path,
-        }) for f in puzzle.puzzlefile_set.filter(slug__isnull=False)
-    }
-    text = Template(puzzle.template).safe_substitute(**puzzle_files)
-    context = {
-        'puzzle': puzzle,
-        'text':text
-    }
-    return render(request, 'puzzle/prepuzzle.html', context)
-
-
-def hunt_prepuzzle(request, hunt_num):
-    """
-    A simple view that locates the correct prepuzzle for a hunt and redirects there if it exists.
-    """
-    curr_hunt = get_object_or_404(Hunt, hunt_number=hunt_num)
-    if(hasattr(curr_hunt, "prepuzzle")):
-        return prepuzzle(request, curr_hunt.prepuzzle.pk)
-    else:
-        # Maybe we can do something better, but for now, redirect to the main page
-        return redirect('current_hunt_info')
-
-
-def current_prepuzzle(request):
-    """
-    A simple view that locates the correct prepuzzle for the current hunt and redirects to there.
-    """
-    return hunt_prepuzzle(request, Hunt.objects.get(is_current_hunt=True).hunt_number)
 
 
 def get_ratelimit_key(group, request):
@@ -194,7 +104,7 @@ def get_ratelimit_key(group, request):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class PuzzleView(View):
+class PuzzleView(RequiredPuzzleAccessMixin, View):
     """
     A view to handle answer guesss via POST, handle response update requests via AJAX, and
     render the basic per-puzzle pages.
@@ -221,15 +131,6 @@ class PuzzleView(View):
             logger.info("User %s rate-limited for puzzle %s" % (str(request.user), puzzle_id))
             return HttpResponseForbidden()
 
-
-        # Only allowed access if the hunt is public or if unlocked by team
-        if(not request.user.is_authenticated):
-            return redirect('%s?next=%s' % (reverse_lazy(settings.LOGIN_URL), request.path))
-
-        if (not request.user.is_staff):
-            if(request.team is None or request.puzzle not in request.team.puz_unlocked.all()):
-                return redirect(reverse('hunt', kwargs={'hunt_num' : request.hunt.hunt_number }))
-
         puzzle_files = {f.slug: reverse(
             'puzzle_file',
             kwargs={
@@ -238,16 +139,15 @@ class PuzzleView(View):
             }) for f in request.puzzle.puzzlefile_set.filter(slug__isnull=False)
         }
         text = Template(request.puzzle.template).safe_substitute(**puzzle_files)
-        episodes = sorted(request.hunt.get_episodes(request.user, request.team), key=lambda p: p.ep_number)
-        episodes = [{'ep': ep, 'puz': request.team.puz_unlocked.filter(episode=ep)} for ep in episodes]
-        
+        episodes = request.hunt.get_formatted_episodes(request.user, request.team)
+
         try:
           puzzle_solve = PuzzleSolve.objects.get(puzzle__puzzle_id=puzzle_id, team=request.team)
           status = 'solved'
         except PuzzleSolve.DoesNotExist:
           status = 'unsolved'
-          
-        
+
+
         context = {
             'hunt': request.hunt,
             'episodes': episodes,
@@ -361,9 +261,3 @@ def leaderboard(request):
 
     context = {'team_data': all_teams, 'solve_data': solves_data}
     return render(request, 'hunt/leaderboard.html', context)
-    
-    
-    
-    
-    
-    

@@ -74,7 +74,7 @@ class Hunt(models.Model):
         default='',
         help_text="URL of the discord server, leave empty is none is dedicated to the hunt")
     discord_bot_id = models.BigIntegerField(
-        null=True, 
+        null=True,
         blank=True,
         default='0',
         help_text="Dicord bot id, leave blank or zero if none is dedicated to the hunt")
@@ -150,6 +150,14 @@ class Hunt(models.Model):
             episode_list = Episode.objects.filter(pk__in=episode_pks)
 
         return episode_list
+
+    def get_formatted_episodes(self, user, team):
+        episodes = sorted(self.get_episodes(user, team), key=lambda p: p.ep_number)
+        if user.is_staff:
+            episodes = [{'ep': ep, 'puz': ep.puzzle_set.all()} for ep in episodes]
+        else:
+            episodes = [{'ep': ep, 'puz': team.puz_unlocked.filter(episode=ep)} for ep in episodes]
+        return episodes
 
     def get_puzzle_list(self, user, team):
         """ Return the list of puzzles that a user/team can see"""
@@ -357,6 +365,9 @@ class PuzzleFile(models.Model):
     class Meta:
         unique_together = (('puzzle', 'slug'), ('puzzle', 'url_path'))
 
+    def __str__(self):
+        return "$" + self.slug + " => " + self.url_path
+
 
 class SolutionFile(models.Model):
     puzzle = models.ForeignKey(Puzzle, on_delete=models.CASCADE)
@@ -378,50 +389,9 @@ class SolutionFile(models.Model):
     class Meta:
         unique_together = (('puzzle', 'slug'), ('puzzle', 'url_path'))
 
-
-class Prepuzzle(models.Model):
-    """ A class representing a pre-puzzle within a hunt """
-
-    puzzle_name = models.CharField(
-        max_length=200,
-        help_text="The name of the puzzle as it will be seen by hunt participants")
-    released = models.BooleanField(
-        default=False)
-    hunt = models.OneToOneField(
-        Hunt,
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        help_text="The hunt that this puzzle is a part of, leave blank for no associated hunt.")
-    answer = models.CharField(
-        max_length=100,
-        help_text="The answer to the puzzle, not case sensitive")
-    template = models.TextField(
-        default='{% extends "puzzle/prepuzzle.html" %}\r\n{% load prepuzzle_tags %}\r\n' +
-                '\r\n{% block content %}\r\n{% endblock content %}',
-        help_text="The template string to be rendered to HTML on the hunt page")
-    response_string = models.TextField(
-        default="",
-        help_text="Data returned to the webpage for use upon solving.")
-
     def __str__(self):
-        if(self.hunt):
-            return "prepuzzle " + str(self.pk) + " (" + str(self.hunt.hunt_name) + ")"
-        else:
-            return "prepuzzle " + str(self.pk)
+        return "$" + self.slug + " => " + self.url_path
 
-    # Overridden to delete old files on clear
-    def save(self, *args, **kwargs):
-        if(self.resource_file.name == ""):
-            old_obj = Prepuzzle.objects.get(pk=self.pk)
-            if(old_obj.resource_file.name != ""):
-                extension = old_obj.resource_file.name.split('.')[-1]
-                folder = "".join(old_obj.resource_file.name.split('.')[:-1])
-                if(extension == "zip"):
-                    shutil.rmtree(os.path.join(settings.MEDIA_ROOT, folder), ignore_errors=True)
-                if os.path.exists(os.path.join(settings.MEDIA_ROOT, old_obj.resource_file.name)):
-                    os.remove(os.path.join(settings.MEDIA_ROOT, old_obj.resource_file.name))
-        super(Prepuzzle, self).save(*args, **kwargs)
 
 
 class Eureka(models.Model):
@@ -554,13 +524,11 @@ class Unlockable(models.Model):
 
     def __str__(self):
         return "%s (%s)" % (self.puzzle.puzzle_name, self.content_type)
-        
-        
-        
+
+
+
 class APIToken(models.Model):
     token = models.UUIDField(default=uuid.uuid4, editable=False)
 
     def __str__(self):
         return str(self.token)
-
-

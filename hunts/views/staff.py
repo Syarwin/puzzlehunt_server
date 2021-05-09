@@ -18,7 +18,7 @@ import json
 from copy import deepcopy
 # from silk.profiling.profiler import silk_profile
 
-from hunts.models import Guess, Hunt, Prepuzzle, Puzzle, Episode
+from hunts.models import Guess, Hunt, Puzzle, Episode
 from teams.models import Team, TeamPuzzleLink, PuzzleSolve, Person
 from teams.forms import GuessForm, UnlockForm, EmailForm, LookupForm
 

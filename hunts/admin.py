@@ -4,6 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.html import format_html
+from django_mirror.admin import MirrorAdmin
 
 import re
 
@@ -20,13 +21,32 @@ class HuntAdminForm(forms.ModelForm):
             'template': HtmlEditor(attrs={'style': 'width: 90%; height: 400px;'}),
         }
 
-class HuntAdmin(admin.ModelAdmin):
+
+class HuntAdmin(MirrorAdmin, admin.ModelAdmin):
     form = HuntAdminForm
     fieldsets = (
-        ('Basic Info', {'fields': ('hunt_name', 'hunt_number', 'team_size',
-                        ('start_date', 'display_start_date'), ('end_date', 'display_end_date'),
-                        'is_current_hunt', 'is_demo', 'template', 'eureka_feedback', 'discord_url','discord_bot_id')}),
+        ('Basic Info', {
+            'fields': ('hunt_name', 'hunt_number', 'team_size', 'is_current_hunt', 'is_demo', 'eureka_feedback', ),
+            'classes': ('order-0', 'baton-tabs-init', 'baton-tab-fs-date', 'baton-tab-fs-template', 'baton-tab-fs-discord', ),
+        }),
+        ('Dates', {
+            'fields': ( ('start_date', 'display_start_date'), ('end_date', 'display_end_date'),),
+            'classes': ('tab-fs-date', ),
+        }),
+        ('Template', {
+            'fields': ('template', ),
+            'classes': ('tab-fs-template', ),
+        }),
+        ('Discord', {
+            'fields': ( 'discord_url','discord_bot_id', ),
+            'classes': ('tab-fs-discord', ),
+        }),
     )
+    mirror_fields = ( ('template', {
+        'mode':'htmlmixed',
+        'line_wrapping': True,
+        'lineNumbers': True,
+    }), )
 
     list_display = ['hunt_name', 'team_size', 'start_date', 'is_current_hunt']
 
@@ -40,7 +60,7 @@ class EpisodeAdminForm(forms.ModelForm):
 class EpisodeAdmin(admin.ModelAdmin):
     form = EpisodeAdminForm
     list_display = ['ep_name', 'start_date', 'hunt_just_name', 'unlocks']
-    
+
     #remove self-reference to episode. TODO: small bug when creating an episode, cannot choose to unlock the last one opened
     def change_view(self, request, object_id, form_url='', extra_context=None):
         self.object_id = object_id
@@ -49,41 +69,11 @@ class EpisodeAdmin(admin.ModelAdmin):
         if db_field.name == "unlocks":
             kwargs['queryset'] = models.Episode.objects.exclude(pk=self.object_id)
         return super(EpisodeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
-    
+
     def hunt_just_name(self, response):
         return response.hunt.hunt_name
 
     hunt_just_name.short_description = "Hunt"
-
-
-class PrepuzzleAdminForm(forms.ModelForm):
-    class Meta:
-        model = models.Prepuzzle
-        fields = ['puzzle_name', 'released', 'hunt', 'answer', 'template',
-                  'response_string']
-        widgets = {
-            'template': HtmlEditor(attrs={'style': 'width: 90%; height: 400px;'}),
-        }
-
-
-class PrepuzzleAdmin(admin.ModelAdmin):
-    form = PrepuzzleAdminForm
-    list_display = ['puzzle_name', 'hunt', 'released']
-    readonly_fields = ('puzzle_url',)
-
-    # Needed to add request to modelAdmin
-    def get_queryset(self, request):
-        qs = super(PrepuzzleAdmin, self).get_queryset(request)
-        self.request = request
-        return qs
-
-    def puzzle_url(self, obj):
-        puzzle_url_str = "http://" + self.request.get_host() + "/prepuzzle/" + str(obj.pk) + "/"
-        html = puzzle_url_str + '<button class="clipboard-btn" data-clipboard-text="' + puzzle_url_str + '" type="button">Copy Puzzle URL</button>'
-        return mark_safe(html)
-
-    puzzle_url.short_description = 'Puzzle URL: (Not editable)'
-
 
 
 class UnlockInline(admin.TabularInline):
@@ -105,13 +95,15 @@ class UnlockInline(admin.TabularInline):
         return super(UnlockInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-class EurekaInline(admin.TabularInline):
+class EurekaInline(admin.StackedInline):
     model = models.Eureka
-    extra = 3
+    extra = 0
+    classes = ('collapse-entry', )
 
-class HintInline(admin.TabularInline):
+class HintInline(admin.StackedInline):
     model = models.Hint
-    extra = 5
+    extra = 0
+    classes = ('collapse-entry', )
 
     #remove eurekas belonging to other puzzles
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -127,9 +119,10 @@ class HintInline(admin.TabularInline):
                 pass
         return super(HintInline, self).formfield_for_manytomany(db_field, request, **kwargs)
 
-class PuzzleFileInline(admin.TabularInline):
+class PuzzleFileInline(admin.StackedInline):
     model = models.PuzzleFile
-    extra = 2
+    extra = 0
+    classes = ('collapse-entry', )
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name == 'file':
@@ -138,9 +131,10 @@ class PuzzleFileInline(admin.TabularInline):
         return super(PuzzleFileInline,self).formfield_for_dbfield(db_field,request,**kwargs)
 
 
-class SolutionFileInline(admin.TabularInline):
+class SolutionFileInline(admin.StackedInline):
     model = models.SolutionFile
-    extra = 1
+    extra = 0
+    classes = ('collapse-entry', )
 
 
 class PuzzleAdminForm(forms.ModelForm):
@@ -192,7 +186,7 @@ class PuzzleAdminForm(forms.ModelForm):
 
     # warn if puzzle cannot be unlocked by users
     def clean(self):
-        if ('warn_possible_duplicate' not in self.data): 
+        if ('warn_possible_duplicate' not in self.data):
           num = self.cleaned_data.get('num_required_to_unlock')
           lis = self.cleaned_data.get('reverse_unlocks')
           if num > len(lis):
@@ -216,7 +210,7 @@ class PuzzleAdminForm(forms.ModelForm):
                   'num_required_to_unlock',)
 
 
-class PuzzleAdmin(admin.ModelAdmin):
+class PuzzleAdmin(MirrorAdmin, admin.ModelAdmin):
     form = PuzzleAdminForm
 
     list_filter = ('episode',)
@@ -226,19 +220,26 @@ class PuzzleAdmin(admin.ModelAdmin):
     ordering = ['episode', 'puzzle_number']
     inlines = (PuzzleFileInline,SolutionFileInline,EurekaInline,HintInline,)
     fieldsets = (
-        (None, {
+        ('Main', {
             'fields': ('episode', 'puzzle_name', 'answer', 'answer_regex', 'puzzle_number',
-                       'puzzle_id', 'extra_data')
+                       'puzzle_id', 'extra_data', ),
+            'classes': ('baton-tabs-init', 'order-0', 'baton-tab-group-fs-resources--inline-puzzlefile--inline-solutionfile', 'baton-tab-fs-unlocking', 'baton-tab-inline-eureka', 'baton-tab-inline-hint')
         }),
         ('Resources', {
-            'classes': ('formset_border', 'resources'),
+            'classes': ('formset_border', 'resources', 'tab-fs-resources'),
             'fields': ('template',)
         }),
         ('Solve Unlocking', {
-            'classes': ('formset_border', 'solve_unlocking'),
+            'classes': ('formset_border', 'solve_unlocking', 'tab-fs-unlocking'),
             'fields': ('reverse_unlocks', 'num_required_to_unlock')
         })
     )
+    mirror_fields = ( ('template', {
+        'mode':'htmlmixed',
+        'line_wrapping': True,
+        'lineNumbers': True,
+    }), )
+
 
     def combined_id(self, puzzle):
         return str(puzzle.puzzle_number) + "-" + puzzle.puzzle_id
@@ -280,7 +281,6 @@ class APITokenAdmin(admin.ModelAdmin):
 
 admin.site.register(models.Hunt,       HuntAdmin)
 admin.site.register(models.Episode,    EpisodeAdmin)
-admin.site.register(models.Prepuzzle,  PrepuzzleAdmin)
 admin.site.register(models.Puzzle,     PuzzleAdmin)
 admin.site.register(models.Eureka,     EurekaAdmin)
 admin.site.register(models.Hint,       HintAdmin)

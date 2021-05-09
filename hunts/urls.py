@@ -38,11 +38,8 @@ urlpatterns = [
     # Hunt Pages
     url(r'^hunt/current/$', views.hunt.current_hunt, name='current_hunt'),
     url(r'^hunt/(?P<hunt_num>[0-9]+)/$', views.hunt.HuntIndex.as_view(), name='hunt'),
-    url(r'^hunt/(?P<hunt_num>[0-9]+)/prepuzzle/$', views.hunt.hunt_prepuzzle, name='hunt_prepuzzle'),
     url(r'^puzzle/(?P<puzzle_id>[0-9a-zA-Z]{3,12})/', include(puzzlepatterns)),
-    url(r'^prepuzzle/(?P<prepuzzle_num>[0-9]+)/$', views.hunt.prepuzzle, name='prepuzzle'),
     #url(r'^objects/$', hunt_views.unlockables, name='unlockables'),
-    #url(r'^protected/(?P<file_path>.+)$', views.hunt.protected_static, name='protected_static'),
     url(r'^leaderboard/$', views.hunt.leaderboard, name='leaderboard'),
 
     # Staff pages

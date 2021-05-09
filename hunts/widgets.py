@@ -14,12 +14,7 @@ class CustomAdminFileWidget(AdminFileWidget):
         if value and hasattr(value, "url"):
             url = reverse('puzzle_file',
                           args=(value.instance.puzzle.puzzle_id, value.instance.url_path, ))
-            out = u"""<div class="form-group">
-                <label class="col-sm-2 control-label">Link:</label>
-                <div class="col-sm-10">
-                  <a href="{}">{}</a>
-                </div>
-            </div>"""
-            output.append(out.format(url, value.instance.url_path))
+            out = u"""<img src="{}" style="width:100px; height:auto"/>"""
+            output.append(out.format(url))
         output.append(super(AdminFileWidget, self).render(name, value, attrs, renderer))
         return mark_safe(u''.join(output))
