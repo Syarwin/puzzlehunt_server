@@ -226,13 +226,18 @@ def charts(request):
       
       
       
-    # Chart solve over time TODO: split among episodes, limit teams?
+    # Chart solve over time
     solve_time = []
     teams = Team.objects.filter(hunt=hunt)
-    for team in teams:
-      solves = team.puzzlesolve_set.filter(puzzle__episode__hunt=hunt)
-      solves = solves.order_by('guess__guess_time').values_list('guess__guess_time', flat=True) 
-      solve_time.append({'solve': solves, 'name': team.team_name})
+    for ep in hunt.episode_set.all():
+      solve_ep = []
+      for team in teams:
+        solves = team.puzzlesolve_set.filter(puzzle__episode=ep)
+        solves = solves.order_by('guess__guess_time').values_list('guess__guess_time', flat=True) 
+#        solves = [sol.isoformat() for sol in solves]
+        solve_ep.append({'solve': solves, 'name': team.team_name})
+      names = ep.puzzle_set.values_list('puzzle_name',flat=True)
+      solve_time.append({'solve': solve_ep, 'names':names})
   
     
     #Chart fast / average puzzle solves
@@ -245,7 +250,7 @@ def charts(request):
       data_puz.append(dic)
       
       
-    context = {'hunt': hunt, 'spammers' : spams, 'spam_teams': spam_teams, 'data5_list':solve_time, 'data_puz': data_puz}
+    context = {'hunt': hunt, 'spammers' : spams, 'spam_teams': spam_teams, 'solve_time':solve_time, 'data_puz': data_puz}
     return render(request, 'stats/charts.html', context)
     
     

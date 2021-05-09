@@ -5,6 +5,9 @@
 {% block includes %}
 <script src="{{ STATIC_URL }}jquery.min.js"></script>
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+<script src="https://cdn.jsdelivr.net/npm/luxon"></script>
+  <script> src="{{ STATIC_URL }}js/chartjs-adapter-luxon.js"</script>
   <script> {% include "js/charts.js" %} </script>
 {% endblock includes %}
 
@@ -12,7 +15,7 @@
 <div class="container">
   <div class="row">
     <div class="col-md-12 content">
-      <h1 style="text-align: center;"> TODO Chaaaaaarts for the hunt '{{ hunt.hunt_name }}' ({{hunt.start_date|date:"M nS" }}) </h1>
+      <h1 style="text-align: center;"> TODO Chaaaaaarts for the hunt '{{ hunt.hunt_name }}' ({{hunt.start_date|date:"M nS" }}) <br> Time display in the graphs are unix seconds and titles do not appear :/ </h1>
       <br>
       <table class="table table-striped table-condensed">
         <tr>
@@ -42,8 +45,12 @@
       
       
   <p>These charts will not automatically refresh</p>
-  <div id="chart_div5"></div>
-  <div id="chart_div_puz"></div>
+  
+  {% for ep in solve_time %}
+  <canvas id="chart_teams_{{forloop.counter}}" width="800" height="450"></canvas>
+  {% endfor %}
+  
+  <canvas id="chart_puz" width="800" height="450"></canvas>
   
   
     </div>
