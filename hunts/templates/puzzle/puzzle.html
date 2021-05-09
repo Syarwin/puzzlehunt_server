@@ -37,13 +37,16 @@ Congratulations! The answer was indeed '{{puzzle.answer}}'.
 </div>
 
 <div id="right-bar" class="vertical-nav">
-  <div class="right-block">
+  <div class="right-block" data-toggle="tooltip" data-placement="top" data-html="true" title="Indications appearing after having unlocked the puzzle for a pre-defined time equal for all teams.">
     <h3>Hints</h3>
     <ul id="hints"></ul>
   </div>
 
   {% if eureka %}
-  <div class="right-block">
+  <div class="right-block" data-toggle="tooltip" data-placement="top" data-html="true" 
+title="Correct step towards the solution, equal for all teams. 
+Rarely contains a small message. 
+May speed-up specific hints.">
     <h3>Milestones</h3>
     <ul id="eurekas"></ul>
   </div>

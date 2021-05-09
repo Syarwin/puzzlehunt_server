@@ -150,7 +150,7 @@ def prepuzzle(request, prepuzzle_num):
     """
     
     try:
-      puzzle = Puzzle.objects.get(pk=prepuzzle_num) # TODO: easier ID
+      puzzle = Puzzle.objects.get(puzzle_id=prepuzzle_num) # TODO: easier ID
       assert puzzle.episode.hunt.is_demo
     except:
       return HttpResponseNotFound('<h1>Page not found</h1>')
