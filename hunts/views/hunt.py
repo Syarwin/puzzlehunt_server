@@ -83,13 +83,13 @@ class HuntIndex(View):
             if len(episodes)>0 and team.ep_solved.count() == len(episodes):
               if len(episodes) == hunt.episode_set.count():
                 try:
-                  time = team.episodesolve_set.get(episode = episodes[-1]).time
+                  time = team.episodesolve_set.get(episode = episodes[-1]['ep']).time
                 except:
                   return HttpResponseNotFound('<h1>Inconsistent database stucture</h1>')
-                message = 'Congratulations! You have finished the hunt at rank ' + str(EpisodeSolve.objects.filter(episode= episodes[-1], time__lte= time).count())
+                message = 'Congratulations! You have finished the hunt at rank ' + str(EpisodeSolve.objects.filter(episode= episodes[-1]['ep'], time__lte= time).count())
               else:
                 try:
-                  message = 'Congratulations on finishing Episode ' + str(len(episodes)) + '! <br> Next Episode will start at ' + episodes[-1].unlocks.start_date.strftime('%H:%M, %d/%m')
+                  message = 'Congratulations on finishing Episode ' + str(len(episodes)) + '! <br> Next Episode will start at ' + episodes[-1]['ep'].unlocks.start_date.strftime('%H:%M, %d/%m')
                 except:
                   return HttpResponseNotFound('<h1>Last Episode finished without unlocking the next one</h1>')
 
