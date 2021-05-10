@@ -26,7 +26,7 @@
         <tr>
           <td>{{forloop.counter}}</td>
           <td><a href="/stats/team/?team={{sol.team_pk}}">{{sol.team|truncatechars:30}}</a></td>
-          <td>{{sol.sol_time|date:'d/m H:i'}} </td>
+          <td>{{sol.sol_time|date:'H:i (D d)'}} </td>
           <td>{{sol.duration }}</td>
           <td>{{sol.guesses }}</td>
           <td>{{sol.hints }}</td>

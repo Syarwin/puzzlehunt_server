@@ -47,9 +47,21 @@ def get_last_hunt_or_none(request):
 
 def format_duration(arg):
     try:
-      return str(timedelta(seconds=int(arg.total_seconds())))
+      seconds = int(arg.total_seconds())
+      if seconds < 60:
+        return str(seconds) + "s"
+      elif seconds < 3600:
+        return str(int(seconds/60)) + "m" + str(seconds % 60) + "s"
+      elif seconds < 3600*24:
+        return str(int(seconds/3600)) + "h" + str(int((seconds % 3600)/60)) + "m"
+      else:
+        return str(int(seconds/3600/24)) + "d" + str(int((seconds % (3600*24))/3600)) + "h"    
+#      return str(timedelta(seconds=int(arg.total_seconds())))
     except AttributeError:
       return ''
+
+def int_to_rank(n):
+  return "%d%s" % (n,"tsnrhtdd"[(n//10%10!=1)*(n%10<4)*n%10::4])
 
 
 
@@ -127,9 +139,9 @@ def team(request):
           solvetime = solve.time
           unlocktime = unlock.time
           duration = solve.duration
-          rank = PuzzleSolve.objects.filter(puzzle= unlock.puzzle, guess__guess_time__lt= solvetime).count()+1
+          rank = int_to_rank(PuzzleSolve.objects.filter(puzzle= unlock.puzzle, guess__guess_time__lt= solvetime).count()+1)
      #     wrap = ExpressionWrapper(F('guess__guess_time')-F('unlock_time'), output_field=fields.DurationField())
-          rankduration = PuzzleSolve.objects.filter(puzzle = unlock.puzzle, duration__lt=duration).count()+1
+          rankduration = int_to_rank(PuzzleSolve.objects.filter(puzzle = unlock.puzzle, duration__lt=duration).count()+1)
           hints = sum([hint.delay_for_team(team) < duration for hint in unlock.puzzle.hint_set.all()])
           duration = format_duration(duration)
         except ObjectDoesNotExist:
@@ -154,21 +166,22 @@ def puzzles(request):
     puzzle_list = [puzzle for episode in hunt.episode_set.all() for puzzle in episode.puzzle_set.all()]
 
     data = []
+    reftime = timezone.now()
     for puz in puzzle_list:
       solves = PuzzleSolve.objects.filter(puzzle=puz)
       unlocks = TeamPuzzleLink.objects.filter(puzzle=puz)
-      dic = solves.aggregate(min_time = Min('guess__guess_time'), av_dur= Avg('duration'), min_dur = Min('duration'))
+      dic = solves.annotate(ref=F('guess__guess_time')-reftime).aggregate(min_time = Min('ref')+reftime, av_dur= Avg('duration'), min_dur = Min('duration'), av_time=Avg('ref')+reftime)
       dic['av_dur'] = format_duration(dic['av_dur'])
       dic['min_dur'] = format_duration(dic['min_dur'])
       dic['success'] = solves.count()
       dic['name'] = puz.puzzle_name
       hints = [sum([hint.delay_for_team(sol.team) < sol.duration for hint in puz.hint_set.all()]) for sol in solves]
       dic['min_hints'] = 0 if len(hints)==0 else min(hints)
-      dic['av_hints'] =  0 if len(hints)==0 else sum(hints)/len(hints)
+      dic['av_hints'] =  0 if len(hints)==0 else round(sum(hints)/len(hints), 2)
       if (unlocks.count() == 0):
         dic['guesses'] = 0
       else:
-        dic['guesses'] = Guess.objects.filter(puzzle=puz).count() / unlocks.count()
+        dic['guesses'] = round(Guess.objects.filter(puzzle=puz).count() / unlocks.count(), 2)
       dic['pk'] = puz.pk
       data.append(dic)
 
@@ -229,15 +242,20 @@ def charts(request):
     # Chart solve over time
     solve_time = []
     teams = Team.objects.filter(hunt=hunt)
+    minTime = timezone.now()
     for ep in hunt.episode_set.all():
       solve_ep = []
       for team in teams:
         solves = team.puzzlesolve_set.filter(puzzle__episode=ep)
         solves = solves.order_by('guess__guess_time').values_list('guess__guess_time', flat=True)
-#        solves = [sol.isoformat() for sol in solves]
+        if len(solves)>0:
+          minTime = min(minTime, min(solves))
+        solves = [sol.isoformat() for sol in solves]
+        solves += [timezone.now().isoformat()] * (ep.puzzle_set.count() - len(solves))
+
         solve_ep.append({'solve': solves, 'name': team.team_name})
       names = ep.puzzle_set.values_list('puzzle_name',flat=True)
-      solve_time.append({'solve': solve_ep, 'names':names})
+      solve_time.append({'solve': solve_ep, 'names':names, 'min': minTime.isoformat()})
 
 
     #Chart fast / average puzzle solves
@@ -247,6 +265,9 @@ def charts(request):
     for puz in puzzle_list:
       solves = PuzzleSolve.objects.filter(puzzle=puz)
       dic = solves.aggregate(av_dur= Avg('duration'), min_dur = Min('duration'))
+      if len(solves)>0:
+        dic =  {'av_dur': datetime.fromtimestamp(dic['av_dur'].total_seconds(), timezone.utc).isoformat()[:-6] , 
+        'min_dur': datetime.fromtimestamp(dic['min_dur'].total_seconds(), timezone.utc).isoformat()[:-6]}
       data_puz.append(dic)
 
 

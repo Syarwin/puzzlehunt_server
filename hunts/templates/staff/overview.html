@@ -25,7 +25,7 @@
             <td class="leftmost" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
               {{ da.team|truncatechars:40 }}
             </td>
-            <td > {{ da.puzzle.index }} : {{ da.puzzle.name|truncatechars:40 }} <br> since: {{ da.puzzle.time }} mn </td>
+            <td > {{ da.puzzle.index }} : {{ da.puzzle.name|truncatechars:40 }} <br> {{ da.puzzle.time }} mn </td>
             <td > {{ da.guesses.nb }} ({{ da.guesses.last }}) <br> {{ da.guesses.time }}mn</td>
             <td > {{ da.eurekas.nb }} / {{ da.eurekas.total}} ({{ da.eurekas.time }}mn) <br>  {{ da.eurekas.last }} </td>
             <td > {{ da.hints.nb }} / {{ da.hints.total}} <br> last: {{ da.hints.last_time }}mn -  next: {{ da.hints.next_time }}mn </td>            

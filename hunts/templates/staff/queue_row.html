@@ -12,21 +12,4 @@
   <td>{{ guess.puzzle.puzzle_name }}</td>
   <td style="max-width: 200px; overflow-wrap: break-word;">{{ guess.guess_text }}</td>
   <td>{{ guess.guess_time|time:"h:i a" }}</td>
-  <td>
-    {% if guess.response_text == '' %}
-      <a href='#' class='needs-response'>[manual response]</a>
-      <a href='#' class='canned-response'>[canned response]</a>
-    {% else%}
-      {{guess.response_text}} <a href='#' class='needs-response'>Fix</a>
-    {% endif  %}
-    <form class='sub_form' action="/staff/queue/" method="post" style="display:none">
-      {% csrf_token %}
-      <p>
-        <input id='id_response' maxlength='400' name='response' type='text'
-          value='{% if guess.response_text == '' %}Wrong answer{% else %}{{guess.response_text}}{% endif %}'>
-        <input type="hidden" name="sub_id" value="{{ guess.pk }}">
-        <input type="Submit" value="Send Response"/>
-      </p>
-    </form>
-  </td>
 </tr>

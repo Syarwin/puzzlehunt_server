@@ -16,6 +16,7 @@
           <th>Puzzle</th>
           <th>Solves</th>
           <th>First</th>
+          <th>Average time</th>
           <th>Fastest</th>
           <th>Average duration</th>
           <th>Average number of guesses</th>
@@ -26,7 +27,8 @@
         <tr>
           <td><a href="/stats/puzzle/?puzzle={{puz.pk}}">{{forloop.counter}} {{ puz.name }}</a></td>
           <td>{{ puz.success }} </td>
-          <td>{{ puz.min_time|date:'d/m H:i' }} </td>
+          <td>{{ puz.min_time|date:'H:i (D d)' }} </td>
+          <td>{{ puz.av_time|date:'H:i (D d)' }} </td>
           <td>{{ puz.min_dur }} </td>
           <td>{{ puz.av_dur }} </td>
           <td>{{ puz.guesses }} </td>

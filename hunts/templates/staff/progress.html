@@ -12,29 +12,18 @@
 {% endblock includes %}
 
 {% block content %}
-  <h1>Puzzle Progress TODO: might be broken because of METAS</h1>
+  <h1>Puzzle Progress</h1>
   <span>
   <input type="checkbox" class="form-check-input" id="sort_check">
   <label class="form-check-label" for="sort_check">Sort?</label>
   <label class="sort_label" for="sort_select1">Sort 1:</label>
   <select class="form-control sort_select" id="sort_select1">
-    <option># Meta Solves</option>
-    <option></option>
     <option># Puzzle Solves</option>
     <option>Last Solve Time</option>
   </select>
   <label class="sort_label" for="sort_select2">2:</label>
   <select class="form-control sort_select" id="sort_select2">
-    <option># Puzzle Solves</option>
-    <option></option>
-    <option># Meta Solves</option>
     <option>Last Solve Time</option>
-  </select>
-  <label class="sort_label" for="sort_select3">3:</label>
-  <select class="form-control sort_select" id="sort_select3">
-    <option>Last Solve Time</option>
-    <option></option>
-    <option># Meta Solves</option>
     <option># Puzzle Solves</option>
   </select>
   </span>
@@ -43,7 +32,6 @@
       <thead class="progress-thead">
         <tr>
           <td class="actions leftmost">All </td>
-          <td class="actions"></td>
           <td class="actions"></td>
           <td class="actions"></td>
           {% for puzzle in puzzle_list %}
@@ -61,7 +49,6 @@
         </tr>
         <tr>
           <th class="leftmost topmost">Team</th>
-          <th>#</br>M</th>
           <th>#</br>P</th>
           <th>Last&nbsp;Time</th>
           {% for puzzle in puzzle_list %}
@@ -78,7 +65,6 @@
             <td class="leftmost" data-id={{team_dict.team.pk}} style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
               {{ team_dict.team.name|truncatechars:40 }}
             </td>
-            <td class='num_metas'></td>
             <td class='num_puzzles'></td>
             <td class='last_time'></td>
             {% for puzzle in team_dict.puzzles %}

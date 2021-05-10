@@ -26,7 +26,6 @@ $(document).ready(function() {
   }
 
   sorting_dict = {
-    "# Meta Solves": "meta_rank",
     "# Puzzle Solves": "rank",
     "Last Solve Time": "last",
   }
@@ -34,14 +33,11 @@ $(document).ready(function() {
   function update_values() {
     $(".team_row").each(function(index) {
       var result = 0;
-      var meta_result = 0;
       var last = 0;
       var last_str = "";
       $(this).find(".solved").each(function(sub_index) {
         if($(this).closest("table").find("th").eq($(this).index()).hasClass("nocount")) {
           //pass
-        } else if($(this).closest("table").find("th").eq($(this).index()).hasClass("metapuzzle")) {
-          meta_result = meta_result + 1;
         } else {
           result = result + 1;
         }
@@ -50,10 +46,8 @@ $(document).ready(function() {
           last_str = $(this).html();
         }
       })
-      $(this).find(".num_metas").html(meta_result);
       $(this).find(".num_puzzles").html(result);
       $(this).find(".last_time").html(last_str);
-      $(this).data("meta_rank", meta_result);
       $(this).data("rank", result);
       $(this).data("last", -1 * last); // allows consistent low->high sorting
       if($(this).data("index") == undefined){
@@ -68,7 +62,6 @@ $(document).ready(function() {
     tbody.find('.team_row').sort(function(a, b) {
       critera1 = sorting_dict[$("#sort_select1").val()]
       critera2 = sorting_dict[$("#sort_select2").val()]
-      critera3 = sorting_dict[$("#sort_select3").val()]
       sort1 = $(b).data(critera1) - $(a).data(critera1);
       if(sort1) {
         return sort1;
@@ -76,10 +69,6 @@ $(document).ready(function() {
       sort2 = $(b).data(critera2) - $(a).data(critera2);
       if(sort2) {
         return sort2;
-      }
-      sort3 = $(b).data(critera3) - $(a).data(critera3);
-      if(sort3) {
-        return sort3;
       }
       return $(a).data("index") - $(b).data("index");
     }).appendTo(tbody);
