@@ -102,7 +102,7 @@ class HuntIndex(View):
                   time = team.episodesolve_set.get(episode = episodes[-1]['ep']).time
                 except:
                   return HttpResponseNotFound('<h1>Inconsistent database stucture</h1>')
-                message = 'Congratulations! You have finished the hunt at rank ' + str(EpisodeSolve.objects.filter(episode= episodes[-1]['ep'], time__lte= time).count())
+                message = 'Congratulations! <br>You have finished the hunt at rank ' + str(EpisodeSolve.objects.filter(episode= episodes[-1]['ep'], time__lte= time).count())
               else:
                 try:
                   message = 'Congratulations on finishing Episode ' + str(len(episodes)) + '! <br> Next Episode will start at ' + episodes[-1]['ep'].unlocks.start_date.strftime('%H:%M, %d/%m')

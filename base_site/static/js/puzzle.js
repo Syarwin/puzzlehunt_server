@@ -142,7 +142,7 @@ var guesses = [];
 
 function addGuess(user, guess, correct, guess_uid) {
   var guesses_table = $('#guesses');
-  guesses_table.prepend('<li><span class="guess-value">' + encode(guess) + '</span><span class="guess-user">(' + encode(user) + ')</span></li>')
+  guesses_table.prepend('<li><span class="guess-user">(' + encode(user) + ')</span><span class="guess-value">' + encode(guess) + '</span></li>')
   guesses.push(guess_uid)
 }
 
@@ -203,7 +203,7 @@ function updateHints() {
     return 0
   })
   entries.forEach(entry => {
-    hints_list.append('<li><span class="guess-value">' + encode(entry[1].hint) + '</span><span class="guess-user">(' + encode(entry[1].time) + ')</span></li>')
+    hints_list.append('<li><span class="guess-user">(' + encode(entry[1].time) + ')</span><span class="guess-value">' + encode(entry[1].hint) + '</span></li>')
   })
 }
 
@@ -218,7 +218,7 @@ var eurekas = [];
 
 function addEureka(eureka, eureka_uid, feedback) {
   var guesses_table = $('#eurekas');
-  guesses_table.prepend('<li>' + encode(eureka) + "<br> <i>" + encode(feedback)+ '</i></li>') /* TODO stupid HTML */
+  guesses_table.prepend('<li><span class="guess-user">' + encode(feedback) + '</span><span class="guess-value">' + encode(eureka) + '</span></li>') 
   eurekas.push(eureka_uid)
 }
 
