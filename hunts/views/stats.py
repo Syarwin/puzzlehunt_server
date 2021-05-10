@@ -251,7 +251,7 @@ def charts(request):
         if len(solves)>0:
           minTime = min(minTime, min(solves))
         solves = [sol.isoformat() for sol in solves]
-        solves += [timezone.now().isoformat()] * (ep.puzzle_set.count() - len(solves))
+        solves += [None] * (ep.puzzle_set.count() - len(solves))
 
         solve_ep.append({'solve': solves, 'name': team.team_name})
       names = ep.puzzle_set.values_list('puzzle_name',flat=True)
@@ -266,10 +266,14 @@ def charts(request):
       solves = PuzzleSolve.objects.filter(puzzle=puz)
       dic = solves.aggregate(av_dur= Avg('duration'), min_dur = Min('duration'))
       if len(solves)>0:
-        dic =  {'av_dur': datetime.fromtimestamp(dic['av_dur'].total_seconds(), timezone.utc).isoformat()[:-6] , 
-        'min_dur': datetime.fromtimestamp(dic['min_dur'].total_seconds(), timezone.utc).isoformat()[:-6]}
+        dic =  {'av_dur': datetime.fromtimestamp(dic['av_dur'].total_seconds(), timezone.utc).isoformat()[:-13] , 
+        'min_dur': datetime.fromtimestamp(dic['min_dur'].total_seconds(), timezone.utc).isoformat()[:-13],
+        'name': puz.puzzle_name}
+      else:
+        dic =  {'av_dur': None, 'min_dur': None,  'name': puz.puzzle_name}
       data_puz.append(dic)
-
+    
+    
 
     context = {'hunt': hunt, 'spammers' : spams, 'spam_teams': spam_teams, 'solve_time':solve_time, 'data_puz': data_puz}
     return render(request, 'stats/charts.html', context)

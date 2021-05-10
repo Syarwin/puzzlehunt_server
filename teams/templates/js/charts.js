@@ -118,7 +118,7 @@ new Chart(puzCanvas, {
     data: {
       labels: [
                 {% for point in data_puz %}
-                {{forloop.counter}},
+                " {{point.name}}",
                 {%endfor%}
                 ],
       datasets: [
@@ -157,18 +157,18 @@ new Chart(puzCanvas, {
             y: {
                 type: 'time',
                 time: {
-                tooltipFormat:'HH:mm',
                 unit: 'minute',
+                tooltipFormat:'HH:mm:ss',
                         displayFormats: {
-                        'millisecond':'HH:mm',
-                         'second': 'HH:mm',
+                        'millisecond':'HH:mm:ss',
+                         'second': 'HH:mm:ss',
                          'minute': 'HH:mm',
                          'hour': ' HH:mm',
-                         'day': ' HH:mm',
-                         'week': 'HH:mm',
-                         'month': 'HH:mm',
-                         'quarter': 'HH:mm',
-                         'year': 'HH:mm',
+                         'day': 'D d HH:mm',
+                         'week': 'D d HH:mm',
+                         'month': 'D d m HH:mm',
+                         'quarter': 'D d m HH:mm',
+                         'year': 'Y d/m',
                         },
                 }
             },

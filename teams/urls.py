@@ -29,6 +29,6 @@ urlpatterns = [
     url(r'^manage-team/$', views.auth.ManageTeam.as_view(), name='manage-team'),
     url(r'^profile/$', views.auth.profile, name='profile'),    
     #bot
-    url('teaminfo/<uuid:team_token>', views.auth.TeamInfoView.as_view(), name='team_info'),
+    url('teaminfo/(?P<team_token>[0-9a-f-]+)', views.auth.TeamInfoView.as_view(), name='team_info'),
 
 ]

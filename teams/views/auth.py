@@ -7,6 +7,7 @@ from django.shortcuts import render, redirect, reverse
 from django.db.models.functions import Lower
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
+from django.http import Http404, JsonResponse
 
 import random
 import re
@@ -212,13 +213,13 @@ def profile(request):
 class TeamInfoView(APITokenRequiredMixin, View):
     def get(self, request, team_token):
         try:
-            team = models.Team.objects.get(token=team_token)
-        except models.Team.DoesNotExist:
+            team = Team.objects.get(token=team_token)
+        except Team.DoesNotExist:
             return JsonResponse({
                 'result': 'Not Found',
                 'message': 'Invalid team token',
             }, status=404)
-        except models.Team.DoesNotExist:
+        except Team.DoesNotExist:
             return JsonResponse({
                 'result': 'Not Found',
                 'message': 'Several teams share this token',
@@ -226,7 +227,8 @@ class TeamInfoView(APITokenRequiredMixin, View):
         return JsonResponse({
             'result': 'OK',
             'team': {
-                'name': team.name,
+                'name': team.team_name,
+                'nb_ep_solve': team.ep_solved.count()
             },
         })
 

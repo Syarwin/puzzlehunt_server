@@ -272,7 +272,7 @@ class HintAdmin(admin.ModelAdmin):
     puzzle_just_name.short_description = "Puzzle"
 
 
-#@admin.register(models.APIToken)
+@admin.register(models.APIToken)
 class APITokenAdmin(admin.ModelAdmin):
     readonly_fields = ('token', )
     list_display = ('token', )

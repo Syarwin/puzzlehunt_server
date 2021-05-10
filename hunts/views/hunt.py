@@ -36,6 +36,22 @@ logger = logging.getLogger(__name__)
 DT_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
+def format_duration(arg):
+    try:
+      seconds = int(arg.total_seconds())
+      if seconds < 60:
+        return str(seconds) + "s"
+      elif seconds < 3600:
+        return str(int(seconds/60)) + "m" + str(seconds % 60) + "s"
+      elif seconds < 3600*24:
+        return str(int(seconds/3600)) + "h" + str(int((seconds % 3600)/60)) + "m"
+      else:
+        return str(int(seconds/3600/24)) + "d" + str(int((seconds % (3600*24))/3600)) + "h"    
+#      return str(timedelta(seconds=int(arg.total_seconds())))
+    except AttributeError:
+      return ''
+
+
 class PuzzleFile(RequiredPuzzleAccessMixin, View):
     def get(self, request, puzzle_id, file_path):
         puzzle = request.puzzle
@@ -255,9 +271,9 @@ def leaderboard(request):
       for unlock in unlocks.all():
         try:
           solve = solves.get(puzId=unlock.puzId)
-          solves_data.append({'name' : unlock.name, 'sol_time': solve.time, 'duration':  str(timedelta(seconds=int((solve.time-unlock.time).total_seconds())))})
+          solves_data.append({'name' : unlock.name, 'sol_time': solve.time, 'duration':  format_duration(solve.time-unlock.time)})
         except ObjectDoesNotExist:
-          solves_data.append({'name' : unlock.name, 'sol_time': '' , 'duration':  str(timedelta(seconds=int((timezone.now()-unlock.time).total_seconds())))})
+          solves_data.append({'name' : unlock.name, 'sol_time': '' , 'duration':  format_duration(timezone.now()-unlock.time)})
 
     context = {'team_data': all_teams, 'solve_data': solves_data}
     return render(request, 'hunt/leaderboard.html', context)
