@@ -92,6 +92,7 @@ def queue(request):
     guess_list = [render_to_string('staff/queue_row.html', {'guess': guess},
                                         request=request)
                        for guess in guesss]
+    puzzle_list = [puzzle for episode in hunt.episode_set.all() for puzzle in episode.puzzle_set.all()]
 
     if request.is_ajax() or request.method == 'POST':
         context = {'guess_list': guess_list, 'last_date': last_date}
@@ -99,7 +100,7 @@ def queue(request):
     else:
         context = {'form': form, 'page_info': guesss, 'arg_string': arg_string,
                    'guess_list': guess_list, 'last_date': last_date, 'hunt': hunt,
-                   'puzzle_id': puzzle_id, 'team_id': team_id}
+                   'puzzle_id': puzzle_id, 'team_id': team_id, 'puzzle_list': puzzle_list}
         return render(request, 'staff/queue.html', context)
 
 
@@ -315,149 +316,6 @@ def charts(request):
     return render(request, 'staff/charts.html', {})
 
 
-#    curr_hunt = Hunt.objects.get(is_current_hunt=True)
-##    puzzles = curr_hunt.puzzle_set.order_by('puzzle_number')
-#    puzzles = [episode.puzzle_set.order_by('puzzle_number') for episode in curr_hunt.episode_set.all()][0] #dirty but should work for now (11/04/2021)
-#    teams = curr_hunt.team_set.exclude(location="DUMMY")
-#    num_teams = teams.count()
-#    num_puzzles = puzzles.count()
-
-#    names = puzzles.values_list('puzzle_name', flat=True)
-
-#    # Charts 1, 2 and 7
-#    puzzle_info_dict1 = []
-#    puzzle_info_dict2 = []
-#    puzzle_info_dict7 = []
-
-#    solves = puzzles.annotate(solved=Count('puzzlesolve')).values_list('solved', flat=True)
-#    subs = puzzles.annotate(subs=Count('guess')).values_list('subs', flat=True)
-#    unlocks = puzzles.annotate(unlocked=Count('teampuzzlelink')).values_list('unlocked', flat=True)
-#    hints = puzzles.annotate(hints=Count('hint')).values_list('hints', flat=True)
-#    puzzle_data = zip(names, solves, subs, unlocks, hints)
-#    for puzzle in puzzle_data:
-#        puzzle_info_dict1.append({
-#            "name": puzzle[0],
-#            "locked": num_teams - puzzle[3],
-#            "unlocked": puzzle[3] - puzzle[1],
-#            "solved": puzzle[1]
-#        })
-
-#        puzzle_info_dict2.append({
-#            "name": puzzle[0],
-#            "incorrect": puzzle[2] - puzzle[1],
-#            "correct": puzzle[1]
-#        })
-
-#        puzzle_info_dict7.append({
-#            "name": puzzle[0],
-#            "hints": puzzle[4]
-#        })
-
-#    # Chart 3
-#    guess_hours = []
-#    subs = Guess.objects.filter(puzzle__episode__hunt=curr_hunt,
-#                                #     guess_time__gte=curr_hunt.start_date,
-#                                     guess_time__lte=curr_hunt.end_date)
-#    subs = subs.values_list('guess_time__year',
-#                            'guess_time__month',
-#                            'guess_time__day',
-#                            'guess_time__hour')
-#    subs = subs.annotate(Count("id")).order_by('guess_time__year',
-#                                               'guess_time__month',
-#                                               'guess_time__day',
-#                                               'guess_time__hour')
-#    for sub in subs:
-#        time_string = "%02d/%02d/%04d - %02d:00" % (sub[1], sub[2], sub[0], sub[3])
-#        guess_hours.append({"hour": time_string, "amount": sub[4]})
-
-#    # Chart 4
-#    solve_hours = []
-#    solves = PuzzleSolve.objects.filter(puzzle__episode__hunt=curr_hunt,
-#                              #    guess__guess_time__gte=curr_hunt.start_date,
-#                                  guess__guess_time__lte=curr_hunt.end_date)
-#    solves = solves.values_list('guess__guess_time__year',
-#                                'guess__guess_time__month',
-#                                'guess__guess_time__day',
-#                                'guess__guess_time__hour')
-#    solves = solves.annotate(Count("id")).order_by('guess__guess_time__year',
-#                                                   'guess__guess_time__month',
-#                                                   'guess__guess_time__day',
-#                                                   'guess__guess_time__hour')
-#    for solve in solves:
-#        time_string = "%02d/%02d/%04d - %02d:00" % (solve[1], solve[2], solve[0], solve[3])
-#        solve_hours.append({"hour": time_string, "amount": solve[4]})
-
-#    # Chart 5
-#    solve_time = []
-#    teams = Team.objects.filter(hunt=curr_hunt)
-#    for team in teams:
-#      solves = team.puzzlesolve_set.filter(puzzle__episode__hunt=curr_hunt)
-#      solves = solves.order_by('guess__guess_time').values_list('guess__guess_time', flat=True) # TODO may have timezone issue, maybe only in UTC
-#
-#
-#
-##      for i,solve in enumerate(solves):
-##          seconds = (datetime(solve[0],solve[1],solve[2],solve[3],solve[4],solve[5]) - datetime(solves[0][0],solves[0][1],solves[0][2],solves[0][3],solves[0][4],solves[0][5])).total_seconds()
-#      solve_time.append({'solve': solves, 'name': team.team_name})#{"seconds": seconds, "index": i})
-#    # solves = Solve.objects.filter(puzzle__hunt=curr_hunt,
-#    #                               guess__guess_time__gte=curr_hunt.start_date,
-#    #                               guess__guess_time__lte=curr_hunt.end_date)
-#    # solves = solves.order_by('guess__guess_time')
-
-#    # team_dict = {}
-#    # for team in
-#    #     team_dict[team] = 0
-#    # progress = [0] * (num_puzzles + 1)
-#    # progress[0] = num_teams
-#    # solve_points.append([curr_hunt.start_date] + progress[::-1])
-#    # for solve in solves:
-#    #     progress[team_dict[solve.team]] -= 1
-#    #     team_dict[solve.team] += 1
-#    #     progress[team_dict[solve.team]] += 1
-#    #     solve_points.append([solve.guess.guess_time] + progress[::-1])
-
-#    # for puzzle in puzzles:
-#    #     points = puzzle.solve_set.order_by('guess__guess_time')
-#    #     points = points.values_list('guess__guess_time', flat=True)
-#    #     points = zip([curr_hunt.start_date] + list(points), range(len(points) + 1))
-#    #     solve_points.append({'puzzle': puzzle, 'points': points})
-
-#    # for team in
-#    #     points = team.solve_set.order_by('guess__guess_time')
-#    #     points = points.values_list('guess__guess_time', flat=True)
-#    #     points = zip([curr_hunt.start_date] + list(points), range(len(points) + 1))
-#    #     solve_points.append({'team': team, 'points': points})
-
-#    # Chart 6
-#    solve_time_data = []
-#    # sq1 = TeamPuzzleLink.objects.filter(puzzle=OuterRef('puzzle'), team=OuterRef('team'))
-#    # sq1 = sq1.values('time')[:1]
-#    # sq2 = Solve.objects.filter(pk=OuterRef('pk')).values('guess__guess_time')[:1]
-#    # solves = Solve.objects.filter(puzzle__hunt=curr_hunt,
-#    #                               guess__guess_time__gte=curr_hunt.start_date,
-#    #                               guess__guess_time__lte=curr_hunt.end_date)
-#    # solves = solves.annotate(t1=Subquery(sq1), t2=Subquery(sq2))
-#    # solves = solves.annotate(solve_duration=F('t2') - F('t1'))
-#    # std = solves.values_list('puzzle__puzzle_number', 'solve_duration')
-#    # solve_time_data = [(x[0]+(random.random()/2)-0.5, x[1].total_seconds()/60) for x in std]
-
-#    # Info Table
-#    # with silk_profile(name="Info Table"):
-#    solves = PuzzleSolve.objects.filter(team__hunt=curr_hunt)
-#    mins = solves.values_list('puzzle').annotate(m=Min('id')).values_list('m', flat=True)
-#    results = PuzzleSolve.objects.filter(pk__in=mins).values_list('puzzle__puzzle_id',
-#                                                            'puzzle__puzzle_name',
-#                                                            'team__team_name',
-#                                                            'guess__guess_time')
-#    results = list(results.annotate(Count('puzzle__puzzlesolve')).order_by('puzzle__puzzle_id'))
-
-#    context = {'data1_list': puzzle_info_dict1, 'data2_list': puzzle_info_dict2,
-#               'data3_list': guess_hours, 'data4_list': solve_hours,
-#               'data5_list': solve_time, 'teams': teams, 'num_puzzles': num_puzzles,
-#               'chart_rows': results, 'puzzles': puzzles, 'data6_list': solve_time_data,
-#               'data7_list': puzzle_info_dict7}
-#    return render(request, 'staff/charts.html', context)
-
 
 
 @staff_member_required
@@ -465,11 +323,10 @@ def hunt_management(request):
     """ A view to render the hunt management page """
 
     hunts = Hunt.objects.all()
-    prepuzzles = Prepuzzle.objects.all()
 
     puzzles = Puzzle.objects.all()
 
-    context = {'hunts': hunts, 'prepuzzles': prepuzzles, 'puzzles': puzzles}
+    context = {'hunts': hunts, 'puzzles': puzzles}
     return render(request, 'staff/hunt_management.html', context)
 
 
@@ -568,7 +425,7 @@ def lookup(request):
     """
     person = None
     team = None
-    curr_hunt = Hunt.objects.get(is_current_hunt=True)
+    hunt = Hunt.objects.get(is_current_hunt=True)
     if request.method == 'POST':
         lookup_form = LookupForm(request.POST)
         if lookup_form.is_valid():
@@ -582,16 +439,18 @@ def lookup(request):
             team = Team.objects.get(pk=request.GET.get("team_pk"))
             team.latest_guesss = team.guess_set.values_list('puzzle')
             team.latest_guesss = team.latest_guesss.annotate(Max('guess_time'))
-            all_teams = team.hunt.team_set.annotate(solves=Count('solved'))
-            all_teams = all_teams.annotate(last_time=Max('solve__guess__guess_time'))
+            all_teams = team.hunt.team_set.annotate(solves=Count('puz_solved'))
+            all_teams = all_teams.annotate(last_time=Max('puz_solved__guess__guess_time'))
             ids = all_teams.order_by(F('solves').desc(nulls_last=True),
                                      F('last_time').asc(nulls_last=True))
             team.rank = list(ids.values_list('pk', flat=True)).index(team.pk) + 1
+            
+            puzzle_list = [puzzle for episode in hunt.episode_set.all() for puzzle in episode.puzzle_set.all()]
 
         lookup_form = LookupForm()
         results = {}
     context = {'lookup_form': lookup_form, 'results': results, 'person': person, 'team': team,
-               'curr_hunt': curr_hunt}
+               'curr_hunt': hunt, 'puzzle_list': puzzle_list}
     return render(request, 'staff/lookup.html', context)
 
 

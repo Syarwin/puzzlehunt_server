@@ -28,7 +28,7 @@
   </select>
   </span>
   <div id=table-container>
-    <table id='progress' class="table table-bordered table-condensed">
+    <table id='progress' class="table table-hover table-striped table-condensed">
       <thead class="progress-thead">
         <tr>
           <td class="actions leftmost">All </td>
@@ -40,7 +40,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="puzzle_id" value="{{ puzzle.pk }}">
                 <input type="hidden" name="action" value="unlock_all">
-                <button type="Submit" class="btn btn-default btn-xs" onclick="return confirm('Are you sure?')">
+                <button type="Submit" class="btn btn-secondary" onclick="return confirm('Are you sure?')">
                   Unlock All
                 </button>
               </form>
@@ -62,9 +62,9 @@
       <tbody>
         {% for team_dict in sol_list %}
           <tr class="team_row">
-            <td class="leftmost" data-id={{team_dict.team.pk}} style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+            <th class="leftmost" data-id={{team_dict.team.pk}} style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;" scope='row'>
               {{ team_dict.team.name|truncatechars:40 }}
-            </td>
+            </th>
             <td class='num_puzzles'></td>
             <td class='last_time'></td>
             {% for puzzle in team_dict.puzzles %}
@@ -73,10 +73,10 @@
                 class='unavailable' style='text-align:center;'>
               {% elif puzzle.1 == "unlocked" %}
                 class='available' data-date={{ puzzle.2 |date:"U"}}>
-                  <b>{{ puzzle.3|time:"h:i a" }}</b>
+                  <b>{{ puzzle.3|time:"H:i" }}</b>
               {% else %}
                 class='solved' data-date={{ puzzle.2 |date:"U"}}>
-                  {{ puzzle.2|time:"h:i a" }}
+                  {{ puzzle.2|time:"H:i" }}
               {% endif %}
               </td>
             {% endfor %}

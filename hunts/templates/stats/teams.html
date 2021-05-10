@@ -11,17 +11,19 @@
     <div class="col-md-12 content">
       <h1 style="text-align: center;"> Team Stats for the hunt '{{ hunt.hunt_name }}' ({{hunt.start_date|date:"M nS" }}) </h1>
       <br>
-      <table class="table table-striped table-condensed">
+      <table class="table table-striped table-condensed table-hover ">
+      <thead>
         <tr>
           <th>Rank</th>
           <th>Team</th>
           <th>Solves</th>
           <th>Last Puzzle Solved</th>
         </tr>
+        </thead>
         {% for team in team_data %}
         <tr>
           <td>{{forloop.counter}}</td>
-          <td><a href="/stats/team/?team={{team.pk}}">{{team.team_name|truncatechars:30}}</a></td>
+          <td><a  class="btn btn-secondary btn-sm active" role="button" href="/stats/team/?team={{team.pk}}">{{team.team_name|truncatechars:30}}</a></td>
           <td>{{team.solves}} / {{ hunt.puz }} </td>
           <td>{{team.last_time|date:"H:i (D d)" }}</td>
         </tr>

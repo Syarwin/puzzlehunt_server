@@ -48,7 +48,7 @@ urlpatterns = [
         url(r'^queue/$', views.staff.queue, name='queue'),
         url(r'^progress/$', views.staff.progress, name='progress'),
         url(r'^overview/$', views.staff.overview, name='overview'),
-        url(r'^charts/$', views.staff.charts, name='charts'),
+        url(r'^charts/$', views.stats.charts, name='charts'), # staff charts seem useless
         url(r'^control/$', views.staff.control, name='control'),
         url(r'^teams/$', RedirectView.as_view(url='/admin/teams/team/', permanent=False)),
         url(r'^puzzles/$', RedirectView.as_view(url='/admin/hunts/puzzle/', permanent=False)),

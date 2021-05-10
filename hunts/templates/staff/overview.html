@@ -8,7 +8,7 @@
 {% block content %}
   <h1>Last Unlocked Puzzle Overview</h1>
   <div id=table-container>
-    <table id='overview' class="table table-bordered table-condensed">
+    <table id='overview' class="table table-condensed table-hover table-striped">
       <thead class="overview-thead">
         <tr>
           <th class="leftmost topmost">Team</th>
@@ -22,9 +22,9 @@
       <tbody>
         {% for da in data %}
           <tr class="team_row">
-            <td class="leftmost" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+            <th class="leftmost" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;" scope="row">
               {{ da.team|truncatechars:40 }}
-            </td>
+            </th>
             <td > {{ da.puzzle.index }} : {{ da.puzzle.name|truncatechars:40 }} <br> {{ da.puzzle.time }} mn </td>
             <td > {{ da.guesses.nb }} ({{ da.guesses.last }}) <br> {{ da.guesses.time }}mn</td>
             <td > {{ da.eurekas.nb }} / {{ da.eurekas.total}} ({{ da.eurekas.time }}mn) <br>  {{ da.eurekas.last }} </td>

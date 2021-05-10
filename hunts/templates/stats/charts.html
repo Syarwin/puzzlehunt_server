@@ -36,11 +36,13 @@
   
   <h2> Spamming contest </h2>
   
-      <table class="table table-striped table-condensed">
+      <table class="table table-striped table-condensed table-hover">
+      <thead>
         <tr>
           <th>User</th>
           <th>Guesses</th>
         </tr>
+        </thead>
         {% for da in spammers %}
         <tr>
           <td>{{forloop.counter}}: {{da.name}}</td>
@@ -49,14 +51,16 @@
         {% endfor %}
       </table>
       <br>
-      <table class="table table-striped table-condensed">
+      <table class="table table-striped table-condensed table-hover">
+      <thead>
         <tr>
           <th>Teams</th>
           <th>Guesses</th>
         </tr>
+        </thead>
         {% for da in spam_teams %}
         <tr>
-          <td><a href="/stats/team/?team={{da.iid}}">{{forloop.counter}}: {{da.name}}</a></td>
+          <td><a class="btn btn-secondary btn-sm active" role="button"  href="/stats/team/?team={{da.iid}}">{{forloop.counter}}: {{da.name}}</a></td>
           <td>{{da.c}}</td>
         </tr>
         {% endfor %}
