@@ -206,7 +206,7 @@ class FlatPageProxyAdmin(FlatPageAdmin):
     def get_form(self, request, obj=None, **kwargs):
         kwargs['form'] = FlatpageProxyForm
         form = super(FlatPageAdmin, self).get_form(request, obj, **kwargs)
-        form.base_fields['sites'].initial = Site.objects.get(pk=1)
+        form.base_fields['sites'].initial = [Site.objects.get(pk=1)]
         form.base_fields['content'].widget = HtmlEditor(attrs={'style': 'width:90%; height:400px;'})
         form.base_fields['url'].help_text = ("Example: '/contact-us/' translates to " +
                                              "/info/contact-us/. Make sure to have leading and " +
