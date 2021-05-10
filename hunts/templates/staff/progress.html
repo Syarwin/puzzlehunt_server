@@ -12,21 +12,23 @@
 {% endblock includes %}
 
 {% block content %}
+<div class="titleform">
   <h1>Puzzle Progress</h1>
   <span>
   <input type="checkbox" class="form-check-input" id="sort_check">
   <label class="form-check-label" for="sort_check">Sort?</label>
-  <label class="sort_label" for="sort_select1">Sort 1:</label>
-  <select class="form-control sort_select" id="sort_select1">
+  <label class="sort_label" for="sort_select1">1:</label>
+  <select class="form-group sort_select" id="sort_select1">
     <option># Puzzle Solves</option>
     <option>Last Solve Time</option>
   </select>
   <label class="sort_label" for="sort_select2">2:</label>
-  <select class="form-control sort_select" id="sort_select2">
+  <select class="form-group sort_select" id="sort_select2">
     <option>Last Solve Time</option>
     <option># Puzzle Solves</option>
   </select>
   </span>
+  </div>
   <div id=table-container>
     <table id='progress' class="table table-hover table-striped table-condensed">
       <thead class="progress-thead">

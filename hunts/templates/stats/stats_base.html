@@ -25,11 +25,15 @@
     </div>
 </div>
 <div class="puzzle-container">
+
 {%if hunt == None %}
 
 No data available.
 
 {%else%}
+<div class="huntname">
+Hunt '{{ hunt.hunt_name }}' ({{hunt.start_date|date:"M nS" }})
+</div>
 
 {% block content %} {% endblock %}
 {%endif%}

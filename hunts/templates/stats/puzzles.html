@@ -9,20 +9,20 @@
 <div class="container">
   <div class="row">
     <div class="col-md-12 content">
-      <h1 style="text-align: center;"> Puzzle Stats for the hunt '{{ hunt.hunt_name }}' ({{hunt.start_date|date:"M nS" }}) </h1>
+      <h1 style="text-align: center;"> Puzzle Stats</h1>
       <br>
       <table class="table table-striped table-hover table-condensed">
       <thead>
         <tr>
           <th>Puzzle</th>
           <th>Solvers</th>
-          <th>First solve time</th>
-          <th>Average solve time</th>
+          <th>First <br>solve time</th>
+          <th>Average <br>solve time</th>
           <th>Fastest</th>
           <th>Average duration</th>
-          <th>Average number of guesses</th>
-          <th>Minimum number of hints</th>
-          <th>Average number of hints</th>          
+          <th>Average number<br> of guesses</th>
+          <th>Minimum <br>number of hints</th>
+          <th>Average <br>number of hints</th>          
         </tr>
         </thead>
         {% for puz in data %}

@@ -83,6 +83,7 @@ def queue(request):
             guesss = pages.page(1)
         except EmptyPage:
             guesss = pages.page(pages.num_pages)
+        puzzle_list = [puzzle for episode in hunt.episode_set.all() for puzzle in episode.puzzle_set.all()]
 
     form = GuessForm()
     try:
@@ -92,7 +93,7 @@ def queue(request):
     guess_list = [render_to_string('staff/queue_row.html', {'guess': guess},
                                         request=request)
                        for guess in guesss]
-    puzzle_list = [puzzle for episode in hunt.episode_set.all() for puzzle in episode.puzzle_set.all()]
+                       
 
     if request.is_ajax() or request.method == 'POST':
         context = {'guess_list': guess_list, 'last_date': last_date}
@@ -445,10 +446,10 @@ def lookup(request):
                                      F('last_time').asc(nulls_last=True))
             team.rank = list(ids.values_list('pk', flat=True)).index(team.pk) + 1
             
-            puzzle_list = [puzzle for episode in hunt.episode_set.all() for puzzle in episode.puzzle_set.all()]
-
         lookup_form = LookupForm()
         results = {}
+
+    puzzle_list = [puzzle for episode in hunt.episode_set.all() for puzzle in episode.puzzle_set.all()]
     context = {'lookup_form': lookup_form, 'results': results, 'person': person, 'team': team,
                'curr_hunt': hunt, 'puzzle_list': puzzle_list}
     return render(request, 'staff/lookup.html', context)

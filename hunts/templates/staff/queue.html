@@ -12,10 +12,11 @@
 {% endblock includes %}
 
 {% block content %}
+<div class="titleform">
 <h1>Guess Queue</h1>
 
 <form method="GET" action="" class="form-inline">
-  <select name="team_id" style="width: 200px;" class="form-control">
+  <select name="team_id" style="width: 200px;" class="form-group">
     <option value="">All teams</option>
     {% for team in hunt.team_set.all|dictsort:"team_name.lower" %}
       <option value="{{team.pk}}" {% if team.pk == team_id %} selected {% endif %}>
@@ -23,7 +24,7 @@
       </option>
     {% endfor %}
   </select>
-  <select name="puzzle_id" style="width: 200px;" class="form-control">
+  <select name="puzzle_id" style="width: 200px;" class="form-group">
     <option value="">All puzzles</option>
     {% for puzzle in puzzle_list %}
       <option value="{{puzzle.pk}}" {% if puzzle.pk == puzzle_id %} selected {% endif %}>
@@ -33,6 +34,7 @@
   </select>
   <button type="submit" value="Filter" class="btn btn-secondary"> Filter </button>
 </form>
+</div>
 
 <table id='queue' class="table table-hover table-striped table-condensed">
   <thead>

@@ -78,8 +78,8 @@ class LookupForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(LookupForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
-        self.helper.form_class = 'form-inline'
-        self.helper.field_template = 'bootstrap3/layout/inline_field.html'
+        self.helper.form_class = 'form-inline lookupdiv'
+        self.helper.field_template = 'bootstrap5/layout/inline_field.html'
         self.helper.layout = Layout(
             'search_string',
             Submit('submit', 'Submit', css_class='btn btn-primary')

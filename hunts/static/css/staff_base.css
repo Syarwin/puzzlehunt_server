@@ -98,3 +98,50 @@ main.split-hor {
   align-items: center;
   height:100%;
 }
+
+td .btn {
+  width:200px;
+}
+
+.statbtns{
+  float:right;
+  margin-top:0cm;
+  }
+ 
+ .statchart{
+  margin-bottom: 2cm;
+  } 
+  
+.table{
+  margin-top: 1cm;
+  }
+
+.huntname{
+  position:absolute;
+  top:70px;
+  right:20px;
+  font-style:italic;
+  }
+  
+h1{
+  margin-bottom: 1cm;
+  }
+
+.titleform{
+  display:inline;
+  }
+  
+.titleform form, .titleform span{
+  float:right
+  }
+.titleform h1 {
+  display: inline;
+  }
+  
+.lookupdiv {
+  display: flex;
+  margin-bottom: 2cm;
+  }
+  
+
+  

@@ -36,6 +36,7 @@
 
   {% if team %}
     <h3> {{team.team_name}} </h3>
+    <div class="lookupteam">
     <b>Hunt:</b> {{team.hunt.hunt_name}} - '{{team.hunt.start_date|date:"y"}}<br>
     <b>Playtester status:</b>
       {% if team.playtester %}
@@ -59,6 +60,7 @@
     {% for person in team.person_set.all %}
       {{person.user.email}};
     {% endfor %}
+    <div>
     <br>
     <b>Puzzle status:</b>
     <table style="width:450px" class="table table-hover table-striped  table-condensed">
