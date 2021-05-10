@@ -80,7 +80,7 @@
             <td>
               {% for solve in team.puzzlesolve_set.all %}
                 {% if solve.puzzle == puzzle %}
-                  {{solve.guess.guess_time|time:"h:i a"}} (S)
+                  {{solve.guess.guess_time|time:"H:i"}} (S)
                 {% endif %}
               {% endfor %}
             </td>
@@ -91,7 +91,7 @@
             <td>
               {% for sub_tuple in team.latest_guesss.all %}
                 {% if sub_tuple.0 == puzzle.pk %}
-                  {{sub_tuple.1|time:"h:i a"}} (LG)
+                  {{sub_tuple.1|time:"H:i"}} (LG)
                 {% endif %}
               {% endfor %}
             </td>
