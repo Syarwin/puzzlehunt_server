@@ -99,7 +99,7 @@ main.split-hor {
   height:100%;
 }
 
-td .btn {
+td > .btn {
   width:200px;
 }
 
