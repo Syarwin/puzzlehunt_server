@@ -101,6 +101,7 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
         self.puzzle = get_object_or_404(Puzzle, puzzle_id__iexact=puzzle_id)
         self.hunt = self.puzzle.episode.hunt
         self.team = self.hunt.team_from_user(self.scope['user'])
+        self.is_staff = self.scope['user'].is_staff
         async_to_sync(self.channel_layer.group_add)(
             self._puzzle_groupname(self.puzzle, self.team), self.channel_name
         )
@@ -337,7 +338,7 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
         for hint in hints:
             delay = hint.delay_for_team(self.team) - (timezone.now() - hint.starting_time_for_team(self.team))
             delay = delay.total_seconds()
-            if delay < 0:
+            if delay < 0 or (self.is_staff and self.team is not None):
                 self.send_new_hint_to_team(self.team, hint)
 
     def send_old_unlocks(self):
