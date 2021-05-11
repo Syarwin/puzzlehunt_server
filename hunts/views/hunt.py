@@ -103,7 +103,7 @@ class HuntIndex(View):
         message = ''
         time_zone = tz.gettz(settings.TIME_ZONE)
 
-        if not user.is_staff:
+        if not user.is_staff and team is not None:
             if len(episodes)>0 and team.ep_solved.count() == len(episodes):
               if len(episodes) == hunt.episode_set.count():
                 try:
