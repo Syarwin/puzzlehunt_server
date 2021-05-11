@@ -1,6 +1,5 @@
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.conf import settings
 from django.db import models, transaction
@@ -140,8 +139,11 @@ class Hunt(models.Model):
         """ Takes a user and a hunt and returns either the user's team for that hunt or None """
         if(not user.is_authenticated):
             return None
-        teams = get_object_or_404(Person, user=user).teams.filter(hunt=self)
-        return teams[0] if (len(teams) > 0) else None
+        try:
+            teams = Person.object.get(user=user).teams.filter(hunt=self)
+            return teams[0] if (len(teams) > 0) else None
+        except Person.DoesNotExist:
+            return None
 
     def can_access(self, user, team):
         return self.is_public or user.is_staff or (team and (self.is_open or (team.is_playtester_team and team.playtest_started)))
