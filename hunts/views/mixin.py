@@ -5,28 +5,20 @@ from django.urls import reverse_lazy
 from django.http import JsonResponse
 from hunts.models import APIToken
 
-class RequiredTeamMixin(LoginRequiredMixin):
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_staff and request.team is None:
-            if request.hunt is None:
-                return redirect(reverse('index'))
-            else:
-                return redirect(reverse('registration'))
-        else:
-            return super().dispatch(request, *args, **kwargs)
-
-
-class RequiredPuzzleAccessMixin(RequiredTeamMixin):
+class RequiredPuzzleAccessMixin():
     def dispatch(self, request, *args, **kwargs):
         if request.puzzle is None:
             return HttpResponseNotFound('<h1>Page not found</h1>')
 
-        if(not request.user.is_authenticated):
-            return redirect('%s?next=%s' % (reverse_lazy(settings.LOGIN_URL), request.path))
+        if not request.hunt.is_public:
+            if(not request.user.is_authenticated):
+                return redirect('%s?next=%s' % (reverse_lazy(settings.LOGIN_URL), request.path))
 
-        if (not request.user.is_staff):
-            if(request.team is None or request.puzzle not in request.team.puz_unlocked.all()):
-                return redirect(reverse('hunt', kwargs={'hunt_num' : request.hunt.hunt_number }))
+            elif (not request.user.is_staff):
+                if request.team is None:
+                    return redirect(reverse('registration'))
+                elif request.puzzle not in request.team.puz_unlocked.all():
+                    return redirect(reverse('hunt', kwargs={'hunt_num' : request.hunt.hunt_number }))
 
         return super().dispatch(request, *args, **kwargs)
 

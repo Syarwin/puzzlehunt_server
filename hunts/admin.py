@@ -66,7 +66,7 @@ class EpisodeAdmin(admin.ModelAdmin):
         self.object_id = object_id
         return super(EpisodeAdmin, self).change_view(request, object_id, form_url, extra_context=extra_context)
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "unlocks":
+        if db_field.name == "unlocks" and hasattr(self, "object_id"):
             kwargs['queryset'] = models.Episode.objects.exclude(pk=self.object_id)
         return super(EpisodeAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 

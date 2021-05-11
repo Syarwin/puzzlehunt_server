@@ -4,7 +4,7 @@
 {% block title %}Puzzle - {{ puzzle.puzzle_name }}{% endblock title %}
 
 {% block includes %}
-<script src="{{ STATIC_URL }}js/puzzle.js"></script>
+<script src="{% static 'js/puzzle.js' %}"></script>
 {% endblock includes %}
 
 {% block content %}
@@ -43,9 +43,9 @@ Congratulations! The answer was indeed '{{puzzle.answer}}'.
   </div>
 
   {% if eureka %}
-  <div class="right-block" data-toggle="tooltip" data-placement="top" data-html="true" 
-title="Correct step towards the solution, equal for all teams. 
-Rarely contains a small message. 
+  <div class="right-block" data-toggle="tooltip" data-placement="top" data-html="true"
+title="Correct step towards the solution, equal for all teams.
+Rarely contains a small message.
 May speed-up specific hints.">
     <h3>Milestones</h3>
     <ul id="eurekas"></ul>
@@ -57,7 +57,6 @@ May speed-up specific hints.">
     <ul id="guesses"></ul>
   </div>
 </div>
-
 
 
 {% endblock content %}

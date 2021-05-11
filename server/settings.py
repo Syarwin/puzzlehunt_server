@@ -72,9 +72,9 @@ MIDDLEWARE = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'hunts.middleware.PuzzleMiddleware',
     'hunts.middleware.HuntMiddleware',
     'teams.middleware.TeamMiddleware',
-    'hunts.middleware.PuzzleMiddleware',
 )
 
 ROOT_URLCONF = 'server.urls'

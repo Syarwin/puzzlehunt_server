@@ -1,13 +1,15 @@
 {% extends "hunt/hunt_base.html" %}
 {% load hunt_tags %}
+{% load static %}
 {% load crispy_forms_tags %}
 {% block title %}Puzzle - {{ puzzle.puzzle_name }}{% endblock title %}
 
 {% block includes %}
-<script src="{{ STATIC_URL }}js/prepuzzle.js"></script>
+<script src="{% static 'js/puzzle.js' %}"></script>
 {% endblock includes %}
 
 {% block content %}
+{% include 'hunt/hunt_sidebar.html' with episodes=episodes hunt=hunt %}
 <div class="puzzle-container">
 <h1> Prepuzzle: simple stuff <br> but TODO: BROKEN CHECK submit should just call a js, not refresh the page :/ </h1>
   <div class="puzzle-title">

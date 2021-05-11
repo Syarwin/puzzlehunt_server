@@ -81,6 +81,8 @@ class Hunt(models.Model):
         help_text="Dicord bot id, leave blank or zero if none is dedicated to the hunt")
     template = models.TextField(
         default="",
+        null=True,
+        blank=True,
         help_text="The template string to be rendered to HTML on the puzzle page")
 
 
@@ -115,6 +117,10 @@ class Hunt(models.Model):
         return timezone.now() >= self.start_date and timezone.now() < self.end_date
 
     @property
+    def is_public(self):
+        return timezone.now() >= self.end_date or self.is_demo
+
+    @property
     def is_day_of_hunt(self):
         """ A boolean indicating whether or not today is the day of the hunt """
         return timezone.now().date() == self.display_start_date.date()
@@ -138,11 +144,11 @@ class Hunt(models.Model):
         return teams[0] if (len(teams) > 0) else None
 
     def can_access(self, user, team):
-        return user.is_staff or (team and (self.is_open or (team.is_playtester_team and team.playtest_started)))
+        return self.is_public or user.is_staff or (team and (self.is_open or (team.is_playtester_team and team.playtest_started)))
 
     def get_episodes(self, user, team):
         """ Return the list of episodes that a user/team can see"""
-        if (user.is_staff):
+        if (user.is_staff or self.is_public):
             episode_list = self.episode_set.all()
         else:
             episode_pks = TeamEpisodeLink.objects \
@@ -154,7 +160,7 @@ class Hunt(models.Model):
 
     def get_formatted_episodes(self, user, team):
         episodes = sorted(self.get_episodes(user, team), key=lambda p: p.ep_number)
-        if user.is_staff:
+        if user.is_staff or self.is_public:
             episodes = [{'ep': ep, 'puz': ep.puzzle_set.all()} for ep in episodes]
         else:
             episodes = [{'ep': ep, 'puz': team.puz_unlocked.filter(episode=ep)} for ep in episodes]
@@ -200,11 +206,11 @@ class Episode(models.Model):
         Hunt,
         on_delete=models.CASCADE,
         help_text="The hunt that this episode is a part of")
-        
-        
+
+
     def get_headstarts_default():
         return list([timedelta(seconds=0),timedelta(seconds=0)])
-        
+
     headstarts =  ArrayField(
         models.DurationField(),
         help_text="Headstart gained by the first, second, etc, finishing teams for the next episode",
@@ -219,7 +225,7 @@ class Episode(models.Model):
     def is_open(self):
         """ A boolean indicating whether or not the ep is open"""
         return timezone.now() >= self.start_date
-        
+
 
     def __str__(self):
         return self.ep_name

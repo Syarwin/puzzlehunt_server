@@ -28,7 +28,7 @@ import re
 
 from hunts.models import Puzzle, Hunt, Guess, Unlockable
 from teams.models import PuzzleSolve, EpisodeSolve
-from .mixin import RequiredTeamMixin, RequiredPuzzleAccessMixin
+from .mixin import RequiredPuzzleAccessMixin
 
 import logging
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ def format_duration(arg):
       elif seconds < 3600*24:
         return str(int(seconds/3600)) + "h" + str(int((seconds % 3600)/60)) + "m"
       else:
-        return str(int(seconds/3600/24)) + "d" + str(int((seconds % (3600*24))/3600)) + "h"    
+        return str(int(seconds/3600/24)) + "d" + str(int((seconds % (3600*24))/3600)) + "h"
 #      return str(timedelta(seconds=int(arg.total_seconds())))
     except AttributeError:
       return ''
@@ -93,6 +93,12 @@ class HuntIndex(View):
                 return redirect(reverse('registration'))
 
         episodes = request.hunt.get_formatted_episodes(request.user, request.team)
+        text = hunt.template
+        # if template is empty, redirect to first unsolved puzzle
+        if text == '':
+            # TODO find first unsolved puzzle
+            return redirect(reverse('puzzle', kwargs={'puzzle_id': episodes[0]['puz'][0].puzzle_id} ))
+
 
         message = ''
         if not user.is_staff:
@@ -109,7 +115,6 @@ class HuntIndex(View):
                 except:
                   return HttpResponseNotFound('<h1>Last Episode finished without unlocking the next one</h1>')
 
-        text = hunt.template
         context = {'hunt': hunt, 'episodes': episodes, 'team': team, 'text': text, 'message': message}
         return render(request, 'hunt/hunt.html', context)
 
@@ -173,7 +178,14 @@ class PuzzleView(RequiredPuzzleAccessMixin, View):
             'text':text,
             'status': status
         }
-        return render(request, 'puzzle/puzzle.html', context)
+
+        if not request.hunt.is_demo:
+            return render(request, 'puzzle/puzzle.html', context)
+
+        else:
+            # Prepuzzle
+            return render(request, 'puzzle/prepuzzle.html', context)
+
 
 
     def post(self, request, puzzle_id):
@@ -215,28 +227,6 @@ class PuzzleView(RequiredPuzzleAccessMixin, View):
         response['by'] = request.user.username
 
         return JsonResponse(response)
-
-
-    def ajax(self, request, puzzle_id):
-        # Will return HTML rows for all guesss the user does not yet have
-        if(team is None):
-            return HttpResponseNotFound('access denied')
-
-        # Find which objects the user hasn't seen yet and render them to HTML
-        last_date = datetime.strptime(request.GET.get("last_date"), DT_FORMAT)
-        last_date = last_date.replace(tzinfo=tz.gettz('UTC'))
-        guesss = Guess.objects.filter(modified_date__gt=last_date)
-        guesss = guesss.filter(team=team, puzzle=puzzle)
-        guess_list = [render_to_string('puzzle_sub_row.html', {'guess': guess})
-                           for guess in guesss]
-
-        try:
-            last_date = Guess.objects.latest('modified_date').modified_date.strftime(DT_FORMAT)
-        except Guess.DoesNotExist:
-            last_date = timezone.now().strftime(DT_FORMAT)
-
-        context = {'guess_list': guess_list, 'last_date': last_date}
-        return HttpResponse(json.dumps(context))
 
 
 @login_required
