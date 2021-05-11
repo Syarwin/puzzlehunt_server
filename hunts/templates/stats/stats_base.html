@@ -32,7 +32,7 @@ No data available.
 
 {%else%}
 <div class="huntname">
-Hunt '{{ hunt.hunt_name }}' ({{hunt.start_date|date:"M nS" }})
+Hunt '{{ hunt.hunt_name }}' ({{hunt.display_start_date|date:"M nS" }})
 </div>
 
 {% block content %} {% endblock %}

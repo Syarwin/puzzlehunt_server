@@ -26,7 +26,7 @@
         {% for team in person.teams.all reversed %}
           <li>
             <a href="./?team_pk={{team.pk}}">
-              {{team.short_name}} - {{team.hunt.hunt_name}} ({{team.hunt.season}} '{{team.hunt.start_date|date:"y"}})
+              {{team.short_name}} - {{team.hunt.hunt_name}} '{{team.hunt.display_start_date|date:"y"}})
             </a>
           </li>
         {% endfor %}
@@ -37,7 +37,7 @@
   {% if team %}
     <h3> {{team.team_name}} </h3>
     <div class="lookupteam">
-    <b>Hunt:</b> {{team.hunt.hunt_name}} - '{{team.hunt.start_date|date:"y"}}<br>
+    <b>Hunt:</b> {{team.hunt.hunt_name}} - '{{team.hunt.display_start_date|date:"y"}}<br>
     <b>Playtester status:</b>
       {% if team.playtester %}
         Playtesting: {{team.playtest_start_date}} - {{team.playtest_end_date}}
@@ -120,7 +120,7 @@
     <ul>
       {% for team in results.teams %}
         <li><a href="./?team_pk={{team.pk}}">
-          {{team.short_name}} - {{team.hunt.hunt_name}} ({{team.hunt.season}} '{{team.hunt.start_date|date:"y"}})
+          {{team.short_name}} - {{team.hunt.hunt_name}} '{{team.hunt.display_start_date|date:"y"}})
         </a></li>
       {% endfor %}
     </ul>

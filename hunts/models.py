@@ -116,12 +116,12 @@ class Hunt(models.Model):
     @property
     def is_day_of_hunt(self):
         """ A boolean indicating whether or not today is the day of the hunt """
-        return timezone.now().date() == self.start_date.date()
+        return timezone.now().date() == self.display_start_date.date()
 
     @property
     def in_reg_lockdown(self):
         """ A boolean indicating whether or not registration has locked for this hunt """
-        return (self.start_date - timezone.now()).days <= settings.HUNT_REGISTRATION_LOCKOUT
+        return False #(self.start_date - timezone.now()).days <= settings.HUNT_REGISTRATION_LOCKOUT
 
     def __str__(self):
         if(self.is_current_hunt):
