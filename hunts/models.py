@@ -140,7 +140,7 @@ class Hunt(models.Model):
         if(not user.is_authenticated):
             return None
         try:
-            teams = Person.object.get(user=user).teams.filter(hunt=self)
+            teams = Person.objects.get(user=user).teams.filter(hunt=self)
             return teams[0] if (len(teams) > 0) else None
         except Person.DoesNotExist:
             return None
