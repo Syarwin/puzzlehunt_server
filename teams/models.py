@@ -181,11 +181,16 @@ class Team(models.Model):
             if num_solved==len(puzzles) and ep.unlocks!=None and ep.unlocks not in self.ep_unlocked.all():
                 logger.info("Team %s finished episode %s" % (str(self.team_name),
                                 str(ep.ep_number)))
+                previous_finishers = EpisodeSolve.objects.filter(episode=ep).count()
+                if (previous_finishers < len(ep.headstarts)):
+                  headstart = ep.headstarts[previous_finishers]
+                else:
+                  headstart = '00:00:00'
                 EpisodeSolve.objects.create(team=self, episode=ep, time=timezone.now())
-                TeamEpisodeLink.objects.create(team=self, episode=ep.unlocks)
+                TeamEpisodeLink.objects.create(team=self, episode=ep.unlocks, headstart = headstart)
                 continue #all puzzles from this episode already solved so unlocked
             
-            # If ep do not have an unlocks but was finished, only create an EpisodeSolve
+            # If ep do not have an unlocks but was finished, only create an EpisodeSolve (for weird admins)
             if num_solved==len(puzzles):
                 EpisodeSolve.objects.create(team=self, episode=ep, time=timezone.now())
                 continue
@@ -492,7 +497,7 @@ class TeamEpisodeLink(models.Model):
         on_delete=models.CASCADE,
         help_text="The team that this new episode is for")
     headstart = models.DurationField(
-        help_text="The headstart value for this team (HAS NO EFFECT YET)",
+        help_text="The headstart value for this team",
         default = "00")
 
 

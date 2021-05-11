@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.db import models, transaction
 from django.db.models import F
+from django.contrib.postgres.fields import ArrayField
 from datetime import timedelta
 from teams.models import Team, Person, Guess, TeamPuzzleLink, TeamEpisodeLink
 
@@ -199,6 +200,15 @@ class Episode(models.Model):
         Hunt,
         on_delete=models.CASCADE,
         help_text="The hunt that this episode is a part of")
+        
+        
+    def get_headstarts_default():
+        return list([timedelta(seconds=0),timedelta(seconds=0)])
+        
+    headstarts =  ArrayField(
+        models.DurationField(),
+        help_text="Headstart gained by the first, second, etc, finishing teams for the next episode",
+        default= get_headstarts_default, blank=False, null = False)
 
     @property
     def is_locked(self):
@@ -209,6 +219,7 @@ class Episode(models.Model):
     def is_open(self):
         """ A boolean indicating whether or not the ep is open"""
         return timezone.now() >= self.start_date
+        
 
     def __str__(self):
         return self.ep_name

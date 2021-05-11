@@ -55,7 +55,7 @@ class HuntAdmin(MirrorAdmin, admin.ModelAdmin):
 class EpisodeAdminForm(forms.ModelForm):
     class Meta:
         model = models.Episode
-        fields = ['hunt', 'ep_name', 'ep_number', 'unlocks', 'start_date']
+        fields = ['hunt', 'ep_name', 'ep_number', 'unlocks', 'start_date', 'headstarts']
 
 class EpisodeAdmin(admin.ModelAdmin):
     form = EpisodeAdminForm
