@@ -149,17 +149,18 @@ class Hunt(models.Model):
     def get_episodes(self, user, team):
         """ Return the list of episodes that a user/team can see"""
         if (user.is_staff or self.is_public):
-            episode_list = self.episode_set.all()
+            episode_list = self.episode_set.order_by('ep_number').all()
         else:
             episode_pks = TeamEpisodeLink.objects \
                 .filter(team=team, episode__start_date__lte=timezone.now()-F("headstart")) \
                 .values_list('episode', flat=True)
-            episode_list = Episode.objects.filter(pk__in=episode_pks)
+            episode_list = Episode.objects.filter(pk__in=episode_pks).order_by('ep_number')
 
         return episode_list
 
     def get_formatted_episodes(self, user, team):
-        episodes = sorted(self.get_episodes(user, team), key=lambda p: p.ep_number)
+#        episodes = sorted(self.get_episodes(user, team), key=lambda p: p.ep_number)
+        episodes = self.get_episodes(user,team)
         if user.is_staff or self.is_public:
             episodes = [{'ep': ep, 'puz': ep.puzzle_set.all(), 'solves': 0} for ep in episodes]
         else:
@@ -231,7 +232,7 @@ class Episode(models.Model):
 
 
     def __str__(self):
-        return self.ep_name
+        return self.ep_name + " - " + self.hunt.hunt_name
 
 
 

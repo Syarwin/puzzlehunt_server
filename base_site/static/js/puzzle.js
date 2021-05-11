@@ -203,7 +203,7 @@ function updateHints() {
     return 0
   })
   entries.forEach(entry => {
-    hints_list.append('<li><span class="guess-user">(' + encode(entry[1].time) + ')</span><span class="guess-value">' + encode(entry[1].hint) + '</span></li>')
+    hints_list.append('<li><span class="guess-user">(' + encode(entry[1].time) + ')</span><span class="guess-value">' + (entry[1].hint) + '</span></li>')
   })
 }
 
