@@ -54,9 +54,9 @@ class Hunt(models.Model):
         help_text="A number used internally for hunt sorting, must be unique")
     team_size = models.IntegerField()
     start_date = models.DateTimeField(
-        help_text="The date/time at which a hunt will become visible to registered users")
+        help_text="The date/time at which the hunt page will become visible to registered users")
     end_date = models.DateTimeField(
-        help_text="The date/time at which a hunt will be archived and available to the public")
+        help_text="The date/time at which a hunt will be archived and available to the public / stats will be released")
     display_start_date = models.DateTimeField(
         help_text="The start date/time displayed to users")
     display_end_date = models.DateTimeField(
@@ -155,9 +155,12 @@ class Hunt(models.Model):
     def get_formatted_episodes(self, user, team):
         episodes = sorted(self.get_episodes(user, team), key=lambda p: p.ep_number)
         if user.is_staff:
-            episodes = [{'ep': ep, 'puz': ep.puzzle_set.all()} for ep in episodes]
+            episodes = [{'ep': ep, 'puz': ep.puzzle_set.all(), 'solves': 0} for ep in episodes]
         else:
             episodes = [{'ep': ep, 'puz': team.puz_unlocked.filter(episode=ep)} for ep in episodes]
+        if team is not None:
+            for i in range(len(episodes)):
+                episodes[i]['solves'] = team.puz_solved.filter(episode=episodes[i]['ep']).count()
         return episodes
 
     def get_puzzle_list(self, user, team):

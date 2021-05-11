@@ -5,7 +5,9 @@
 {% block title %}Puzzles!{% endblock title %}
 
 {% block content %}
+{% if episodes %}
 {% include 'hunt/hunt_sidebar.html' with episodes=episodes hunt=hunt%}
+{%endif%}
 
 <div class = 'team-name' style = "position: absolute; right: 20px; top: 70px; z-index: 1000; color:white;">
 Team {{team.team_name | safe }}

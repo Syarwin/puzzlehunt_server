@@ -24,7 +24,7 @@
     </strong></p>
     <p align="center"><strong>
       {{curr_hunt.hunt_name}}<br>
-      {{ curr_hunt.display_start_date|date:" m/d/y " }}  {{ curr_hunt.display_start_date|time:"h:iA" }} &ndash; {{ curr_hunt.display_end_date|date:" m/d/y "}}  {{ curr_hunt.display_end_date|time:"h:iA e" }}<br>
+      {{ curr_hunt.display_start_date|date:" d/m/y " }}  {{ curr_hunt.display_start_date|time:"H:i" }} &ndash; {{ curr_hunt.display_end_date|date:" d/m/y "}}  {{ curr_hunt.display_end_date|time:"H:i e" }}<br>
     </strong></p>
     <p align="center">
       <a href="{% url 'registration' %}">

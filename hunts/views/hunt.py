@@ -95,6 +95,8 @@ class HuntIndex(View):
         episodes = request.hunt.get_formatted_episodes(request.user, request.team)
 
         message = ''
+        time_zone = tz.gettz(settings.TIME_ZONE)
+
         if not user.is_staff:
             if len(episodes)>0 and team.ep_solved.count() == len(episodes):
               if len(episodes) == hunt.episode_set.count():
@@ -105,9 +107,14 @@ class HuntIndex(View):
                 message = 'Congratulations! <br>You have finished the hunt at rank ' + str(EpisodeSolve.objects.filter(episode= episodes[-1]['ep'], time__lte= time).count())
               else:
                 try:
-                  message = 'Congratulations on finishing Episode ' + str(len(episodes)) + '! <br> Next Episode will start at ' + episodes[-1]['ep'].unlocks.start_date.strftime('%H:%M, %d/%m')
+                  message = 'Congratulations on finishing Episode ' + str(len(episodes)) + '! <br> Next Episode will start at ' + (episodes[-1]['ep'].unlocks.start_date - episodes[-1].headstart).astimezone(time_zone).strftime('%H:%M, %d/%m %Z')
                 except:
                   return HttpResponseNotFound('<h1>Last Episode finished without unlocking the next one</h1>')
+            if len(episodes) == 0:
+              unlocks = team.ep_unlocked
+              if (unlocks.count()>0):
+                  message = 'Welcome to the hunt! <br> The first Episode will start at ' + unlocks.first().start_date.astimezone(time_zone).strftime('%H:%M, %d/%m %Z')
+                
 
         text = hunt.template
         context = {'hunt': hunt, 'episodes': episodes, 'team': team, 'text': text, 'message': message}
