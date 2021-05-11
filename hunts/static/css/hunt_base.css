@@ -16,7 +16,6 @@ main.split-hor {
   color: #919191;
   min-width: 17rem;
   width: 17rem;
-  height: 100vh;
   box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
   transition: margin 0.8s;
   margin-left: -17rem;
@@ -27,6 +26,12 @@ main.split-hor {
 .vertical-nav.active {
   margin-left: 0rem;
 }
+
+#sidebar{
+  max-height:calc(100% - 277px);
+  overflow:auto;
+}
+
 
 #sidebar-collapse {
   display: none;
@@ -80,9 +85,6 @@ h3.episode-header a.collapsed::after {
   transform: rotate(0deg);
 }
 
-.vertical-nav div.list-group {
-  overflow: auto;
-}
 
 .vertical-nav .list-group-item {
   background: #0d0c0c24;
@@ -125,7 +127,7 @@ h3.episode-header a.collapsed::after {
 
 .puzzle-holder {
   flex-grow: 1;
-  max-height: calc(100% - 100px);
+  max-height: calc(100% - 110px);
 }
 
 .puzzle-holder div.centered {
@@ -214,6 +216,8 @@ img.fit-inside {
   bottom: 0;
   z-index: 1000;
   margin-left: -10px;
+  height: 300px;
+  overflow:hidden;
 }
 
 .hunt-page-container {
