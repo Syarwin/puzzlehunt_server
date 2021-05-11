@@ -180,7 +180,7 @@ def progress(request):
         curr_hunt = Hunt.objects.get(is_current_hunt=True)
         teams = curr_hunt.team_set.all().order_by('team_name')
 #        puzzles = curr_hunt.puzzle_set.all().order_by('puzzle_number')
-        puzzles = [p  for episode in curr_hunt.episode_set.all() for p in episode.puzzle_set.order_by('puzzle_number')]
+        puzzles = [p  for episode in curr_hunt.episode_set.order_by('ep_number').all() for p in episode.puzzle_set.order_by('puzzle_number')]
         # An array of solves, organized by team then by puzzle
         # This array is essentially the grid on the progress page
         # The structure is messy, it was built part by part as features were added

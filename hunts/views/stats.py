@@ -163,7 +163,7 @@ def puzzles(request):
       context = {'hunt': None}
       return render(request, 'stats/puzzles.html', context)
 
-    puzzle_list = [puzzle for episode in hunt.episode_set.all() for puzzle in episode.puzzle_set.all()]
+    puzzle_list = [puzzle for episode in hunt.episode_set.order_by('ep_number').all() for puzzle in episode.puzzle_set.all()]
 
     data = []
     reftime = timezone.now()
@@ -243,7 +243,7 @@ def charts(request):
     solve_time = []
     teams = Team.objects.filter(hunt=hunt)
     minTime = timezone.now()
-    for ep in hunt.episode_set.all():
+    for ep in hunt.episode_set.order_by('ep_number').all():
       solve_ep = []
       for team in teams:
         solves = team.puzzlesolve_set.filter(puzzle__episode=ep)
@@ -259,7 +259,7 @@ def charts(request):
 
 
     #Chart fast / average puzzle solves
-    puzzle_list = [puzzle for episode in hunt.episode_set.all() for puzzle in episode.puzzle_set.all()]
+    puzzle_list = [puzzle for episode in hunt.episode_set.order_by('ep_number').all() for puzzle in episode.puzzle_set.all()]
 
     data_puz = []
     for puz in puzzle_list:
