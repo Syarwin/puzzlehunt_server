@@ -192,6 +192,7 @@ class Episode(models.Model):
         indexes = [
             models.Index(fields=['ep_number']),
         ]
+        ordering = ['ep_number']
 
     ep_name = models.CharField(
         max_length=200,

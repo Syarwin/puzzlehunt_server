@@ -197,12 +197,15 @@ def profile(request):
         uf = UserForm(request.POST, instance=request.user)
         pf = PersonForm(request.POST, instance=request.user.person)
         if uf.is_valid() and pf.is_valid():
-            uf.save()
+            user = uf.save()
+            user.set_password(user.password)
+            user.save()
             pf.save()
+            login(request, user)
             messages.success(request, "User information successfully updated.")
         else:
             context = {'user_form': uf, 'person_form': pf}
-            return render(request, "user_profile.html", context)
+            return render(request, "auth/user_profile.html", context)
     user_form = UserForm(instance=request.user)
     person_form = PersonForm(instance=request.user.person)
     context = {'user_form': user_form, 'person_form': person_form}

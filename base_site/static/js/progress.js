@@ -8,7 +8,7 @@ $(document).ready(function() {
     });
   }
   recolor();
-  setInterval(recolor, 5000);
+  setInterval(recolor, 30000);
 
   function is_visible(){
     var stateKey, keys = {
@@ -114,7 +114,7 @@ $(document).ready(function() {
       }
     }
   }
-  setInterval(get_posts, 3000);
+  setInterval(get_posts, 30000);
   update_values();
 
 

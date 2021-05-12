@@ -9,6 +9,7 @@ from django.contrib.flatpages.admin import FlatPageAdmin
 from django.contrib.flatpages.models import FlatPage
 from django.contrib.flatpages.forms import FlatpageForm
 from django.db.models import Count
+from baton.admin import DropdownFilter, RelatedDropdownFilter, ChoicesDropdownFilter
 import re
 
 from . import models
@@ -53,7 +54,7 @@ class GuessAdmin(admin.ModelAdmin):
     search_fields = ['guess_text','team__team_name','puzzle__puzzle_name']
     list_display = ['guess_text', short_team_name, 'guess_time']
     autocomplete_fields = ['team']
-    list_filter= ('team', 'puzzle',)
+    list_filter = [('puzzle', RelatedDropdownFilter),('team', RelatedDropdownFilter)]
 
 
 class TeamAdminForm(forms.ModelForm):
@@ -117,7 +118,7 @@ class TeamAdmin(admin.ModelAdmin):
 class PuzzleSolveAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'solve_time']
     autocomplete_fields = ['team', 'guess']
-    list_filter= ('team', 'puzzle',)
+    list_filter = [('puzzle', RelatedDropdownFilter),('team', RelatedDropdownFilter)]
     search_fields = ['team__team_name','puzzle__puzzle_name']
 
 
@@ -129,28 +130,28 @@ class TeamPuzzleLinkAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'time']
     autocomplete_fields = ['team']
     search_fields = ['team__team_name', 'puzzle__puzzle_name']
-    list_filter= ('team', 'puzzle',)
+    list_filter = [('puzzle', RelatedDropdownFilter),('team', RelatedDropdownFilter)]
 
 
 class EpisodeSolveAdmin(admin.ModelAdmin):
     list_display = ['__str__']
     autocomplete_fields = ['team']
-    list_filter= ('team', 'episode',)
+    list_filter = [('episode', RelatedDropdownFilter),('team', RelatedDropdownFilter)]
     search_fields = ['team__team_name','episode__ep_name']
 
 
 class TeamEpisodeLinkAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'headstart']
     autocomplete_fields = ['team']
-    list_filter= ('team', 'episode')
+    list_filter = [('episode', RelatedDropdownFilter),('team', RelatedDropdownFilter)]
     search_fields = ['team__team_name', 'episode__ep_name']
 
 
 class TeamEurekaLinkAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'time', 'puzzle_just_name']
     search_fields = ['team__team_name','eureka__puzzle__puzzle_name', 'eureka__answer']
-    list_filter= ('team', 'eureka__puzzle',)
-
+    list_filter = [('eureka__puzzle', RelatedDropdownFilter),('team', RelatedDropdownFilter)]
+    
     def puzzle_just_name(self, response):
         return response.eureka.puzzle.puzzle_name
 

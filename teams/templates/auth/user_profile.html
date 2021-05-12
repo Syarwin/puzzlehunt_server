@@ -2,8 +2,12 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<div class="container">
-<h2>Change User Details</h2>
+<div class="splash">
+  <div class="card">
+    <div class="card-header">
+      Change User details
+    </div>
+    <div class="card-body">
 <form method="POST">
   {% csrf_token %}
   <div>
@@ -11,8 +15,12 @@
     {{ person_form|crispy }}
   </div>
   <div class="submit-row">
-    <input class="btn btn-default" type="submit" value="Update Info" class="default" />
+    <button class="w-100 btn btn-lg btn-primary" type="submit" value="Update Info" class="default" />
+    Update Info
+    </button>
+  </div>
   </div>
 </form>
+</div>
 </div>
 {% endblock %}

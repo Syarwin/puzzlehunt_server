@@ -42,7 +42,7 @@ urlpatterns = [
     url(r'^staff/$', views.staff.index, name='staffindex'),
     url(r'^staff/', include([
         url(r'^queue/$', views.staff.queue, name='queue'),
-        url(r'^progress/$', views.staff.progress, name='progress'),
+        url(r'^progress/(?P<ep_pk>[0-9]+)$', views.staff.progress, name='progress'),
         url(r'^overview/$', views.staff.overview, name='overview'),
         url(r'^charts/$', views.stats.charts, name='charts'), # staff charts seem useless
         url(r'^control/$', views.staff.control, name='control'),

@@ -214,7 +214,7 @@ class PuzzleAdminForm(forms.ModelForm):
 class PuzzleAdmin(MirrorAdmin, admin.ModelAdmin):
     form = PuzzleAdminForm
 
-    list_filter = ('episode',)
+    list_filter = [('episode', RelatedDropdownFilter)]
     search_fields = ['puzzle_id', 'puzzle_name']
     list_display = ['combined_id', 'puzzle_name', 'episode']
     list_display_links = ['combined_id', 'puzzle_name']

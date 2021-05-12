@@ -20,7 +20,9 @@
 
     <div class="list-group flex-column mb-0">
       <a href="{% url 'queue' %}" class="list-group-item">Queue</a>
-      <a href="{% url 'progress' %}" class="list-group-item">Progress</a>
+      {% for e in hunt.episode_set.all %}
+        <a href="{% url 'progress' ep_pk=e.pk %}" class="list-group-item">Progress {{e.ep_name}}</a>
+      {% endfor %}
       <a href="{% url 'overview' %}" class="list-group-item">Overview</a>
       <a href="{% url 'charts' %}" class="list-group-item">Charts</a>
       <a href="{% url 'hunt_management' %}" class="list-group-item">Management</a>

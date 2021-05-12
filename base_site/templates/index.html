@@ -20,7 +20,10 @@
     </strong></p>
     <p align="center"><strong>
       {{curr_hunt.hunt_name}}<br>
-      {{ curr_hunt.display_start_date|date:" d/m/y " }}  {{ curr_hunt.display_start_date|time:"H:i" }} &ndash; {{ curr_hunt.display_end_date|date:" d/m/y "}}  {{ curr_hunt.display_end_date|time:"H:i e" }}<br>
+      Part 1: {{ curr_hunt.episode_set.first.start_date|date:" d/m/y " }}  {{ curr_hunt.episode_set.first.start_date|time:"H:i e" }} 
+      <br>
+      Part 2: {{ curr_hunt.episode_set.last.start_date|date:" d/m/y " }}  {{ curr_hunt.episode_set.last.start_date|time:"H:i e" }} 
+      <br>
     </strong></p>
     <p align="center">
       <a href="{% url 'registration' %}">

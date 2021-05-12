@@ -1,3 +1,6 @@
+
+{% load static %}
+
 <div id="sidebar" class="vertical-nav active">
   <div id="sidebar-collapse">
     <i class="bi bi-puzzle"></i>
@@ -22,6 +25,11 @@
     </div>
   {% endfor %}
 </div>
+
+<div class=daypicture>
+		<img src="{% static 'img/mblogo.png' %}"  width=300 height=300/>
+</div>
+
 
 <script type="text/javascript">
 $(function() {

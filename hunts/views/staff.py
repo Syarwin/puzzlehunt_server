@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import EmailMessage
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.contrib import messages
@@ -106,12 +106,14 @@ def queue(request):
 
 
 @staff_member_required
-def progress(request):
+def progress(request, ep_pk):
     """
     A view to handle puzzle unlocks via POST, handle unlock/solve update requests via AJAX,
     and render the progress page. Rendering the progress page is extremely data intensive and so
     the view involves a good amount of pre-fetching.
     """
+    
+    episode = get_object_or_404(Episode, pk=ep_pk)
 
     if request.method == 'POST':
         if "action" in request.POST:
@@ -144,7 +146,7 @@ def progress(request):
         results = []
 
         last_solve_pk = request.GET.get("last_solve_pk")
-        solves = PuzzleSolve.objects.filter(pk__gt=last_solve_pk)
+        solves = PuzzleSolve.objects.filter(pk__gt=last_solve_pk, episode=episode)
         for solve in solves:
             results.append(solve.serialize_for_ajax())
 
@@ -180,7 +182,10 @@ def progress(request):
         curr_hunt = Hunt.objects.get(is_current_hunt=True)
         teams = curr_hunt.team_set.all().order_by('team_name')
 #        puzzles = curr_hunt.puzzle_set.all().order_by('puzzle_number')
-        puzzles = [p  for episode in curr_hunt.episode_set.order_by('ep_number').all() for p in episode.puzzle_set.order_by('puzzle_number')]
+        
+        
+        puzzles = [p for p in episode.puzzle_set.order_by('puzzle_number')]
+#        puzzles = [p  for episode in curr_hunt.episode_set.order_by('ep_number').all() for p in episode.puzzle_set.order_by('puzzle_number')]
         # An array of solves, organized by team then by puzzle
         # This array is essentially the grid on the progress page
         # The structure is messy, it was built part by part as features were added
@@ -192,13 +197,13 @@ def progress(request):
         for team in teams:
             sol_dict[team.pk] = deepcopy(puzzle_dict)
 
-        data = TeamPuzzleLink.objects.filter(team__hunt=curr_hunt).exclude(team__location='DUMMY')
+        data = TeamPuzzleLink.objects.filter(puzzle__episode=episode)
         data = data.values_list('team', 'puzzle').annotate(Max('time'))
 
         for point in data:
             sol_dict[point[0]][point[1]] = ['unlocked', point[2]]
 
-        data = Guess.objects.filter(team__hunt=curr_hunt).exclude(team__location='DUMMY')
+        data = Guess.objects.filter(puzzle__episode=episode)
         data = data.values_list('team', 'puzzle').annotate(Max('guess_time'))
         data = data.annotate(Count('puzzlesolve'))
 
@@ -227,7 +232,7 @@ def progress(request):
             last_guess_pk = 0
         context = {'puzzle_list': puzzles, 'team_list': teams, 'sol_list': sol_list,
                    'last_unlock_pk': last_unlock_pk, 'last_solve_pk': last_solve_pk,
-                   'last_guess_pk': last_guess_pk}
+                   'last_guess_pk': last_guess_pk, 'hunt': curr_hunt}
         return render(request, 'staff/progress.html', context)
 
 
@@ -303,7 +308,7 @@ def overview(request):
                        'admin_eurekas' : list_admin_eurekas,
                        })
 
-    context = {'data': sol_list}
+    context = {'data': sol_list, 'hunt':curr_hunt}
     return render(request, 'staff/overview.html', context)
 
 
@@ -327,7 +332,7 @@ def hunt_management(request):
 
     puzzles = Puzzle.objects.all()
 
-    context = {'hunts': hunts, 'puzzles': puzzles}
+    context = {'hunts': hunts, 'puzzles': puzzles , 'hunt':curr_hunt}
     return render(request, 'staff/hunt_management.html', context)
 
 
@@ -363,7 +368,7 @@ def hunt_info(request):
                            .exclude(location="off_campus"))
         offsite_teams = teams.filter(location="off_campus")
 
-        context = {'curr_hunt': curr_hunt,
+        context = {'hunt': curr_hunt,
                    'people': people,
                    'new_people': new_people,
                    'need_teams': need_teams.order_by('id').all(),
@@ -451,7 +456,7 @@ def lookup(request):
 
     puzzle_list = [puzzle for episode in hunt.episode_set.all() for puzzle in episode.puzzle_set.all()]
     context = {'lookup_form': lookup_form, 'results': results, 'person': person, 'team': team,
-               'curr_hunt': hunt, 'puzzle_list': puzzle_list}
+               'hunt': hunt, 'puzzle_list': puzzle_list}
     return render(request, 'staff/lookup.html', context)
 
 
@@ -463,5 +468,5 @@ def puzzle_dag(request):
     episodes = Episode.objects.all()
     hunts = Hunt.objects.all()
 
-    context = {'puzzles': puzzles, 'episodes':episodes, 'hunts': hunts}
+    context = {'puzzles': puzzles, 'episodes':episodes, 'hunts': hunts, 'hunt': Hunt.objects.get(is_current_hunt=True)}
     return render(request, 'staff/puzzle_dag.html', context)
