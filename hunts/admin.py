@@ -5,6 +5,7 @@ from django.utils.safestring import mark_safe
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.html import format_html
 from django_mirror.admin import MirrorAdmin
+from baton.admin import DropdownFilter, RelatedDropdownFilter, ChoicesDropdownFilter
 
 import re
 
@@ -252,7 +253,7 @@ class EurekaAdmin(admin.ModelAdmin):
     list_display_links = ['answer', 'regex', 'feedback']
     search_fields = ['answer', 'regex', 'feedback','puzzle__puzzle_name']
     ordering = ['-puzzle']
-    list_filter = ['puzzle']
+    list_filter = [('puzzle', RelatedDropdownFilter)]
 
     def puzzle_just_name(self, response):
         return response.puzzle.puzzle_name
@@ -264,7 +265,7 @@ class HintAdmin(admin.ModelAdmin):
     list_display_links = ['text']
     search_fields = ['text']
     ordering = ['-puzzle']
-    list_filter =  ['puzzle']
+    list_filter =  [('puzzle', RelatedDropdownFilter)]
 
     def puzzle_just_name(self, response):
         return response.puzzle.puzzle_name
