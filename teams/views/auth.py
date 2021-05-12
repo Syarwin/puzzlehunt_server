@@ -109,7 +109,7 @@ class Registration(LoginRequiredMixin, View):
                 team = Team.objects.create(team_name=request.POST.get("team_name"), hunt=curr_hunt, join_code=join_code)
                 request.user.person.teams.add(team)
                 logger.info("User %s created team %s" % (str(request.user), str(team)))
-                return redirect(reverse('current_hunt'))
+                return redirect(reverse('manage-team'))
             else:
                 messages.error(request, "Your team name must contain at least one alphanumeric character.")
 
@@ -124,6 +124,7 @@ class Registration(LoginRequiredMixin, View):
             else:
                 request.user.person.teams.add(team)
                 logger.info("User %s joined team %s" % (str(request.user), str(team)))
+                return redirect(reverse('manage-team'))
 
         teams = curr_hunt.team_set.order_by(Lower('team_name'))
         return render(request, "auth/registration.html",
