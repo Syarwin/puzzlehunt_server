@@ -34,7 +34,7 @@ def render_with_context_simpletag(context):
     nbsolve = 0
     if team is not None:
       nbsolve = team.puz_solved.count()
-    return Template(value).render(Context({'curr_hunt': hunt, 'nb_solve': nbsolve}))
+    return Template(value).render(Context({'curr_hunt': hunt, 'nb_solve': nbsolve, 'user': user}))
 
 @register.tag
 def set_curr_hunt(parser, token):
