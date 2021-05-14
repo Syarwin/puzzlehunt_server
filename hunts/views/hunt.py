@@ -268,9 +268,11 @@ def leaderboard(request):
       for unlock in unlocks.all():
         try:
           solve = solves.get(puzId=unlock.puzId)
-          solves_data.append({'name' : unlock.name, 'sol_time': solve.time, 'duration':  format_duration(solve.time-unlock.time)})
+          solves_data.append({'name' : unlock.name, 'sol_time': solve.time, 'duration':  format_duration(solve.duration)})
         except ObjectDoesNotExist:
-          solves_data.append({'name' : unlock.name, 'sol_time': '' , 'duration':  format_duration(timezone.now()-unlock.time)})
+          start = unlock.puzzle.starting_time_for_team(unlock.team)
+          if (timezone.now() > start):
+            solves_data.append({'name' : unlock.name, 'sol_time': '' , 'duration':  format_duration(timezone.now()-start)})
 
     context = {'team_data': all_teams, 'solve_data': solves_data}
     return render(request, 'hunt/leaderboard.html', context)

@@ -233,8 +233,10 @@ def charts(request):
       context = {'hunt': None}
       return render(request, 'stats/charts.html', context)
 
-    spams      = Guess.objects.filter(puzzle__episode__hunt=hunt).values(name=F('user__username' )).annotate(c=Count('name')).order_by('-c')[:10]
-    spam_teams = Guess.objects.filter(puzzle__episode__hunt=hunt).values(name=F('team__team_name'), iid=F('team__pk')).annotate(c=Count('name')).order_by('-c')[:10]
+    spams_all      = Guess.objects.filter(puzzle__episode__hunt=hunt).values(name=F('user__username' ), team_name=F('team__team_name'), team_iid=F('team__pk'))
+    spams = spams_all.annotate(c=Count('name')).order_by('-c')[:10]
+    spam_teams = spams_all.annotate(c=Count('team_iid')).order_by('-c')[:10]
+   # spam_teams = Guess.objects.filter(puzzle__episode__hunt=hunt).values(team_name=F('team__team_name'), team_iid=F('team__pk')).annotate(c=Count('team_name')).order_by('-c')[:10]
 
 
 
@@ -242,6 +244,11 @@ def charts(request):
     # Chart solve over time
     solve_time = []
     teams = Team.objects.filter(hunt=hunt)
+    teams = teams.annotate(solves=Count('puz_solved')).filter(solves__gt=0)
+    teams = teams.annotate(last_time=Max('puzzlesolve__guess__guess_time'))
+    teams = teams.order_by(F('solves').desc(nulls_last=True),
+                                   F('last_time').asc(nulls_last=True))
+                                   
     minTime = timezone.now()
     for ep in hunt.episode_set.order_by('ep_number').all():
       solve_ep = []

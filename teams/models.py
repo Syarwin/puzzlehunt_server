@@ -326,7 +326,7 @@ class Guess(models.Model):
         """ Creates a solve based on this guess """
         unlock = self.team.teampuzzlelink_set.filter(puzzle=self.puzzle)
         if unlock.count() == 1: #normal case
-          duration = self.guess_time - unlock[0].time
+          duration = self.guess_time - self.puzzle.starting_time_for_team(self.team)
         else:
           duration = "00"
         PuzzleSolve.objects.create(puzzle=self.puzzle, team=self.team, guess=self, duration=duration)

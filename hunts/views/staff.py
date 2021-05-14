@@ -27,7 +27,7 @@ DT_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
 @staff_member_required
 def index(request):
-    context = {}
+    context = {'hunt': Hunt.objects.get(is_current_hunt=True)}
     return render(request, 'staff/index.html', context)
 
 
@@ -314,7 +314,7 @@ def overview(request):
 
 
 @staff_member_required
-# TODO most of this seems useless / may be totally replaced by stats/
+#  most of this seemed useless / may be totally replaced by stats/ Redirect out of this for now
 def charts(request):
     """ A view to render the charts page. Mostly just collecting and organizing data """
 
