@@ -7,6 +7,8 @@
 {% block content %}
 {% if episodes %}
 {% include 'hunt/hunt_sidebar.html' with episodes=episodes hunt=hunt%}
+{%else%}
+<div id="sidebar" class="vertical-nav active" style="opacity:0" ></div>
 {%endif%}
 
 <div class='team-name'>
