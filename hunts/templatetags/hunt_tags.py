@@ -22,9 +22,19 @@ def contact_email(context):
 
 
 @register.filter()
-def render_with_context(value):
-    return Template(value).render(Context({'curr_hunt': Hunt.objects.get(is_current_hunt=True)}))
-
+def render_with_context(value, user):
+    return Template(value).render(Context({'curr_hunt': Hunt.objects.get(is_current_hunt=True), 'user': user}))
+    
+@register.simple_tag(takes_context=True)
+def render_with_context_simpletag(context):
+    user = context['user']
+    value = context['flatpage'].content
+    hunt = Hunt.objects.get(is_current_hunt=True)
+    team = hunt.team_from_user(user)
+    nbsolve = 0
+    if team is not None:
+      nbsolve = team.puz_solved.count()
+    return Template(value).render(Context({'curr_hunt': hunt, 'nb_solve': nbsolve}))
 
 @register.tag
 def set_curr_hunt(parser, token):
