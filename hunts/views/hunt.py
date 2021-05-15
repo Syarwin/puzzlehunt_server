@@ -27,7 +27,7 @@ import os
 import re
 
 from hunts.models import Puzzle, Hunt, Guess, Unlockable
-from teams.models import PuzzleSolve, EpisodeSolve
+from teams.models import PuzzleSolve, EpisodeSolve, TeamEpisodeLink
 from .mixin import RequiredPuzzleAccessMixin
 
 import logging
@@ -104,7 +104,8 @@ class HuntIndex(View):
         time_zone = tz.gettz(settings.TIME_ZONE)
 
         if not user.is_staff and team is not None:
-            if len(episodes)>0 and team.ep_solved.count() == len(episodes):
+            ep_solved = team.ep_solved.count()
+            if len(episodes)>0 and ep_solved == len(episodes):
               if len(episodes) == hunt.episode_set.count():
                 try:
                   time = team.episodesolve_set.get(episode = episodes[-1]['ep']).time
@@ -113,9 +114,12 @@ class HuntIndex(View):
                 message = 'Congratulations! <br>You have finished the hunt at rank ' + str(EpisodeSolve.objects.filter(episode= episodes[-1]['ep'], time__lte= time).count())
               else:
                 try:
-                  message = 'Congratulations on finishing Episode ' + str(len(episodes)) + '! <br> Next Episode will start at ' + (episodes[-1]['ep'].unlocks.start_date - episodes[-1].headstart).astimezone(time_zone).strftime('%H:%M, %d/%m %Z')
+                  ep_unlock = TeamEpisodeLink.objects.get(episode=episodes[-1]['ep'].unlocks, team=team)
+                  message = 'Congratulations on finishing Episode ' + str(len(episodes)) + '! <br> Next Episode will start at ' + (ep_unlock.episode.start_date - ep_unlock.headstart).astimezone(time_zone).strftime('%H:%M, %d/%m %Z')
                 except:
                   return HttpResponseNotFound('<h1>Last Episode finished without unlocking the next one</h1>')
+            if ep_solved>0:
+              message = message + ' <br>  -------------  <br> Use "!finish ' + str(team.token) +'" on your private team channel on discord to unlock the finisher channel'
             if len(episodes) == 0:
               unlocks = team.ep_unlocked
               if (unlocks.count()>0):
