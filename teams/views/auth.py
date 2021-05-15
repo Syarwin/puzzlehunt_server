@@ -242,6 +242,7 @@ class TeamInfoView(APITokenRequiredMixin, View):
                 'message': 'Several teams share this token',
             }, status=404)
         team.discord_linked = True
+        team.save()
         return JsonResponse({
             'result': 'OK',
             'team': {
