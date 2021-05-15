@@ -2,7 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, reverse
 from django.conf import settings
 from django.urls import reverse_lazy
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotFound
 from hunts.models import APIToken
 
 class RequiredPuzzleAccessMixin():
