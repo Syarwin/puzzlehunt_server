@@ -154,7 +154,7 @@ class Hunt(models.Model):
             episode_list = self.episode_set.order_by('ep_number').all()
         else:
             episode_pks = TeamEpisodeLink.objects \
-                .filter(team=team, episode__start_date__lte=timezone.now()-F("headstart")) \
+                .filter(team=team, episode__start_date__lte=timezone.now()+F("headstart")) \
                 .values_list('episode', flat=True)
             episode_list = Episode.objects.filter(pk__in=episode_pks).order_by('ep_number')
 
