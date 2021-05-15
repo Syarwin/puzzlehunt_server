@@ -32,6 +32,7 @@
 
     <ul class="list-group list-group-flush">
       {% if not curr_hunt.in_reg_lockdown %}
+          {%if not registered_team.discord_linked %} 
       <li class="list-group-item">
         <a href='#' class='edit_button'>[Change Name]</a>
         <form method="Post" class="" style="display: none;">
@@ -42,6 +43,7 @@
           <input type="submit" value="Change Name">
         </form>
       </li>
+          {%endif%}
       {% endif %}
 
       <li class="list-group-item">

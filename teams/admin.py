@@ -71,7 +71,7 @@ class TeamAdminForm(forms.ModelForm):
     class Meta:
         model = models.Team
         fields = ['team_name', 'hunt',  'join_code', 'playtester', 'playtest_start_date',
-                  'playtest_end_date', 'unlockables']
+                  'playtest_end_date', 'unlockables', 'discord_linked']
 
     def __init__(self, *args, **kwargs):
         super(TeamAdminForm, self).__init__(*args, **kwargs)

@@ -62,6 +62,10 @@ class Team(models.Model):
         editable=False,
         help_text="Secret token displayed to the team members to join their discord role"
         )
+    discord_linked = models.BooleanField(
+        default = False,
+        help_text="True if the team has joined a discord channel (is then forbidden to change name for consistency)"
+    )
 
     hunt = models.ForeignKey(
         "hunts.Hunt",

@@ -188,6 +188,8 @@ class ManageTeam(View):
                     not team.hunt.in_reg_lockdown):
                 if(curr_hunt.team_set.filter(team_name__iexact=request.POST.get("team_name")).exists()):
                     messages.error(request, "The team name you have provided already exists.")
+                elif(team.discord_linked):
+                    messages.error(request, "You cannot change your team name after joining Discord. Please contact the admins.")
                 else:
                     old_name = team.team_name
                     team.team_name = request.POST.get("team_name")
@@ -239,6 +241,7 @@ class TeamInfoView(APITokenRequiredMixin, View):
                 'result': 'Not Found',
                 'message': 'Several teams share this token',
             }, status=404)
+        team.discord_linked = True
         return JsonResponse({
             'result': 'OK',
             'team': {
