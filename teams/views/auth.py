@@ -103,16 +103,24 @@ class Registration(LoginRequiredMixin, View):
         if(request.user.person.teams.filter(hunt=curr_hunt).count()>0):
             messages.error(request, "You already have a team for this hunt")
         elif(request.POST["form_type"] == "create_team"):
-            if(curr_hunt.team_set.filter(team_name__iexact=request.POST.get("team_name")).exists()):
+            team_name_upper =  request.POST.get("team_name").replace(" ","").upper()
+            conflict = False
+            for name in curr_hunt.team_set.values_list('team_name', flat=True):
+              if name.replace(" ","").upper() == team_name_upper:
+                conflict = True
+                break
+            if conflict: #(curr_hunt.team_set.filter(team_name__iexact=request.POST.get("team_name")).exists()):
                 messages.error(request, "The team name you have provided already exists.")
-            elif(re.match(".*[A-Za-z0-9].*", request.POST.get("team_name"))):
+            elif len(request.POST.get("team_name")) > 100:
+                messages.error(request, "Your team name is too long")
+            elif(re.fullmatch("[A-Za-z0-9][A-Za-z0-9 ]*", request.POST.get("team_name"))):
                 join_code = ''.join(random.choice("ACDEFGHJKMNPRSTUVWXYZ2345679") for _ in range(5))
                 team = Team.objects.create(team_name=request.POST.get("team_name"), hunt=curr_hunt, join_code=join_code)
                 request.user.person.teams.add(team)
                 logger.info("User %s created team %s" % (str(request.user), str(team)))
                 return redirect(reverse('manage-team'))
             else:
-                messages.error(request, "Your team name must contain at least one alphanumeric character.")
+                messages.error(request, "Your team name must contain only alphanumeric characters and spaces and not start by a space.")
 
         elif(request.POST["form_type"] == "join_team"):
             team = curr_hunt.team_set.get(team_name=request.POST.get("team_name"))
@@ -162,10 +170,12 @@ class ManageTeam(View):
             if(request.POST["form_type"] == "leave_team"):
                 request.user.person.teams.remove(team)
                 logger.info("User %s left team %s" % (str(request.user), str(team)))
-                if(team.person_set.count() == 0 and team.hunt.is_locked):
+                if(team.person_set.count() == 0 and team.puz_solved.count()==0):
                     logger.info("Team %s was deleted because it was empty." % (str(team)))
                     team.delete()
                 team = None
+                return redirect(reverse('registration'))
+                
                 messages.success(request, "You have successfully left the team.")
             elif(request.POST["form_type"] == "new_location" and team is not None):
                 old_location = team.location
