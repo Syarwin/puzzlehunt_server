@@ -218,7 +218,7 @@ class TeamInfoView(APITokenRequiredMixin, View):
     def get(self, request, team_token):
         try:
             team = Team.objects.get(token=team_token)
-        except Team.DoesNotExist:
+        except ValidationError:
             return JsonResponse({
                 'result': 'Not Found',
                 'message': 'Invalid team token',
