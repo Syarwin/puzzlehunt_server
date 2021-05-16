@@ -29,6 +29,7 @@ import re
 from hunts.models import Puzzle, Hunt, Guess, Unlockable
 from teams.models import PuzzleSolve, EpisodeSolve, TeamEpisodeLink
 from .mixin import RequiredPuzzleAccessMixin
+from hashlib import sha256
 
 import logging
 logger = logging.getLogger(__name__)
@@ -135,6 +136,16 @@ def get_ratelimit_key(group, request):
     return request.ratelimit_key
 
 
+
+# simple way to encode a prepuzzle response string
+def encode(key, string):
+    encoded_chars = []
+    for i in range(len(string)):
+        key_c = key[i % len(key)]
+        encoded_c = chr(ord(string[i]) + ord(key_c) % 256)
+        encoded_chars.append(encoded_c)
+    return "".join(encoded_chars)
+
 @method_decorator(csrf_exempt, name='dispatch')
 class PuzzleView(RequiredPuzzleAccessMixin, View):
     """
@@ -195,6 +206,10 @@ class PuzzleView(RequiredPuzzleAccessMixin, View):
 
         else:
             # Prepuzzle
+            context['prepuzzle_values'] = {'answerHash': sha256(("SuperRandomInitialSalt" + request.puzzle.answer.replace(" ", "").lower()).encode('utf-8')).hexdigest(), 
+                                          'eurekaHashes': [sha256(("SuperRandomInitialSalt" + eur.replace(" ", "").lower()).encode('utf-8')).hexdigest() for eur in request.puzzle.eureka_set.values_list('answer', flat=True)],
+                                          'responseEncoded': encode(request.puzzle.answer.replace(" ", "").lower(), request.puzzle.demo_response)
+                                          }
             return render(request, 'puzzle/prepuzzle.html', context)
 
 

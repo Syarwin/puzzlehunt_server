@@ -223,7 +223,7 @@ class PuzzleAdmin(MirrorAdmin, admin.ModelAdmin):
     fieldsets = (
         ('Main', {
             'fields': ('episode', 'puzzle_name', 'answer', 'answer_regex', 'puzzle_number',
-                       'puzzle_id', 'extra_data', ),
+                       'puzzle_id', 'extra_data', 'demo_response' ),
             'classes': ('baton-tabs-init', 'order-0', 'baton-tab-group-fs-resources--inline-puzzlefile--inline-solutionfile', 'baton-tab-fs-unlocking', 'baton-tab-inline-eureka', 'baton-tab-inline-hint')
         }),
         ('Resources', {

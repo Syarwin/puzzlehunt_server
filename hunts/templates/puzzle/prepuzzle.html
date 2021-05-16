@@ -5,15 +5,17 @@
 {% block title %}Puzzle - {{ puzzle.puzzle_name }}{% endblock title %}
 
 {% block includes %}
-<script src="{% static 'js/puzzle.js' %}"></script>
+<script src="{% static 'js/prepuzzle.js' %}"></script>
 {% endblock includes %}
 
 {% block content %}
 {% include 'hunt/hunt_sidebar.html' with episodes=episodes hunt=hunt %}
+
+<!-- Hey, what are you doing here? This is just a prepuzzle, don't try to decrypt the answers looking at the source code please :) -->
+{{ prepuzzle_values |json_script:"prepuzzle_values" }}
 <div class="puzzle-container">
-<h1> Prepuzzle: simple stuff <br> but TODO: BROKEN CHECK submit should just call a js, not refresh the page :/ </h1>
   <div class="puzzle-title">
-    {{ puzzle.puzzle_name }}
+    Demo Puzzle: {{ puzzle.puzzle_name }}
   </div>
   <div class="puzzle-holder">
     {{ text | safe }}
@@ -21,26 +23,34 @@
 
   <div id="guess-bar">
     <div id="guess-feedback" class="container py-3"></div>
-    <form id="guess-form" autocomplete="off" class="needs-validation">
+<!--    <form id="guess-form" autocomplete="off" class="needs-validation">-->
       <div class="input-group input-group-lg has-validation">
-        <input id="answer-entry" name="answer" type="text" pattern=" *[A-Za-z0-9][A-Za-z0-9 ]*" class="form-control" placeholder="Guess" aria-label="Your guess" autocomplete="off" title="guesses should only contain letters, digits and optional spaces" />
-        <button class="btn btn-primary" type="submit" id="answer-button">Submit</button>
+        <input id="answer-entry" name="answer" type="text" pattern=" *[A-Za-z0-9][A-Za-z0-9 ]*" class="form-control" placeholder="Guess (alphanumeric, optional spaces, case-insensitive)" aria-label="Your guess" autocomplete="off" title="guesses should only contain letters, digits and optional spaces" onkeypress="checkKey(event)"/>
+        <button class="btn btn-primary"  id="answer-button" onclick="check()">Submit</button>
         <div class="invalid-feedback">
             Please choose a username.
         </div>
       </div>
-    </form>
+<!--    </form>-->
   </div>
 </div>
+
 
 
 <div id="right-bar" class="vertical-nav">
-  <div class="right-block">
-    <h3>Guesses</h3>
+  {% if eureka %}
+  <div class="right-block" data-toggle="tooltip" data-placement="top" data-html="true"
+title="Correct step towards the solution, equal for all teams.
+Rarely contains a small message.
+May speed-up specific hints.">
+    <h3>Milestones</h3>
+    <ul id="eurekas"></ul>
+  </div>
+  {% endif %}
+  <div class="right-block" style='min-height:150px'>
+    <h3>Guesses <!--Note: this is a demo puzzle, more functionnalities will be available during the hunt.--></h3>
     <ul id="guesses"></ul>
   </div>
 </div>
-
-
 
 {% endblock content %}

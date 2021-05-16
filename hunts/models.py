@@ -307,7 +307,7 @@ class Puzzle(models.Model):
         help_text="The answer to the puzzle, not case nor space sensitive. Can contain parentheses to show multiple options but a regex is then mandatory.")
     answer_regex = models.CharField(
         max_length=100,
-        help_text="The regexp towards which the guess is checked in addition to the answer (optional)",
+        help_text="The regexp towards which the guess is checked in addition to the answer (optional, not used for demo puzzles)",
         blank=True,
         default= "")
     template = models.TextField(
@@ -326,6 +326,11 @@ class Puzzle(models.Model):
         blank=True,
         symmetrical=False,
         help_text="Puzzles that this puzzle is a possible prerequisite for")
+    demo_response = models.TextField(
+        blank=True,
+        default = "",
+        help_text="For demo puzzles, this string will be displayed when the solution is found"
+    )
 
     objects = PuzzleManager()
 

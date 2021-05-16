@@ -3,16 +3,60 @@
 ********** FORM  ***********
 ****************************
 ***************************/
-$(function() {
-  let field = $('#answer-entry')
-  let button = $('#answer-button')
 
-  function fieldKeyup() {
+
+
+/* Hey, what are you doing here? This is just a prepuzzle, don't try to decrypt the answers looking at the source code please :) */
+async function check() {
+    let field = $('#answer-entry')
+    let button = $('#answer-button')
+    
+    
+    
     if (!field.val()) {
       button.data('empty-answer', true)
     } else {
       button.removeData('empty-answer')
     }
+    const prepuzzle_values = JSON.parse(document.getElementById('prepuzzle_values').textContent);
+    hash = await sha256("SuperRandomInitialSalt" + field.val().replaceAll(" ", "").toLowerCase())
+    
+    addGuess(field.val(), false, field.val());
+    
+    if ( hash == prepuzzle_values['answerHash']){
+      correct_answer()
+      if ( prepuzzle_values['responseEncoded'].length > 0)
+      {
+        message('Congratulations for solving this puzzle! \n' + decode(field.val().replaceAll(" ", "").toLowerCase(), prepuzzle_values['responseEncoded']), '', 'success')
+      }
+    }
+    else if(prepuzzle_values['eurekaHashes'].includes(hash))
+    {
+      addEureka(field.val(), hash, '');
+      message(field.val(), ' is a Milestone!', 'primary' );
+    }
+    else
+    {    
+      message(field.val(), ' is not the correct answer' );
+    }
+    document.getElementById('answer-entry').value = ''
+}
+
+
+function checkKey(e) {
+    if (e.key === 'Enter' || e.keyCode === 13) {
+        check()
+    }
+}
+
+
+
+
+$(function() {
+  let field = $('#answer-entry')
+  let button = $('#answer-button')
+
+  function fieldKeyup() {
 
     evaluateButtonDisabledState(button)
   }
@@ -28,22 +72,13 @@ $(function() {
     }
     
     
-    if (field.val() == {{puzzle.answer}}){
-      correct_answer()
-    }
     
   })
 })
 
 
 function correct_answer() {
-  var form = $('#guess-form');
-  if (form.length) {
-    // We got a direct response before the WebSocket notified us (possibly because the WebSocket is broken
-    // in this case, we still want to tell the user that they got the right answer. If the WebSocket is
-    // working, this will be updated when it replies.
     message("Correct!", '', 'success');
-  }
 }
 
 
@@ -88,7 +123,7 @@ function encode(message){
 
 function message(message, error = '', type = "danger") {
   var error_msg = $('<div class="alert alert-dismissible alert-' + type + '">' + message + ' ' + error + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
-  error_msg.appendTo($('#guess-feedback')).delay(3000).fadeOut(800, function(){$(this).remove()})
+  error_msg.appendTo($('#guess-feedback')).delay(8000).fadeOut(800, function(){$(this).remove()})
 }
 
 
@@ -110,4 +145,42 @@ function addGuess(guess, correct, guess_uid) {
 
 
 
+/***************************
+****************************
+********* EUREKAS **********
+****************************
+***************************/
+var eurekas = [];
 
+function addEureka(eureka, eureka_uid, feedback) {
+  var guesses_table = $('#eurekas');
+  guesses_table.prepend('<li><span class="guess-user">' + encode(feedback) + '</span><span class="guess-value">' + encode(eureka) + '</span></li>') 
+  eurekas.push(eureka_uid)
+}
+
+
+async function sha256(message) {
+    // encode as UTF-8
+    const msgBuffer = new TextEncoder().encode(message);                    
+
+    // hash the message
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+
+    // convert ArrayBuffer to Array
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+    // convert bytes to hex string                  
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+}
+
+
+// simple way to decode a prepuzzle response string
+function decode(key, string){
+    output = [string.length]
+    for (var i = 0; i < string.length; i++) {
+        decoded_c = (string.charCodeAt(i) - key.charCodeAt(i % key.length) % 256);
+        output[i] = String.fromCharCode(decoded_c);
+        }
+    return output.join("")
+  }
