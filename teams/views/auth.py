@@ -100,27 +100,28 @@ class Registration(LoginRequiredMixin, View):
     def post(self, request):
         curr_hunt = Hunt.objects.get(is_current_hunt=True)
         
-        if(request.user.person.teams.filter(hunt=curr_hunt).count()>0):
-            messages.error(request, "You already have a team for this hunt")
-        elif(request.POST["form_type"] == "create_team"):
-            team_name_upper =  request.POST.get("team_name").replace(" ","").upper()
-            conflict = False
-            for name in curr_hunt.team_set.values_list('team_name', flat=True):
-              if name.replace(" ","").upper() == team_name_upper:
-                conflict = True
-                break
-            if conflict: #(curr_hunt.team_set.filter(team_name__iexact=request.POST.get("team_name")).exists()):
-                messages.error(request, "The team name you have provided already exists.")
+        if(request.POST["form_type"] == "create_team"):
+            if(request.user.person.teams.filter(hunt=curr_hunt).count()>0):
+                messages.error(request, "You already have a team for this hunt")
             elif len(request.POST.get("team_name")) > 100:
                 messages.error(request, "Your team name is too long")
-            elif(re.fullmatch("[A-Za-z0-9][A-Za-z0-9 ]*", request.POST.get("team_name"))):
-                join_code = ''.join(random.choice("ACDEFGHJKMNPRSTUVWXYZ2345679") for _ in range(5))
-                team = Team.objects.create(team_name=request.POST.get("team_name"), hunt=curr_hunt, join_code=join_code)
-                request.user.person.teams.add(team)
-                logger.info("User %s created team %s" % (str(request.user), str(team)))
-                return redirect(reverse('manage-team'))
-            else:
+            elif(not re.fullmatch("[A-Za-z0-9][A-Za-z0-9 ]*", request.POST.get("team_name"))):
                 messages.error(request, "Your team name must contain only alphanumeric characters and spaces and not start by a space.")
+            else:
+                team_name_upper =  request.POST.get("team_name").replace(" ","").upper()
+                conflict = False
+                for name in curr_hunt.team_set.values_list('team_name', flat=True):
+                  if name.replace(" ","").upper() == team_name_upper:
+                    conflict = True
+                    break
+                if conflict: #(curr_hunt.team_set.filter(team_name__iexact=request.POST.get("team_name")).exists()):
+                  messages.error(request, "The team name you have provided already exists.")
+                else:
+                    join_code = ''.join(random.choice("ACDEFGHJKMNPRSTUVWXYZ2345679") for _ in range(5))
+                    team = Team.objects.create(team_name=request.POST.get("team_name"), hunt=curr_hunt, join_code=join_code)
+                    request.user.person.teams.add(team)
+                    logger.info("User %s created team %s" % (str(request.user), str(team)))
+                    return redirect(reverse('manage-team'))
 
         elif(request.POST["form_type"] == "join_team"):
             team = curr_hunt.team_set.get(team_name=request.POST.get("team_name"))
@@ -186,17 +187,28 @@ class ManageTeam(View):
                 messages.success(request, "Location successfully updated")
             elif(request.POST["form_type"] == "new_name" and team is not None and
                     not team.hunt.in_reg_lockdown):
-                if(curr_hunt.team_set.filter(team_name__iexact=request.POST.get("team_name")).exists()):
-                    messages.error(request, "The team name you have provided already exists.")
-                elif(team.discord_linked):
+                if(team.discord_linked):
                     messages.error(request, "You cannot change your team name after joining Discord. Please contact the admins.")
+                elif len(request.POST.get("team_name")) > 100:
+                    messages.error(request, "Your team name is too long")
+                elif(not re.fullmatch("[A-Za-z0-9][A-Za-z0-9 ]*", request.POST.get("team_name"))):
+                    messages.error(request, "Your team name must contain only alphanumeric characters and spaces and not start by a space.")
                 else:
-                    old_name = team.team_name
-                    team.team_name = request.POST.get("team_name")
-                    team.save()
-                    logger.info("User %s renamed team %s to %s" %
-                                (str(request.user), old_name, team.team_name))
-                    messages.success(request, "Team name successfully updated")
+                    team_name_upper =  request.POST.get("team_name").replace(" ","").upper()
+                    conflict = False
+                    for name in curr_hunt.team_set.values_list('team_name', flat=True):
+                      if name.replace(" ","").upper() == team_name_upper:
+                        conflict = True
+                        break
+                    if conflict: #(curr_hunt.team_set.filter(team_name__iexact=request.POST.get("team_name")).exists()):
+                        messages.error(request, "The team name you have provided already exists.")
+                    else:
+                        old_name = team.team_name
+                        team.team_name = request.POST.get("team_name")
+                        team.save()
+                        logger.info("User %s renamed team %s to %s" %
+                                    (str(request.user), old_name, team.team_name))
+                        messages.success(request, "Team name successfully updated")
 
         return render(request, "auth/manage-team.html",
                       {'registered_team': team, 'curr_hunt': curr_hunt})
