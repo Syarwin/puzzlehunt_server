@@ -12,7 +12,8 @@
   {% for episode in episodes %}
     <h3 class="episode-header">
       <a class="collapsed" data-bs-toggle="collapse" href="#collapse-episode-{{ episode.ep.ep_number }}" role="button" aria-expanded="false" aria-controls="collapseExample">
-      ({{episode.solves}}/{{episode.ep.puzzle_set.count}})  {{ episode.ep.ep_name }}
+      {%if episode.solves > 0%}({{episode.solves}}/{{episode.ep.puzzle_set.count}}){%endif%}
+       {{ episode.ep.ep_name }}
       </a>
     </h3>
     <div id="collapse-episode-{{ episode.ep.ep_number }}" class="collapse list-group flex-column mb-0">
