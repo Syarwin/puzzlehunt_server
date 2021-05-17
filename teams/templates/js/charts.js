@@ -29,14 +29,14 @@ function setAllHidden(chart, hidden) {
       data: {
         labels: [
         {% for x in ep.names %}
-        "{{x}}",
+        "{{x | safe}}",
         {%endfor%}
         ],
           
         datasets: [
 {% for team in ep.solve %}
           {
-            label: "{{team.name}}",
+            label: "{{team.name |truncatechars:40 }}",
             data: [
                   {% for point in team.solve %}
                   {
@@ -118,7 +118,7 @@ new Chart(puzCanvas, {
     data: {
       labels: [
                 {% for point in data_puz %}
-                " {{point.name}}",
+                " {{point.name | safe}}",
                 {%endfor%}
                 ],
       datasets: [

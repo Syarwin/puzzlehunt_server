@@ -45,8 +45,8 @@ class UserForm(forms.ModelForm):
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
-        if(re.match("^[a-zA-Z0-9]+([_-]?[a-zA-Z0-9])*$", username) is None):
-            raise forms.ValidationError("Username must contain only letters, digits, or '-' or '_'")
+        if(re.match("^[a-zA-Z0-9]+([_-]?[a-zA-Z0-9])*$", username) is None or len(username)>40):
+            raise forms.ValidationError("Username must contain only letters, digits, or '-' or '_' and at most 40 characters")
         return username
 
     def clean_confirm_password(self):

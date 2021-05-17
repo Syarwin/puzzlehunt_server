@@ -149,7 +149,7 @@
             nodes: [
             {% for puz in puzzles %}
               { data: { id: '{{puz.pk}}', 
-                name: '{{puz.puzzle_name}}{%if puz.num_required_to_unlock != puz.puzzle_set.count %} \n[{{puz.num_required_to_unlock}} to unlock]{% endif %}',
+                name: "{{puz.puzzle_name | safe}}{%if puz.num_required_to_unlock != puz.puzzle_set.count %} \n[{{puz.num_required_to_unlock}} to unlock]{% endif %}",
                 back: '{%if puz.num_required_to_unlock == puz.puzzle_set.count %}#d46b63{%elif puz.num_required_to_unlock < puz.puzzle_set.count%}#aaaa55{%else%}#888888{%endif%}',
                 href: '/admin/hunts/puzzle/{{puz.pk}}/change/',
                 parent: 'ep{{puz.episode.pk}}',
@@ -157,14 +157,14 @@
             {% endfor %}
             {% for ep in episodes %}
               { data: { id: 'ep{{ep.pk}}', 
-                name: '{{ep}}',
+                name: '{{ep | safe}}',
                 href: '/admin/hunts/episode/{{ep.pk}}/change/',
                 parent:'hu{{ep.hunt.pk}}',
                } },
             {% endfor %}
             {% for hu in hunts %}
               { data: { id: 'hu{{hu.pk}}', 
-                name: '{{hu}}',
+                name: '{{hu | safe}}',
                 href: '/admin/hunts/hunt/{{hu.pk}}/change/',
                } },
             {% endfor %}

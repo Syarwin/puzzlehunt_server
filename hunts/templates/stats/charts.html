@@ -61,7 +61,7 @@
         </thead>
         {% for da in spam_teams %}
         <tr>
-          <td><a class="btn btn-secondary btn-sm active" role="button"  href="/stats/team/?team={{da.team_iid}}">{{forloop.counter}}: {{da.team_name}}</a></td>
+          <td><a class="btn btn-secondary btn-sm active" role="button"  href="/stats/team/?team={{da.team_iid}}">{{forloop.counter}}: {{da.team_name|truncatechars:40 }}</a></td>
           <td>{{da.c}}</td>
         </tr>
         {% endfor %}

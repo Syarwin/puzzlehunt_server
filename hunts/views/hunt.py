@@ -116,7 +116,9 @@ class HuntIndex(View):
               else:
                 try:
                   ep_unlock = TeamEpisodeLink.objects.get(episode=episodes[-1]['ep'].unlocks, team=team)
-                  message = 'Congratulations on finishing Episode ' + str(len(episodes)) + '! <br> Next Episode will start at ' + (ep_unlock.episode.start_date - ep_unlock.headstart).astimezone(time_zone).strftime('%H:%M, %d/%m %Z')
+                  ep_solve = EpisodeSolve.objects.get(episode=episodes[-1]['ep'], team=team)
+                  rank = str(EpisodeSolve.objects.filter(episode= episodes[-1]['ep'], time__lte= ep_solve.time).count())
+                  message = 'Congratulations on finishing Episode ' + str(len(episodes)) + ' at rank ' + rank + '! <br> Next Episode will start at ' + (ep_unlock.episode.start_date - ep_unlock.headstart).astimezone(time_zone).strftime('%H:%M, %d/%m %Z')
                 except:
                   return HttpResponseNotFound('<h1>Last Episode finished without unlocking the next one</h1>')
             if ep_solved>0:
