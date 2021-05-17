@@ -21,8 +21,8 @@
       </thead>
       <tbody>
         {% for da in data %}
-          <tr class="team_row">
-            <th class="leftmost" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; background-color:{{ da.puzzle.color }};" scope="row">
+          <tr class="team_row" style=" background-color:{{ da.puzzle.color }};">
+            <th class="leftmost" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;" scope="row">
               {{ da.team|truncatechars:40 }}
             </th>
             <td > {{ da.puzzle.index }} : {{ da.puzzle.name|truncatechars:40 }} <br> {{ da.puzzle.time }} mn </td>

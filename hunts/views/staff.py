@@ -268,7 +268,7 @@ def overview(request):
       puzzle_unlock = team.teampuzzlelink_set.order_by('time').last()
       if (puzzle_unlock == None or (puzzle_unlock.puzzle in puz_solved.all())):
         sol_list.append({'team': team.team_name,
-                       'puzzle': {'name': 'None found', 'time': '-', 'index': nb_solve},
+                       'puzzle': {'name': 'None found', 'time': '-', 'index': nb_solve, 'color': "rgb(163,163,163)"},
                        'guesses': {'nb' : '-' , 'last': '...', 'time': '-' },
                        'eurekas': {'nb' : 0 , 'last': '...', 'time': '-', 'total': 1},
                        'hints': {'nb' : 0 , 'last_time': '-', 'next_time': '-', 'total': 1},
