@@ -52,7 +52,7 @@ async function check() {
     addGuess(field.val(), false, field.val());
     
     if ( hash == prepuzzle_values['answerHash']){
-      checkinsidediv.innerHTML = '<p style="font-size:400px; color:green"> ✓ </p> '
+      checkinsidediv.innerHTML = '<p style="font-size:400px; color:lime"> ✓ </p> '
       if ( prepuzzle_values['responseEncoded'].length > 0)
       {
         feedback.innerHTML = ('<p>Congratulations for solving this puzzle! \n' + decode(field.val().replaceAll(" ", "").toLowerCase(), prepuzzle_values['responseEncoded']) + '</p>')
