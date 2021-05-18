@@ -200,7 +200,7 @@ LOGGING = {
 }
 
 # Email settings
-CONTACT_EMAIL = 'TODO@TODO.com'
+CONTACT_EMAIL = 'https://discord.gg/BMH36payns'
 
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'

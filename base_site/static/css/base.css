@@ -160,3 +160,18 @@ a {
   color: #133b88;
 }
 
+
+@-webkit-keyframes rotating {
+    from{
+        -webkit-transform: rotate(0deg);
+    }
+    to{
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+.rotating {
+    -webkit-animation: rotating 4s linear infinite;
+    transform-origin: 51% 60%;
+}
+

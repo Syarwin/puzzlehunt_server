@@ -3,44 +3,113 @@
 ********** FORM  ***********
 ****************************
 ***************************/
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, Math.max(ms, 0)));
+}
+
+    var reveal = Date.now() + 5000;
+
 $(function() {
+  
   let field = $('#answer-entry')
   let button = $('#answer-button')
-
+  
+    let div_field = document.getElementById("answer-entry");
+    let div_button = document.getElementById("answer-button");
+    
+    let puzzle = document.getElementById("puzzle-holder");
+    let checkdiv = document.getElementById("checking-div");
+    let checkinsidediv = document.getElementById("checking-insidediv");
+    let feedback = document.getElementById("guess-feedback");
+    let rightbar = document.getElementById("right-bar");
+    
   function fieldKeyup() {
     if (!field.val()) {
       button.data('empty-answer', true)
     } else {
       button.removeData('empty-answer')
     }
-
     evaluateButtonDisabledState(button)
   }
   field.on('input', fieldKeyup)
 
   $('#guess-form').submit(function(e) {
+    reveal = Date.now() + 5000;
     e.preventDefault()
     if (!field.val()) {
       field.focus()
       return
     }
+    
+    
+    
+    puzzle.style.display= "none";
+    rightbar.style.opacity= 0;
+    checkdiv.style.display= "block";
+    
+    checkinsidediv.innerHTML = '<img src="/static/img/mbicon.png" alt="" class="fit-inside rotating" max-width=60% max-height=70%">';
+
+    div_field.disabled = true;
+    div_button.disabled = true;
+    
+    
+    
 
     var data = {
       answer: field.val(),
     }
-    $.ajax({
+     $.ajax({
       type: 'POST',
       url: '',
       data: $.param(data),
       contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-      success: function(data) {
+      success:  function(data) {
         field.val('')
         fieldKeyup()
         if (data.status == 'correct') {
-          correct_answer()
+        sleep(reveal-Date.now()).then(()=>{
+             checkinsidediv.innerHTML = '<p style="font-size:400px; color:lime">✓</p> ';
+                rightbar.style.opacity= 1;
+          sleep(2000).then(()=>{
+                puzzle.style.display= "block";
+                checkdiv.style.display= "none";
+                div_field.disabled = false;
+                div_button.disabled = false;
+                if (document.getElementById("last-to-finish"))
+                {
+                window.location.href = document.getElementById("hunt-link").href
+                }
+                else
+                {
+                window.location.href = window.location.href;
+                }
+                });
+            });
         } else if(data.status == "eureka"){
-          message(data.message, '', "info")
+        sleep(reveal-Date.now()).then(()=>{
+          checkinsidediv.innerHTML = '<img src="/static/img/milestone.png" alt="" class="fit-inside" max-width=60% max-height=70%"> ';
+                rightbar.style.opacity= 1;
+          sleep(2000).then(()=>{
+                puzzle.style.display= "block";
+                checkdiv.style.display= "none";
+                div_field.disabled = false;
+                div_button.disabled = false;
+                });
+           });
+        } else if(data.status == "wrong"){
+          
+        sleep(reveal-Date.now()).then(()=>{
+        checkinsidediv.innerHTML = '<p style="font-size:400px; color:red"> ✗ </p> ';
+                    rightbar.style.opacity= 1;
+              sleep(2000).then(()=>{
+                    puzzle.style.display= "block";
+                    checkdiv.style.display= "none";
+                    div_field.disabled = false;
+                    div_button.disabled = false;
+                    });
+            });
         } else {
+                   checkinsidediv.innerHTML = '<p style="font-size:400px; color:green"> WTF </p> '
           waitCheckSynchronize(data.guess, data.timeout_length, data.timeout_end, data.unlocks)
         }
       },
@@ -53,6 +122,11 @@ $(function() {
         } else {
           message('There was an error submitting the answer.', error)
         }
+        puzzle.style.display= "block";
+        checkdiv.style.display= "none";
+        rightbar.style.opacity= 1;
+        div_field.disabled = false;
+        div_button.disabled = false;
       },
       dataType: 'json',
     })

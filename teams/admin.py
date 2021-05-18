@@ -118,7 +118,7 @@ class TeamAdmin(admin.ModelAdmin):
 class PuzzleSolveAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'solve_time']
     autocomplete_fields = ['team', 'guess']
-    list_filter = [('puzzle', RelatedDropdownFilter),('team', RelatedDropdownFilter)]
+    list_filter = [('puzzle', RelatedDropdownFilter),('team', RelatedDropdownFilter),('puzzle__episode', RelatedDropdownFilter)]
     search_fields = ['team__team_name','puzzle__puzzle_name']
 
 
@@ -130,11 +130,11 @@ class TeamPuzzleLinkAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'time']
     autocomplete_fields = ['team']
     search_fields = ['team__team_name', 'puzzle__puzzle_name']
-    list_filter = [('puzzle', RelatedDropdownFilter),('team', RelatedDropdownFilter)]
+    list_filter = [('puzzle', RelatedDropdownFilter),('team', RelatedDropdownFilter),('puzzle__episode', RelatedDropdownFilter)]
 
 
 class EpisodeSolveAdmin(admin.ModelAdmin):
-    list_display = ['__str__']
+    list_display = ['__str__', 'time']
     autocomplete_fields = ['team']
     list_filter = [('episode', RelatedDropdownFilter),('team', RelatedDropdownFilter)]
     search_fields = ['team__team_name','episode__ep_name']

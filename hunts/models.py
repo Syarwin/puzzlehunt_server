@@ -166,7 +166,7 @@ class Hunt(models.Model):
         if user.is_staff or self.is_public:
             episodes = [{'ep': ep, 'puz': ep.puzzle_set.all(), 'solves': 0} for ep in episodes]
         else:
-            episodes = [{'ep': ep, 'puz': team.puz_unlocked.filter(episode=ep)} for ep in episodes]
+            episodes = [{'ep': ep, 'puz': team.puz_unlocked.filter(episode=ep), 'solves':0} for ep in episodes]
         if team is not None:
             for i in range(len(episodes)):
                 episodes[i]['solves'] = team.puz_solved.filter(episode=episodes[i]['ep']).count()

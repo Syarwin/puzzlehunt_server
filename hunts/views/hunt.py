@@ -209,7 +209,7 @@ class PuzzleView(RequiredPuzzleAccessMixin, View):
         else:
             # Prepuzzle
             context['prepuzzle_values'] = {'answerHash': sha256(("SuperRandomInitialSalt" + request.puzzle.answer.replace(" ", "").lower()).encode('utf-8')).hexdigest(), 
-                                          'eurekaHashes': [sha256(("SuperRandomInitialSalt" + eur.replace(" ", "").lower()).encode('utf-8')).hexdigest() for eur in request.puzzle.eureka_set.values_list('answer', flat=True)],
+                                          'eurekaHashes': [sha256(("SuperRandomInitialSalt" + eur.replace(" ", "").lower()).encode('utf-8')).hexdigest() for eur in request.puzzle.eureka_set.filter(admin_only=False).values_list('answer', flat=True)],
                                           'responseEncoded': encode(request.puzzle.answer.replace(" ", "").lower(), request.puzzle.demo_response)
                                           }
             return render(request, 'puzzle/prepuzzle.html', context)
@@ -253,7 +253,7 @@ class PuzzleView(RequiredPuzzleAccessMixin, View):
             response['timeout_length'] = minimum_time.total_seconds() * 1000
             response['timeout_end'] = str(now + minimum_time)
         response['by'] = request.user.username
-
+        
         return JsonResponse(response)
 
 

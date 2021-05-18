@@ -17,9 +17,14 @@
   <div class="puzzle-title">
     Demo Puzzle: {{ puzzle.puzzle_name }}
   </div>
-  <div class="puzzle-holder">
+  <div class="puzzle-holder" id = "puzzle-holder">
     {{ text | safe }}
   </div>
+<div id='checking-div' class="puzzle-holder" style="display:none">
+<div id='checking-insidediv' class='centered'>
+hello
+</div>
+</div>
 
   <div id="guess-bar">
     <div id="guess-feedback" class="container py-3"></div>

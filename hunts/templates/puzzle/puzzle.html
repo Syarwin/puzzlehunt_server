@@ -9,14 +9,29 @@
 {% endblock includes %}
 
 {% block content %}
+
+{%for ep in episodes %}
+{% if ep.ep == puzzle.episode and status != "solved" %}
+{% if ep.solves|add:1 ==  ep.ep.puzzle_set.count %}
+<div id="last-to-finish"></div> 
+{%endif%}
+{%endif%}
+{%endfor%}
+
 {% include 'hunt/hunt_sidebar.html' with episodes=episodes hunt=hunt %}
 <div class="puzzle-container">
   <div class="puzzle-title">
     {{ puzzle.puzzle_name }}
   </div>
-  <div class="puzzle-holder">
+  <div class="puzzle-holder" id="puzzle-holder">
     {{ text | safe }}
   </div>
+<div id='checking-div' class="puzzle-holder" style="display:none">
+<div id='checking-insidediv' class='centered'>
+hello
+</div>
+</div>
+
 
 <div id='answer-container'>
 {% if status == "solved" %}

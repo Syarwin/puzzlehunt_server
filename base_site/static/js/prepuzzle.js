@@ -4,13 +4,41 @@
 ****************************
 ***************************/
 
-
-
+const delay = ms => new Promise(res => setTimeout(res, ms));
+var lock = false
 /* Hey, what are you doing here? This is just a prepuzzle, don't try to decrypt the answers looking at the source code please :) */
 async function check() {
     let field = $('#answer-entry')
+    if (!/[a-z]/i.test(field.val()))
+    {
+      return;
+    }
+    
+    if(lock){
+      return;}
+      
+    lock = true
+
+    
+    
+    let div_field = document.getElementById("answer-entry");
+    let div_button = document.getElementById("answer-button");
     let button = $('#answer-button')
     
+    let puzzle = document.getElementById("puzzle-holder");
+    let checkdiv = document.getElementById("checking-div");
+    let checkinsidediv = document.getElementById("checking-insidediv");
+    let feedback = document.getElementById("guess-feedback");
+    
+    div_field.disabled = true;
+    div_button.disabled = true;
+    
+    puzzle.style.display= "none";
+    checkdiv.style.display= "block";
+    
+    checkinsidediv.innerHTML = '<img src="/static/img/mbicon.png" alt="" class="fit-inside rotating" max-width=60% max-height=70%">';
+    
+    await delay(4000);
     
     
     if (!field.val()) {
@@ -24,22 +52,30 @@ async function check() {
     addGuess(field.val(), false, field.val());
     
     if ( hash == prepuzzle_values['answerHash']){
-      correct_answer()
+      checkinsidediv.innerHTML = '<p style="font-size:400px; color:green"> ✓ </p> '
       if ( prepuzzle_values['responseEncoded'].length > 0)
       {
-        message('Congratulations for solving this puzzle! \n' + decode(field.val().replaceAll(" ", "").toLowerCase(), prepuzzle_values['responseEncoded']), '', 'success')
+        feedback.innerHTML = ('<p>Congratulations for solving this puzzle! \n' + decode(field.val().replaceAll(" ", "").toLowerCase(), prepuzzle_values['responseEncoded']) + '</p>')
       }
     }
     else if(prepuzzle_values['eurekaHashes'].includes(hash))
     {
       addEureka(field.val(), hash, '');
-      message(field.val(), ' is a Milestone!', 'primary' );
+      checkinsidediv.innerHTML = '<img src="/static/img/milestone.png" alt="" class="fit-inside" max-width=60% max-height=70%"> '
     }
     else
     {    
-      message(field.val(), ' is not the correct answer' );
+      checkinsidediv.innerHTML = '<p style="font-size:400px; color:red"> ✗ </p> '
     }
+    await delay(2000);   
+    
     document.getElementById('answer-entry').value = ''
+    
+    puzzle.style.display= "block";
+    checkdiv.style.display= "none";
+    div_field.disabled = false;
+    div_button.disabled = false;
+    lock=false
 }
 
 
