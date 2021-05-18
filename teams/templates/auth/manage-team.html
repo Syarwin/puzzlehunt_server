@@ -46,17 +46,6 @@
           {%endif%}
       {% endif %}
 
-      <li class="list-group-item">
-        <span> <b> Team Location: </b> {{ registered_team.location }} </span>
-        <a href='#' class='edit_button'>[Change Location]</a>
-        <form method="Post" style="display: none;">
-          {% csrf_token %}
-          <input type="hidden" name="form_type" value="new_location">
-          <b> Team Location: </b>
-          <input name="team_location" value="{{ registered_team.location }}" type="text">
-          <input type="submit" value="Change Location">
-        </form>
-      </li>
 
       <li class="list-group-item text-center">
         <form method="Post">
