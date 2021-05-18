@@ -57,6 +57,10 @@ async function check() {
       {
         feedback.innerHTML = ('<p>Congratulations for solving this puzzle! \n' + decode(field.val().replaceAll(" ", "").toLowerCase(), prepuzzle_values['responseEncoded']) + '</p>')
       }
+      else
+      {
+        feedback.innerHTML = ('<p>Congratulations for solving this puzzle! The answer was indeed "' + field.val() + '"</p>')      
+      }
     }
     else if(prepuzzle_values['eurekaHashes'].includes(hash))
     {
