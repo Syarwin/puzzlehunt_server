@@ -99,7 +99,7 @@ $(function() {
         } else if(data.status == "wrong"){
           
         sleep(reveal-Date.now()).then(()=>{
-        checkinsidediv.innerHTML = '<p style="font-size:400px; color:red"> ✗ </p> ';
+        checkinsidediv.innerHTML = '<p style="font-size:400px; color:#cc0000"> ✗ </p> ';
                     rightbar.style.opacity= 1;
               sleep(2000).then(()=>{
                     puzzle.style.display= "block";

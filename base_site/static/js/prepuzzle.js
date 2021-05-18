@@ -69,7 +69,7 @@ async function check() {
     }
     else
     {    
-      checkinsidediv.innerHTML = '<p style="font-size:400px; color:red"> ✗ </p> '
+      checkinsidediv.innerHTML = '<p style="font-size:400px; color:#cc0000"> ✗ </p> '
     }
     await delay(2000);   
     

@@ -104,7 +104,10 @@ class HuntIndex(View):
         message = ''
         time_zone = tz.gettz(settings.TIME_ZONE)
 
-        if not user.is_staff and team is not None:
+
+        if team is not None:
+            if user.is_staff:
+              message = "You're an admin, you should delete your progress before the hunt starts<br>"
             ep_solved = team.ep_solved.count()
             if len(episodes)>0 and ep_solved == len(episodes):
               if len(episodes) == hunt.episode_set.count():
@@ -112,13 +115,13 @@ class HuntIndex(View):
                   time = team.episodesolve_set.get(episode = episodes[-1]['ep']).time
                 except:
                   return HttpResponseNotFound('<h1>Inconsistent database stucture</h1>')
-                message = 'Congratulations! <br>You have finished the hunt at rank ' + str(EpisodeSolve.objects.filter(episode= episodes[-1]['ep'], time__lte= time).count())
+                message = message + 'Congratulations! <br>You have finished the hunt at rank ' + str(EpisodeSolve.objects.filter(episode= episodes[-1]['ep'], time__lte= time).count())
               else:
                 try:
                   ep_unlock = TeamEpisodeLink.objects.get(episode=episodes[-1]['ep'].unlocks, team=team)
                   ep_solve = EpisodeSolve.objects.get(episode=episodes[-1]['ep'], team=team)
                   rank = str(EpisodeSolve.objects.filter(episode= episodes[-1]['ep'], time__lte= ep_solve.time).count())
-                  message = 'Congratulations on finishing Episode ' + str(len(episodes)) + ' at rank ' + rank + '! <br> Next Episode will start at ' + (ep_unlock.episode.start_date - ep_unlock.headstart).astimezone(time_zone).strftime('%H:%M, %d/%m %Z')
+                  message = message + 'Congratulations on finishing Episode ' + str(len(episodes)) + ' at rank ' + rank + '! <br> Next Episode will start at ' + (ep_unlock.episode.start_date - ep_unlock.headstart).astimezone(time_zone).strftime('%H:%M, %d/%m %Z')
                 except:
                   return HttpResponseNotFound('<h1>Last Episode finished without unlocking the next one</h1>')
             if ep_solved>0:
@@ -126,7 +129,7 @@ class HuntIndex(View):
             if len(episodes) == 0:
               unlocks = team.ep_unlocked
               if (unlocks.count()>0):
-                  message = 'Welcome to the hunt! <br> The first Episode will start at ' + unlocks.first().start_date.astimezone(time_zone).strftime('%H:%M, %d/%m %Z')
+                  message = message + 'Welcome to the hunt! <br> The first Episode will start at ' + unlocks.first().start_date.astimezone(time_zone).strftime('%H:%M, %d/%m %Z')
                 
 
         context = {'hunt': hunt, 'episodes': episodes, 'team': team, 'text': text, 'message': message}
