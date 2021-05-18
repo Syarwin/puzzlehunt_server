@@ -24,7 +24,7 @@ class PersonForm(forms.ModelForm):
 
     class Meta:
         model = Person
-        fields = ['comments']
+        fields = []
 
 
 class UserForm(forms.ModelForm):
