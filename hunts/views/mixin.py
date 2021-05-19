@@ -17,7 +17,8 @@ class RequiredPuzzleAccessMixin():
             elif (not request.user.is_staff):
                 if request.team is None:
                     return redirect(reverse('registration'))
-                elif request.puzzle not in request.team.puz_unlocked.all():
+                elif request.puzzle.episode not in request.hunt.get_episodes(request.user,request.team) \
+                        or request.puzzle not in request.team.puz_unlocked.all():
                     return redirect(reverse('hunt', kwargs={'hunt_num' : request.hunt.hunt_number }))
 
         return super().dispatch(request, *args, **kwargs)
