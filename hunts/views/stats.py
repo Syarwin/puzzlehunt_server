@@ -129,7 +129,6 @@ def team(request):
       for unlock in unlocks.all():
         duration = ''
         solvetime = ''
-        unlocktime=''
         rank = ''
         rankduration = ''
         hints= ''
@@ -137,7 +136,6 @@ def team(request):
         try:
           solve = solves.get(puzId=unlock.puzId)
           solvetime = solve.time
-          unlocktime = unlock.time
           duration = solve.duration
           rank = int_to_rank(PuzzleSolve.objects.filter(puzzle= unlock.puzzle, guess__guess_time__lt= solvetime).count()+1)
      #     wrap = ExpressionWrapper(F('guess__guess_time')-F('unlock_time'), output_field=fields.DurationField())

@@ -241,7 +241,7 @@ def progress(request, ep_pk):
 # background color of overview row
 def getColor(minutes): 
     if minutes < 0:
-      return "rgb(168,255,163)"
+      return "rgb(192,163,255)"
     if (minutes < 40):
       return "rgb(" + str(int(168*(1-minutes/40.)+255*minutes/40.))  + ",255,163)"
     elif (minutes < 80):
@@ -277,7 +277,7 @@ def overview(request):
         continue
       puzzle = puzzle_unlock.puzzle
       puzzle_name = puzzle.puzzle_name
-      time_stuck = int((timezone.now() - puzzle_unlock.time).total_seconds()/60)
+      time_stuck = max(-1,int((timezone.now() - puzzle.starting_time_for_team(team)).total_seconds()/60))
       color = getColor(time_stuck)
       guesses = Guess.objects.filter(puzzle=puzzle, team=team).order_by('guess_time')
       nb_guess = guesses.count()
