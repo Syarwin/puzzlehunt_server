@@ -152,7 +152,6 @@ h3.episode-header a.collapsed::after {
   background: none;
   box-shadow: none;
   margin-left: 0px;
-  padding-bottom: 370px;
   overflow: auto;
 }
 
