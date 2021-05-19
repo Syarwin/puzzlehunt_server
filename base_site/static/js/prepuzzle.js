@@ -64,7 +64,7 @@ async function check() {
     }
     else if(prepuzzle_values['eurekaHashes'].includes(hash))
     {
-      addEureka(field.val(), hash, '');
+      addEureka(field.val().replaceAll(" ", "").toLowerCase(), field.val().replaceAll(" ", "").toLowerCase(), '');
       checkinsidediv.innerHTML = '<img src="/static/img/milestone.png" alt="" class="fit-inside" max-width=60% max-height=70%"> '
     }
     else
@@ -194,8 +194,10 @@ var eurekas = [];
 
 function addEureka(eureka, eureka_uid, feedback) {
   var guesses_table = $('#eurekas');
-  guesses_table.prepend('<li><span class="guess-user">' + encode(feedback) + '</span><span class="guess-value">' + encode(eureka) + '</span></li>') 
-  eurekas.push(eureka_uid)
+  if (!eurekas.includes(eureka_uid)){
+    guesses_table.prepend('<li><span class="guess-user">' + encode(feedback) + '</span><span class="guess-value">' + encode(eureka) + '</span></li>') 
+    eurekas.push(eureka_uid)
+  }
 }
 
 
