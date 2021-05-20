@@ -2,7 +2,7 @@ html, body { height:100%; }
 body {
   display:flex;
   flex-flow:column;
-  background:radial-gradient(circle, rgb(8, 162, 91) 20%, rgb(17, 87, 55) 100%);
+  background:radial-gradient(circle, rgb(8, 162, 91) 20%, rgb(17, 87, 55) 100%) fixed;
   overflow-x: hidden;
 }
 
