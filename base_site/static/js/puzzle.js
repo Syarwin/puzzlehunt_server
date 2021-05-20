@@ -109,7 +109,7 @@ $(function() {
                     });
             });
         } else {
-                   checkinsidediv.innerHTML = '<p style="font-size:400px; color:green"> WTF </p> '
+                   checkinsidediv.innerHTML = '<p style="font-size:50px; color:#cc0000"> Something went wrong <br> Do you have a team? </p> '
           waitCheckSynchronize(data.guess, data.timeout_length, data.timeout_end, data.unlocks)
         }
       },

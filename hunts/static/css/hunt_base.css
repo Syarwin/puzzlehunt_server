@@ -127,6 +127,7 @@ h3.episode-header a.collapsed::after {
 .puzzle-holder {
   flex-grow: 1;
   max-height: calc(100% - 125px);
+  overflow:auto;
 }
 
 .puzzle-holder div.centered {

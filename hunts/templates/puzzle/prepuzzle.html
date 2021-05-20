@@ -17,12 +17,11 @@
   <div class="puzzle-title">
     Demo Puzzle: {{ puzzle.puzzle_name }}
   </div>
-  <div class="puzzle-holder" id = "puzzle-holder">
+  <div class="puzzle-holder mt-5 mb-5" id = "puzzle-holder">
     {{ text | safe }}
   </div>
 <div id='checking-div' class="puzzle-holder" style="display:none">
 <div id='checking-insidediv' class='centered'>
-hello
 </div>
 </div>
 
@@ -30,7 +29,7 @@ hello
     <div id="guess-feedback" class="container py-3"></div>
 <!--    <form id="guess-form" autocomplete="off" class="needs-validation">-->
       <div class="input-group input-group-lg has-validation">
-        <input id="answer-entry" name="answer" type="text" pattern=" *[A-Za-z0-9][A-Za-z0-9 ]*" class="form-control" placeholder="Guess (alphanumeric, optional spaces, case-insensitive)" aria-label="Your guess" autocomplete="off" title="guesses should only contain letters, digits and optional spaces" onkeypress="checkKey(event)"/>
+        <input id="answer-entry" name="answer" type="text" pattern=" *[A-Za-z0-9][A-Za-z0-9 ]*" class="form-control" placeholder="Guess (alphanumeric, optional spaces, case-insensitive)" aria-label="Your guess" autocomplete="off" title="Guesses should only contain letters, digits and optional spaces" onkeypress="checkKey(event)"/>
         <button class="btn btn-primary"  id="answer-button" onclick="check()">Submit</button>
         <div class="invalid-feedback">
             Please choose a username.
