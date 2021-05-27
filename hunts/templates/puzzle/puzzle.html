@@ -21,7 +21,7 @@
 {% include 'hunt/hunt_sidebar.html' with episodes=episodes hunt=hunt %}
 <div class="puzzle-container">
   <div class="puzzle-title">
-    Day {{puzzle.puzzle_id  | slice:"-2:" }}: {{ puzzle.puzzle_name }}
+    Day {{puzzle.puzzle_id  | slice:"-2:" }} - {{ puzzle.puzzle_name }}
   </div>
   <div class="puzzle-holder mt-5 mb-5" id="puzzle-holder">
     {{ text | safe }}
