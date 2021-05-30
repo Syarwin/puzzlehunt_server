@@ -36,18 +36,16 @@
           <td class="actions leftmost">All </td>
           <td class="actions"></td>
           <td class="actions"></td>
-          {% for puzzle in puzzle_list %}
             <td class="actions">
-              <form class='unlock_form' action="/staff/progress/" method="post">
+              <form class='unlock_form' action="/staff/progress/1" method="post">
                 {% csrf_token %}
-                <input type="hidden" name="puzzle_id" value="{{ puzzle.pk }}">
+                <input type="hidden" name="puzzle_id" value="{{ puzzle_list.0.pk }}">
                 <input type="hidden" name="action" value="unlock_all">
                 <button type="Submit" class="btn btn-secondary" onclick="return confirm('Are you sure?')">
                   Unlock All
                 </button>
               </form>
             </td>
-          {% endfor %}
         </tr>
         <tr>
           <th class="leftmost topmost">Team</th>

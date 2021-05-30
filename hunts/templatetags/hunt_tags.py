@@ -25,6 +25,14 @@ def contact_email(context):
 def render_with_context(value, user):
     return Template(value).render(Context({'curr_hunt': Hunt.objects.get(is_current_hunt=True), 'user': user}))
     
+@register.filter()
+def render_hunt_with_context(value, team):
+    hunt = Hunt.objects.get(is_current_hunt=True)
+    nbsolve = 0
+    if team is not None:
+      nbsolve = team.ep_solved.count()
+    return Template(value).render(Context({'curr_hunt': Hunt.objects.get(is_current_hunt=True),  'nb_solve': nbsolve}))
+    
 @register.simple_tag(takes_context=True)
 def render_with_context_simpletag(context):
     user = context['user']
