@@ -27,7 +27,7 @@ main.split-hor {
 }
 
 #sidebar{
-  max-height:calc(100% - 277px);
+  max-height:calc(100% - 285px);
   overflow:auto;
 }
 

@@ -54,7 +54,7 @@ class GuessAdmin(admin.ModelAdmin):
     search_fields = ['guess_text','team__team_name','puzzle__puzzle_name']
     list_display = ['guess_text', short_team_name, 'guess_time']
     autocomplete_fields = ['team']
-    list_filter = [('puzzle', RelatedDropdownFilter),('team', RelatedDropdownFilter)]
+    list_filter = [('puzzle', RelatedDropdownFilter),('team', RelatedDropdownFilter),('user', RelatedDropdownFilter)]
 
 
 class TeamAdminForm(forms.ModelForm):

@@ -16,7 +16,7 @@
        {{ episode.ep.ep_name }}
       </a>
     </h3>
-    <div id="collapse-episode-{{ episode.ep.ep_number }}" class="collapse list-group flex-column mb-0">
+    <div id="collapse-episode-{{ episode.ep.ep_number }}" class="collapse list-group flex-column mb-0 {% if puzzle and puzzle in episode.puz %}show{%endif%}">
       {% for cpuzzle in episode.puz %}
           <a href="{% url 'puzzle' puzzle_id=cpuzzle.puzzle_id %}" class="list-group-item {% if puzzle and cpuzzle == puzzle %} active {% endif %}">
             <!--<b>{% cycle 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 %} :</b> -->
@@ -32,13 +32,3 @@
 </div>
 
 
-<script type="text/javascript">
-$(function() {
-  // Sidebar toggle behavior
-  $('#sidebar-collapse').on('click', function() {
-    $('#sidebar').toggleClass('active');
-  });
-
-  $('#sidebar .list-group-item.active').parent().show()
-});
-</script>
