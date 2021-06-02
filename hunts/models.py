@@ -117,7 +117,12 @@ class Hunt(models.Model):
 
     @property
     def is_public(self):
+        """ A boolean indicating whether or not the hunt is publicly available. Demos only are accessibled without logging"""
         return timezone.now() >= self.end_date or self.is_demo
+        
+    @property
+    def is_finished(self):
+        return timezone.now() >= self.end_date
 
     @property
     def is_day_of_hunt(self):

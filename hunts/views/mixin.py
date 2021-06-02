@@ -20,6 +20,10 @@ class RequiredPuzzleAccessMixin():
                 elif request.puzzle.episode not in request.hunt.get_episodes(request.user,request.team) \
                         or request.puzzle not in request.team.puz_unlocked.all():
                     return redirect(reverse('hunt', kwargs={'hunt_num' : request.hunt.hunt_number }))
+                    
+        
+        if request.hunt.is_finished and not request.user.is_authenticated:
+                return redirect('%s?next=%s' % (reverse_lazy(settings.LOGIN_URL), request.path))
 
         return super().dispatch(request, *args, **kwargs)
 

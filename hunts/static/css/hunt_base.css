@@ -232,3 +232,24 @@ img.fit-inside {
 #answer-container {
   padding-left: 2rem;
 }
+
+.spoiler {
+  display: none;
+}
+
+.showhint{
+  font-style:italic;
+}
+
+.showhint:hover{
+  color: #eeeeee;
+  background-color: #999;
+}
+
+.showhint:target {
+  display: none; 
+}
+
+.showhint:target ~ .spoiler {
+  display: inline;
+}

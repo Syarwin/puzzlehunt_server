@@ -1,0 +1,73 @@
+{% extends "hunt/hunt_base.html" %}
+{% load hunt_tags %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block title %}Puzzle - {{ puzzle.puzzle_name }}{% endblock title %}
+
+{% block includes %}
+<script src="{% static 'js/postpuzzle.js' %}"></script>
+{% endblock includes %}
+
+{% block content %}
+{% include 'hunt/hunt_sidebar.html' with episodes=episodes hunt=hunt %}
+
+<!-- Hey, what are you doing here? This is just a puzzle from a previous hunt, don't spoil it by looking at the source code please :) -->
+{{ postpuzzle_values |json_script:"postpuzzle_values" }}
+<div class="puzzle-container">
+  <div class="puzzle-title">
+    Past Puzzle: {{ puzzle.puzzle_name }}
+  </div>
+  <div class="puzzle-holder mt-5 mb-5" id = "puzzle-holder">
+    {{ text | safe }}
+  </div>
+<div id='checking-div' class="puzzle-holder" style="display:none">
+<div id='checking-insidediv' class='centered'>
+</div>
+</div>
+
+  <div id="guess-bar">
+    <div id="guess-feedback" class="container py-3"></div>
+<!--    <form id="guess-form" autocomplete="off" class="needs-validation">-->
+      <div class="input-group input-group-lg has-validation">
+        <input id="answer-entry" name="answer" type="text" pattern=" *[A-Za-z0-9][A-Za-z0-9 ]*" class="form-control" placeholder="Guess (alphanumeric, optional spaces, case-insensitive)" aria-label="Your guess" autocomplete="off" title="Guesses should only contain letters, digits and optional spaces" onkeypress="checkKey(event)"/>
+        <button class="btn btn-primary"  id="answer-button" onclick="check()">Submit</button>
+        <div class="invalid-feedback">
+            Please choose a username.
+        </div>
+      </div>
+<!--    </form>-->
+  </div>
+</div>
+
+
+
+<div id="right-bar" class="vertical-nav">
+  <div class="right-block" data-toggle="tooltip" data-placement="top" data-html="true" title="Click on buttons to unlock the hints. Desired thinking time before doing so are displayed on the right.">
+    <h3>Hints</h3>
+    <ul id="hints">
+    {% for hi in puzzle.hint_set.all %}
+    <li>
+    <span class="guess-user">({{hi.time}})</span>
+    <a href="#showhint{{forloop.counter}}" class="showhint btn guess-value" id="showhint{{forloop.counter}}">Show hint</a>
+    <span class="guess-value spoiler">{{hi.text}}</span>
+    </li>
+    {% endfor %}
+    </ul>
+  </div>
+  
+  {% if eureka %}
+  <div class="right-block" data-toggle="tooltip" data-placement="top" data-html="true"
+title="Correct step towards the solution, equal for all teams.
+Rarely contains a small message.
+Cannot speed-up specific hints contrarily to the actual hunt.">
+    <h3>Milestones</h3>
+    <ul id="eurekas"></ul>
+  </div>
+  {% endif %}
+  <div class="right-block">
+    <h3>Guesses <!--Note: this is a past puzzle, more functionnalities will be available during the hunt.--></h3>
+    <ul id="guesses"></ul>
+  </div>
+</div>
+
+{% endblock content %}

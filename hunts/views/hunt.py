@@ -206,16 +206,23 @@ class PuzzleView(RequiredPuzzleAccessMixin, View):
             'status': status
         }
 
-        if not request.hunt.is_demo:
+        if not request.hunt.is_demo and not request.hunt.is_finished:
             return render(request, 'puzzle/puzzle.html', context)
-
-        else:
+        elif request.hunt.is_demo:
             # Prepuzzle
             context['prepuzzle_values'] = {'answerHash': sha256(("SuperRandomInitialSalt" + request.puzzle.answer.replace(" ", "").lower()).encode('utf-8')).hexdigest(), 
                                           'eurekaHashes': [sha256(("SuperRandomInitialSalt" + eur.replace(" ", "").lower()).encode('utf-8')).hexdigest() for eur in request.puzzle.eureka_set.filter(admin_only=False).values_list('answer', flat=True)],
-                                          'responseEncoded': encode(request.puzzle.answer.replace(" ", "").lower(), request.puzzle.demo_response)
+                                          'responseEncoded': encode(request.puzzle.answer.replace(" ", "").lower(), request.puzzle.demo_response),
                                           }
             return render(request, 'puzzle/prepuzzle.html', context)
+        else:
+            # Postpuzzle
+            context['postpuzzle_values'] = {'answer': request.puzzle.answer, 
+                                            'answer_regex': request.puzzle.answer_regex, 
+                                            'hints': [{'text': hi.text, 'time':hi.time} for hi in request.puzzle.hint_set.all()],
+                                            'eurekas': [{'regex': eur.regex, 'answer':eur.answer, 'feedback': eur.feedback} for eur in request.puzzle.eureka_set.filter(admin_only=False).all()],
+                                          }
+            return render(request, 'puzzle/postpuzzle.html', context)
 
 
 
@@ -227,10 +234,10 @@ class PuzzleView(RequiredPuzzleAccessMixin, View):
         team = request.team
         puzzle = request.puzzle
         user = request.user
-
+        
         # Dealing with answer guesss, proper procedure is to create a guess
         # object and then rely on Guess.respond for automatic responses.
-        if(team is None):
+        if(team is None or puzzle.episode.hunt.is_finished or team.hunt != puzzle.episode.hunt):
                 # If the hunt isn't public and you aren't signed in, please stop...
                 return JsonResponse({'error':'fail'})
 

@@ -46,30 +46,29 @@ async function check() {
     } else {
       button.removeData('empty-answer')
     }
-    const prepuzzle_values = JSON.parse(document.getElementById('prepuzzle_values').textContent);
-    hash = await sha256("SuperRandomInitialSalt" + field.val().replaceAll(" ", "").toLowerCase())
+    const data = JSON.parse(document.getElementById('postpuzzle_values').textContent);
+
+    let guess = field.val().replaceAll(" ", "").toLowerCase();
     
     addGuess(field.val(), false, field.val());
     
-    if ( hash == prepuzzle_values['answerHash']){
+    if ( RegExp('^' + data['answer_regex'].toLowerCase() + '$').test(guess) || guess == data['answer'].replaceAll(" ", "").toLowerCase()){ 
       checkinsidediv.innerHTML = '<p style="font-size:400px; color:lime"> ✓ </p> '
-      if ( prepuzzle_values['responseEncoded'].length > 0)
-      {
-        feedback.innerHTML = ('<p>Congratulations for solving this puzzle! \n' + decode(field.val().replaceAll(" ", "").toLowerCase(), prepuzzle_values['responseEncoded']) + '</p>')
-      }
-      else
-      {
-        feedback.innerHTML = ('<p>Congratulations for solving this puzzle! The answer was indeed "' + field.val() + '"</p>')      
-      }
-    }
-    else if(prepuzzle_values['eurekaHashes'].includes(hash))
-    {
-      addEureka(field.val().replaceAll(" ", "").toLowerCase(), field.val().replaceAll(" ", "").toLowerCase(), '');
-      checkinsidediv.innerHTML = '<img src="/static/img/milestone.png" alt="" class="fit-inside" max-width=60% max-height=70%"> '
+      feedback.innerHTML = ('<p>Congratulations for solving this puzzle! The answer was indeed "' + data['answer'] + '"</p>')      
     }
     else
-    {    
-      checkinsidediv.innerHTML = '<p style="font-size:400px; color:#cc0000"> ✗ </p> '
+    {
+      var eureka = false;
+      for(var eur of data['eurekas']){
+        if ( RegExp('^' + eur['regex'].toLowerCase() + '$').test(guess)){ 
+        addEureka(eur['answer'], eur['answer'], eur['feedback']);
+        checkinsidediv.innerHTML = '<img src="/static/img/milestone.png" alt="" class="fit-inside" max-width=60% max-height=70%"> ';
+        eureka = true;
+        }
+      }
+      if (!eureka){
+        checkinsidediv.innerHTML = '<p style="font-size:400px; color:#cc0000"> ✗ </p> '
+      }
     }
     await delay(2000);   
     
