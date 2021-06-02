@@ -52,16 +52,16 @@ async function check() {
     
     addGuess(field.val(), false, field.val());
     
-    if ( RegExp('^' + data['answer_regex'].toLowerCase() + '$').test(guess) || guess == data['answer'].replaceAll(" ", "").toLowerCase()){ 
+    if ( RegExp('^' + decode('secretkey',data['answer_regex']).toLowerCase() + '$').test(guess) || guess == decode('secretkey',data['answer']).replaceAll(" ", "").toLowerCase()){ 
       checkinsidediv.innerHTML = '<p style="font-size:400px; color:lime"> ✓ </p> '
-      feedback.innerHTML = ('<p>Congratulations for solving this puzzle! The answer was indeed "' + data['answer'] + '"</p>')      
+      feedback.innerHTML = ('<p>Congratulations for solving this puzzle! The answer was indeed "' + decode('secretkey',data['answer']) + '"</p>')      
     }
     else
     {
       var eureka = false;
       for(var eur of data['eurekas']){
-        if ( RegExp('^' + eur['regex'].toLowerCase() + '$').test(guess)){ 
-        addEureka(eur['answer'], eur['answer'], eur['feedback']);
+        if ( RegExp('^' + decode('secretkey',eur['regex']).toLowerCase() + '$').test(guess)){ 
+        addEureka(decode('secretkey',eur['answer']), decode('secretkey',eur['answer']), decode('secretkey',eur['feedback']));
         checkinsidediv.innerHTML = '<img src="/static/img/milestone.png" alt="" class="fit-inside" max-width=60% max-height=70%"> ';
         eureka = true;
         }
@@ -218,7 +218,7 @@ async function sha256(message) {
 
 // simple way to decode a prepuzzle response string
 function decode(key, string){
-    output = [string.length]
+    output = []
     for (var i = 0; i < string.length; i++) {
         decoded_c = (string.charCodeAt(i) - key.charCodeAt(i % key.length) % 256);
         output[i] = String.fromCharCode(decoded_c);

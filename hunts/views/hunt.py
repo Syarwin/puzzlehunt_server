@@ -217,10 +217,10 @@ class PuzzleView(RequiredPuzzleAccessMixin, View):
             return render(request, 'puzzle/prepuzzle.html', context)
         else:
             # Postpuzzle
-            context['postpuzzle_values'] = {'answer': request.puzzle.answer, 
-                                            'answer_regex': request.puzzle.answer_regex, 
-                                            'hints': [{'text': hi.text, 'time':hi.time} for hi in request.puzzle.hint_set.all()],
-                                            'eurekas': [{'regex': eur.regex, 'answer':eur.answer, 'feedback': eur.feedback} for eur in request.puzzle.eureka_set.filter(admin_only=False).all()],
+            context['postpuzzle_values'] = {'answer': encode( "secretkey", request.puzzle.answer), 
+                                            'answer_regex': encode("secretkey", request.puzzle.answer_regex), 
+#                                            'hints': [{'text': hi.text, 'time':hi.time} for hi in request.puzzle.hint_set.all()],
+                                            'eurekas': [{'regex': encode("secretkey", eur.regex), 'answer':encode("secretkey", eur.answer), 'feedback': encode("secretkey", eur.feedback)} for eur in request.puzzle.eureka_set.filter(admin_only=False).all()],
                                           }
             return render(request, 'puzzle/postpuzzle.html', context)
 
