@@ -28,6 +28,20 @@ class RequiredPuzzleAccessMixin():
         return super().dispatch(request, *args, **kwargs)
 
 
+class RequiredSolutionAccessMixin():
+    def dispatch(self, request, *args, **kwargs):
+        if request.puzzle is None:
+            return HttpResponseNotFound('<h1>Page not found</h1>')
+
+        if not request.user.is_authenticated:
+                return redirect('%s?next=%s' % (reverse_lazy(settings.LOGIN_URL), request.path))
+
+        if not request.user.is_staff and not request.hunt.is_finished:
+            return HttpResponseNotFound('<h1>Page not found</h1>')
+            
+        return super().dispatch(request, *args, **kwargs)
+
+
 class APITokenRequiredMixin():
     """
     API clients must pass their API token via the Authorization header using the format:

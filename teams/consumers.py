@@ -30,6 +30,20 @@ from . import utils
 
 
 
+def format_duration(arg):
+    try:
+      seconds = int(arg.total_seconds())
+      if seconds < 60:
+        return str(seconds) + "s"
+      elif seconds < 3600:
+        return str(int(seconds/60)) + "m" + ( str(seconds % 60) + "s" if seconds %60 >0 else "")
+      elif seconds < 3600*24:
+        return str(int(seconds/3600)) + "h" + ( str(int((seconds % 3600)/60)) + "m" if seconds % 3600 >0 else "")
+      else:
+        return str(int(seconds/3600/24)) + "d" + ( str(int((seconds % (3600*24))/3600)) + "h"  if seconds % (3600*24) >0 else "")
+    except AttributeError:
+      return ''
+
 def pre_save_handler(func):
     """The purpose of this decorator is to connect signal handlers to consumer class methods.
 
@@ -182,6 +196,7 @@ class PuzzleWebsocket(JsonWebsocketConsumer):
                 'hint': hint.text,
                 'hint_uid': hint.compact_id,
                 'time': str(hint.time),
+                'time_human' : format_duration(hint.time),
             }
         }
 

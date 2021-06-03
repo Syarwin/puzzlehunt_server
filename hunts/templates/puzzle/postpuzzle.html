@@ -26,7 +26,16 @@
 </div>
 
   <div id="guess-bar">
-    <div id="guess-feedback" class="container py-3"></div>
+    <div id="guess-feedback" class="container py-3">
+    {% if solutions%}
+    <p>
+    Solution:
+    {% for sol in solutions %}
+      <a href="{{sol}}" style='color: white; font-weight:bold'>PDF File</a>  &nbsp;&nbsp;&nbsp;
+    {%endfor%}
+    </p>
+    {%endif%}
+    </div>
 <!--    <form id="guess-form" autocomplete="off" class="needs-validation">-->
       <div class="input-group input-group-lg has-validation">
         <input id="answer-entry" name="answer" type="text" pattern=" *[A-Za-z0-9][A-Za-z0-9 ]*" class="form-control" placeholder="Guess (alphanumeric, optional spaces, case-insensitive)" aria-label="Your guess" autocomplete="off" title="Guesses should only contain letters, digits and optional spaces" onkeypress="checkKey(event)"/>
@@ -47,7 +56,7 @@
     <ul id="hints">
     {% for hi in puzzle.hint_set.all %}
     <li>
-    <span class="guess-user">({{hi.time}})</span>
+    <span class="guess-user">({{hi.time|duration}})</span>
     <a href="#showhint{{forloop.counter}}" class="showhint btn guess-value" id="showhint{{forloop.counter}}">Show hint</a>
     <span class="guess-value spoiler">{{hi.text}}</span>
     </li>
@@ -65,8 +74,12 @@ Cannot speed-up specific hints contrarily to the actual hunt.">
   </div>
   {% endif %}
   <div class="right-block">
-    <h3>Guesses <!--Note: this is a past puzzle, more functionnalities will be available during the hunt.--></h3>
-    <ul id="guesses"></ul>
+    <h3>Guesses <!--Note: this is a past puzzle, more functionnalities were available during the hunt.--></h3>
+    <ul id="guesses">
+    {% for gu in guesses %}
+    <li><span class="guess-user">{{gu.name}}</span><span class="guess-value">{{ gu.guess_text}}</span></li>
+    {% endfor %}
+    </ul>
   </div>
 </div>
 

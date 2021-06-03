@@ -28,7 +28,7 @@ import re
 
 from hunts.models import Puzzle, Hunt, Guess, Unlockable
 from teams.models import PuzzleSolve, EpisodeSolve, TeamEpisodeLink
-from .mixin import RequiredPuzzleAccessMixin
+from .mixin import RequiredPuzzleAccessMixin, RequiredSolutionAccessMixin
 from hashlib import sha256
 
 import logging
@@ -65,7 +65,22 @@ class PuzzleFile(RequiredPuzzleAccessMixin, View):
         except IOError:
            return HttpResponseNotFound('<h1>Page not found</h1>')
 
-        #return sendfile(request, puzzle_file.file.path)
+
+
+
+class SolutionFile(RequiredSolutionAccessMixin, View):
+    def get(self, request, puzzle_id, file_path):
+        puzzle = request.puzzle
+        puzzle_file = get_object_or_404(puzzle.solutionfile_set, url_path=file_path)
+
+        pathname = smart_str(os.path.join(settings.MEDIA_ROOT, puzzle_file.file.path))
+        try:
+#            return sendfile(request, puzzle_file.file.path)
+           with open(pathname, "rb") as f:
+               return HttpResponse(f.read(), content_type="application/pdf")
+        except IOError:
+           return HttpResponseNotFound('<h1>Page not found</h1>')
+
 
 
 
@@ -217,11 +232,25 @@ class PuzzleView(RequiredPuzzleAccessMixin, View):
             return render(request, 'puzzle/prepuzzle.html', context)
         else:
             # Postpuzzle
+            
+            
+            context['solutions'] = [ reverse(
+                'solution_file',
+                kwargs={
+                    'puzzle_id': puzzle_id,
+                    'file_path': f.url_path,
+                }) for f in request.puzzle.solutionfile_set.all()
+            ]
+            
+            
+            
             context['postpuzzle_values'] = {'answer': encode( "secretkey", request.puzzle.answer), 
                                             'answer_regex': encode("secretkey", request.puzzle.answer_regex), 
 #                                            'hints': [{'text': hi.text, 'time':hi.time} for hi in request.puzzle.hint_set.all()],
                                             'eurekas': [{'regex': encode("secretkey", eur.regex), 'answer':encode("secretkey", eur.answer), 'feedback': encode("secretkey", eur.feedback)} for eur in request.puzzle.eureka_set.filter(admin_only=False).all()],
                                           }
+            if request.team is not None:
+              context['guesses'] = Guess.objects.filter(puzzle=request.puzzle, team=request.team).order_by('-guess_time').annotate(name=F('user__username' ))
             return render(request, 'puzzle/postpuzzle.html', context)
 
 

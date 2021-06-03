@@ -262,7 +262,7 @@ var hints = [];
 
 function receivedNewHint(content) {
   if(!hints.includes(content.hint_uid)){
-    hints[content.hint_uid] = {'time': content.time, 'hint': content.hint}
+    hints[content.hint_uid] = {'time': content.time, 'time_human': content.time_human, 'hint': content.hint}
     updateHints()
   }
 }
@@ -277,7 +277,7 @@ function updateHints() {
     return 0
   })
   entries.forEach(entry => {
-    hints_list.append('<li><span class="guess-user">(' + encode(entry[1].time) + ')</span><span class="guess-value">' + (entry[1].hint) + '</span></li>')
+    hints_list.append('<li><span class="guess-user">(' + entry[1].time_human + ')</span><span class="guess-value">' + (entry[1].hint) + '</span></li>')
   })
 }
 

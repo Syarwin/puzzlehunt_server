@@ -24,6 +24,7 @@ from . import views
 puzzlepatterns = [
     path('', views.hunt.PuzzleView.as_view(), name='puzzle'),
     path('media/<path:file_path>', views.hunt.PuzzleFile.as_view(), name='puzzle_file'),
+    path('solution/<path:file_path>', views.hunt.SolutionFile.as_view(), name='solution_file'),
 ]
 
 urlpatterns = [
