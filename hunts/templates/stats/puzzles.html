@@ -3,6 +3,59 @@
 
 {% block includes %}
 <script src="{{ STATIC_URL }}jquery.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.combined.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.widgets.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/css/theme.bootstrap.min.css"
+         />
+    <script>
+
+    $.tablesorter.addParser({
+      // set a unique id
+      id: 'timedhms',
+      is: function(s, table, cell, $cell) {
+        // return false so this parser is not auto detected
+        return false;
+      },
+      format: function(s, table, cell, cellIndex) {
+        // format your data for normalization
+        string = (s.replace(/d/,'*3600*24+')
+          .replace(/h/,'*3600+')
+          .replace(/m/,'*60+')
+          .replace(/s/,'+') + '0');
+        return (Function(`'use strict'; return (${string})`)());
+      },
+      // set type, either numeric or text
+      type: 'numeric'
+      });
+      
+    $.tablesorter.addParser({
+      // set a unique id
+      id: 'timewithday',
+      is: function(s, table, cell, $cell) {
+        // return false so this parser is not auto detected
+        return false;
+      },
+      format: function(s, table, cell, cellIndex) {
+        // format your data for normalization
+        if(s.includes("Fri")){return '0'+s};
+        if(s.includes("Sat")){return '1'+s};
+        if(s.includes("Sun")){return '2'+s};
+        if(s.includes("Mon")){return '3'+s};
+        if(s.includes("Tue")){return '4'+s};
+        if(s.includes("Wed")){return '5'+s};
+        if(s.includes("Thu")){return '6'+s};
+        
+        return total;
+      },
+      // set type, either numeric or text
+      type: 'text'
+      });
+    
+        $(document).ready(function () {
+            $("#myTable").tablesorter({theme:'bootstrap' });
+        });
+    </script>
 {% endblock includes %}
 
 {% block content %}
@@ -11,15 +64,15 @@
     <div class="col-md-12 content">
       <h1 style="text-align: center;"> Puzzle Stats</h1>
       <br>
-      <table class="table table-striped table-hover table-condensed">
+      <table class="table table-striped table-hover table-condensed tablesorter" id="myTable">
       <thead>
         <tr>
           <th>Puzzle</th>
           <th>Solvers</th>
-          <th>First <br>solve time</th>
-          <th>Average <br>solve time</th>
-          <th>Fastest</th>
-          <th>Average duration</th>
+          <th class="sorter-timeofday">First <br>solve time</th>
+          <th class="sorter-timeofday">Average <br>solve time</th>
+          <th class="sorter-timedhms">Fastest</th>
+          <th class="sorter-timedhms">Average duration</th>
           <th>Average number<br> of guesses</th>
           <th>Minimum <br>number of hints</th>
           <th>Average <br>number of hints</th>          

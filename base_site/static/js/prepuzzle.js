@@ -59,7 +59,7 @@ async function check() {
       }
       else
       {
-        feedback.innerHTML = ('<p>Congratulations for solving this puzzle! The answer was indeed "' + field.val() + '"</p>')      
+        feedback.innerHTML = ('<p>Congratulations for solving this puzzle! The answer was indeed "' + field.val().replaceAll(" ", "").toLowerCase() + '"</p>')      
       }
     }
     else if(prepuzzle_values['eurekaHashes'].includes(hash))

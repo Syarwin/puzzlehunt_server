@@ -3,12 +3,22 @@
 
 {% block includes %}
 <script src="{{ STATIC_URL }}jquery.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.combined.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.widgets.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/css/theme.bootstrap.min.css"
+         />
+    <script>    
+        $(document).ready(function () {
+            $("#overview").tablesorter({theme:'bootstrap' });
+        });
+    </script>
 {% endblock includes %}
 
 {% block content %}
   <h1>Last Unlocked Puzzle Overview</h1>
   <div id=table-container>
-    <table id='overview' class="table table-condensed table-hover table-striped">
+    <table id='overview' class="table table-condensed table-hover table-striped  tablesorter">
       <thead class="overview-thead">
         <tr>
           <th class="leftmost topmost">Team</th>

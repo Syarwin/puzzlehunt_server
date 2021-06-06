@@ -4,6 +4,17 @@
 
 {% block includes %}
 <script src="{{ STATIC_URL }}jquery.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.combined.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.widgets.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/css/theme.bootstrap.min.css"
+         />
+    <script>
+    
+        $(document).ready(function () {
+            $("#myTable").tablesorter({theme:'bootstrap' });
+        });
+    </script>
 {% endblock includes %}
 
 {% block content %}
@@ -12,7 +23,7 @@
     <div class="col-md-12 content">
       <h1 style="text-align: center;"> Team '{{ team.team_name |truncatechars:40 }}' ({{team.size }} people) Stats </h1>
       <br>
-      <table class="table table-striped table-hover table-condensed">
+      <table class="table table-striped table-hover table-condensed tablesorter" id="myTable">
       <thead>
         <tr>
           <th>Puzzle</th>
