@@ -21,7 +21,9 @@ main.split-hor {
   position: relative;
   display: flex;
   flex-flow: column;
-}
+  z-index:1
+  }
+  
 .vertical-nav.active {
   margin-left: 0rem;
 }
@@ -213,7 +215,7 @@ img.fit-inside {
   position: absolute;
   left: 0;
   bottom: 0;
-  z-index: -1000;
+  z-index: 0;
   margin-left: -10px;
   height: 300px;
   overflow:hidden;

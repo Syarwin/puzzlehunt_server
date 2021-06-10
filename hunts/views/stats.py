@@ -223,9 +223,9 @@ def puzzle(request):
     for sol in solves:
       duration = sol.duration
       sol_time = sol.guess.guess_time
-      guesses = sol.team.guess_set.filter(puzzle=puz).count()
+      guesses = sol.team.guess_set.filter(puzzle=puz, guess_time__lte=sol_time).count()
       hints = sum([hint.delay_for_team(sol.team) < sol.duration for hint in puz.hint_set.all()])
-      eurekas = [ {'txt' : eur.eureka.answer , 'time': format_duration(eur.time - sol_time + duration) } for eur in sol.team.teameurekalink_set.filter(eureka__puzzle=puz).all()]
+      eurekas = [ {'txt' : eur.eureka.answer , 'time': format_duration(eur.time - sol_time + duration) } for eur in sol.team.teameurekalink_set.filter(eureka__puzzle=puz,time__lt=sol_time).all()]
       data.append({'duration':format_duration(duration), 'sol_time': sol_time, 'guesses':guesses, 'hints': hints, 'eurekas':eurekas, 'team':sol.team.team_name, 'team_pk':sol.team.pk})
 
     context = {'hunt': hunt, 'data':data, 'name': puz.puzzle_name }
