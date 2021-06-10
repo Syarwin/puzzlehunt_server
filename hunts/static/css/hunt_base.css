@@ -109,6 +109,7 @@ h3.episode-header a.collapsed::after {
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow:auto;
 }
 
 .puzzle-container {
