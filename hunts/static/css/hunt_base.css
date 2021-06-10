@@ -106,7 +106,6 @@ h3.episode-header a.collapsed::after {
 
 .side-content {
   flex-grow: 1;
-  display: flex;
   justify-content: center;
   align-items: center;
   overflow:auto;
