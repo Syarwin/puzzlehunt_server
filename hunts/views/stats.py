@@ -83,7 +83,6 @@ def stats(request):
     return render(request, 'stats/stats.html', context)
 
 
-
 @login_required
 def teams(request):
     ''' General view of all teams:  rank, number of solved puzzles, finish time (if finished) '''
@@ -92,15 +91,25 @@ def teams(request):
       context = {'hunt': None}
       return render(request, 'stats/teams.html', context)
 
-    teams = hunt.team_set.all()
-    all_teams = teams.annotate(solves=Count('puz_solved'))
-    all_teams = all_teams.annotate(last_time=Max('puzzlesolve__guess__guess_time'))
-    all_teams = all_teams.order_by(F('solves').desc(nulls_last=True),
+    teams = hunt.team_set
+    teams = teams.annotate(solves=Count('puz_solved'))
+    teams = teams.order_by(F('solves').desc(nulls_last=True),
                                    F('last_time').asc(nulls_last=True))
+    teams = teams.annotate(last_time=Max('puzzlesolve__guess__guess_time'))
+    
+    team_data = []   
+    for team in teams.all():
+      hints = 0
+      for solve in team.puzzlesolve_set.all():
+          duration = solve.duration
+          hints += sum([hint.delay_for_team(team) < duration for hint in solve.puzzle.hint_set.all()])
+      guesses = Guess.objects.filter(puzzle__episode__hunt=hunt, team__team_name=team.team_name).count()
+      team_data.append({'team_name': team.team_name, 'solves': team.solves, 'last_time':team.last_time, 'guesses':guesses, 'hints':hints, 'pk':team.pk})
+        
+      
 
-    context = {'team_data': all_teams, 'hunt': hunt}
+    context = {'team_data': team_data, 'hunt': hunt}
     return render(request, 'stats/teams.html', context)
-
 
 @login_required
 def team(request):

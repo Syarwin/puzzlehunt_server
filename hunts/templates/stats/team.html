@@ -11,6 +11,47 @@
          />
     <script>
     
+    $.tablesorter.addParser({
+      // set a unique id
+      id: 'timedhms',
+      is: function(s, table, cell, $cell) {
+        // return false so this parser is not auto detected
+        return false;
+      },
+      format: function(s, table, cell, cellIndex) {
+        // format your data for normalization
+        string = (s.replace(/d/,'*3600*24+')
+          .replace(/h/,'*3600+')
+          .replace(/m/,'*60+')
+          .replace(/s/,'+') + '0');
+        return (Function(`'use strict'; return (${string})`)());
+      },
+      // set type, either numeric or text
+      type: 'numeric'
+      });
+      
+    $.tablesorter.addParser({
+      // set a unique id
+      id: 'timewithday',
+      is: function(s, table, cell, $cell) {
+        // return false so this parser is not auto detected
+        return false;
+      },
+      format: function(s, table, cell, cellIndex) {
+        // format your data for normalization
+        if(s.includes("Fri")){return '0'+s};
+        if(s.includes("Sat")){return '1'+s};
+        if(s.includes("Sun")){return '2'+s};
+        if(s.includes("Mon")){return '3'+s};
+        if(s.includes("Tue")){return '4'+s};
+        if(s.includes("Wed")){return '5'+s};
+        if(s.includes("Thu")){return '6'+s};
+        
+        return total;
+      },
+      // set type, either numeric or text
+      type: 'text'
+      });
         $(document).ready(function () {
             $("#myTable").tablesorter({theme:'bootstrap' });
         });
@@ -27,8 +68,10 @@
       <thead>
         <tr>
           <th>Puzzle</th>
-          <th>Rank: Duration</th>
-          <th>Rank: Solve time</th>
+          <th class="sorter-timedhms">Duration</th>
+          <th>Duration<br>Rank</th>
+          <th class="sorter-timeofday">Solve time</th>
+          <th>Solve time<br>Rank</th>
           <th>Number of guesses</th>
           <th>Number of Hints</th>
         </tr>
@@ -36,8 +79,10 @@
         {% for solve in solve_data %}
         <tr>
           <td><a  class="btn btn-secondary btn-sm active" role="button" href="/stats/puzzle/?puzzle={{solve.pk}}">{{forloop.counter}}: {{solve.name}}</a></td>
-          <td>{{solve.rankduration}}: {{ solve.duration }}</td>
-          <td>{{solve.rank}}: {{solve.sol_time|date:'H:i (D d)' }} </td>
+          <td>{{ solve.duration }}</td>
+          <td>{{solve.rankduration}}</td>
+          <td>{{solve.sol_time|date:'H:i (D d)' }} </td>
+          <td>{{solve.rank}}</td>
           <td>{{solve.nbguesses}}</td>
           <td>{{solve.hints}}</td>
         </tr>
