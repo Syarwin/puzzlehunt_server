@@ -47,7 +47,7 @@ $(function() {
     rightbar.style.opacity= 0;
     checkdiv.style.display= "block";
     
-    checkinsidediv.innerHTML = '<img src="/static/img/mbicon.png" alt="" class="fit-inside rotating" max-width=60% max-height=70%">';
+    checkinsidediv.innerHTML = '<img src="/static/img/mbicon.png" alt="" class="fit-inside rotating" style="max-width:60%; max-height:50%">';
 
     div_field.disabled = true;
     div_button.disabled = true;
@@ -68,7 +68,7 @@ $(function() {
         fieldKeyup()
         if (data.status == 'correct') {
         sleep(reveal-Date.now()).then(()=>{
-             checkinsidediv.innerHTML = '<p style="font-size:400px; color:lime">✓</p> ';
+             checkinsidediv.innerHTML = '<p style="font-size:300px; color:lime">✓</p> ';
                 rightbar.style.opacity= 1;
           sleep(2000).then(()=>{
                 puzzle.style.display= "block";
@@ -87,7 +87,7 @@ $(function() {
             });
         } else if(data.status == "eureka"){
         sleep(reveal-Date.now()).then(()=>{
-          checkinsidediv.innerHTML = '<img src="/static/img/milestone.png" alt="" class="fit-inside" max-width=60% max-height=70%"> ';
+          checkinsidediv.innerHTML = '<img src="/static/img/milestone.png" alt="" class="fit-inside"  style="max-width:60%; max-height:70%"> ';
                 rightbar.style.opacity= 1;
           sleep(2000).then(()=>{
                 puzzle.style.display= "block";
@@ -99,7 +99,7 @@ $(function() {
         } else if(data.status == "wrong"){
           
         sleep(reveal-Date.now()).then(()=>{
-        checkinsidediv.innerHTML = '<p style="font-size:400px; color:#cc0000"> ✗ </p> ';
+        checkinsidediv.innerHTML = '<p style="font-size:300px; color:#cc0000">✗</p> ';
                     rightbar.style.opacity= 1;
               sleep(2000).then(()=>{
                     puzzle.style.display= "block";

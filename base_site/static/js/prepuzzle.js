@@ -36,7 +36,7 @@ async function check() {
     puzzle.style.display= "none";
     checkdiv.style.display= "block";
     
-    checkinsidediv.innerHTML = '<img src="/static/img/mbicon.png" alt="" class="fit-inside rotating" max-width=60% max-height=70%">';
+    checkinsidediv.innerHTML = '<img src="/static/img/mbicon.png" alt="" class="fit-inside rotating" style="max-width:60%; max-height:50%">';
     
     await delay(4000);
     
@@ -52,7 +52,7 @@ async function check() {
     addGuess(field.val(), false, field.val());
     
     if ( hash == prepuzzle_values['answerHash']){
-      checkinsidediv.innerHTML = '<p style="font-size:400px; color:lime"> ✓ </p> '
+      checkinsidediv.innerHTML = '<p style="font-size:300px; color:lime"> ✓ </p> '
       if ( prepuzzle_values['responseEncoded'].length > 0)
       {
         feedback.innerHTML = ('<p>Congratulations for solving this puzzle! \n' + decode(field.val().replaceAll(" ", "").toLowerCase(), prepuzzle_values['responseEncoded']) + '</p>')
@@ -65,11 +65,11 @@ async function check() {
     else if(prepuzzle_values['eurekaHashes'].includes(hash))
     {
       addEureka(field.val().replaceAll(" ", "").toLowerCase(), field.val().replaceAll(" ", "").toLowerCase(), '');
-      checkinsidediv.innerHTML = '<img src="/static/img/milestone.png" alt="" class="fit-inside" max-width=60% max-height=70%"> '
+      checkinsidediv.innerHTML = '<img src="/static/img/milestone.png" alt="" class="fit-inside" style="max-width:60%; max-height:70%"> '
     }
     else
     {    
-      checkinsidediv.innerHTML = '<p style="font-size:400px; color:#cc0000"> ✗ </p> '
+      checkinsidediv.innerHTML = '<p style="font-size:300px; color:#cc0000"> ✗ </p> '
     }
     await delay(2000);   
     

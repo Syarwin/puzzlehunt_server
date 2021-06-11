@@ -36,7 +36,7 @@ async function check() {
     puzzle.style.display= "none";
     checkdiv.style.display= "block";
     
-    checkinsidediv.innerHTML = '<img src="/static/img/mbicon.png" alt="" class="fit-inside rotating" max-width=60% max-height=70%">';
+    checkinsidediv.innerHTML = '<img src="/static/img/mbicon.png" alt="" class="fit-inside rotating" style="max-width:60%; max-height:50%">';
     
     await delay(4000);
     
@@ -53,7 +53,7 @@ async function check() {
     addGuess(field.val(), false, field.val());
     
     if ( RegExp('^' + decode('secretkey',data['answer_regex']).toLowerCase() + '$').test(guess) || guess == decode('secretkey',data['answer']).replaceAll(" ", "").toLowerCase()){ 
-      checkinsidediv.innerHTML = '<p style="font-size:400px; color:lime"> ✓ </p> '
+      checkinsidediv.innerHTML = '<p style="font-size:300px; color:lime"> ✓ </p> '
       feedback.innerHTML = ('<p>Congratulations for solving this puzzle! The answer was indeed "' + decode('secretkey',data['answer']) + '"</p>')      
     }
     else
@@ -62,12 +62,12 @@ async function check() {
       for(var eur of data['eurekas']){
         if ( RegExp('^' + decode('secretkey',eur['regex']).toLowerCase() + '$').test(guess)){ 
         addEureka(decode('secretkey',eur['answer']), decode('secretkey',eur['answer']), decode('secretkey',eur['feedback']));
-        checkinsidediv.innerHTML = '<img src="/static/img/milestone.png" alt="" class="fit-inside" max-width=60% max-height=70%"> ';
+        checkinsidediv.innerHTML = '<img src="/static/img/milestone.png" alt="" class="fit-inside" style="max-width:60%; max-height:70%"> ';
         eureka = true;
         }
       }
       if (!eureka){
-        checkinsidediv.innerHTML = '<p style="font-size:400px; color:#cc0000"> ✗ </p> '
+        checkinsidediv.innerHTML = '<p style="font-size:300px; color:#cc0000"> ✗ </p> '
       }
     }
     await delay(2000);   
