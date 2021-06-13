@@ -48,6 +48,7 @@
         <tr>
           <th>Rank</th>
           <th>Team</th>
+          <th>Size</th>
           <th>Solves</th>
           <th class="sorter-timeofday">Last Puzzle Solved</th>
           <th>Total guesses</th>
@@ -58,6 +59,7 @@
         <tr>
           <td>{{forloop.counter}}</td>
           <td><a  class="btn btn-secondary btn-sm active" role="button" href="/stats/team/?team={{team.pk}}">{{team.team_name|truncatechars:30}}</a></td>
+          <td>{{team.size }} </td>
           <td>{{team.solves}} / {{ hunt.puz }} </td>
           <td>{{team.last_time|date:"H:i (D d)" }}</td>
           <td>{{team.guesses }}</td>

@@ -104,7 +104,7 @@ class TeamAdminForm(forms.ModelForm):
 class TeamAdmin(admin.ModelAdmin):
     form = TeamAdminForm
     search_fields = ['team_name']
-    list_display = ['short_team_name', 'hunt', 'playtester']
+    list_display = ['short_team_name', 'hunt', 'playtester', 'discord_linked']
     list_filter = ['hunt']
     readonly_fields = ('token', )
 

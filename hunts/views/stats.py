@@ -104,7 +104,7 @@ def teams(request):
           duration = solve.duration
           hints += sum([hint.delay_for_team(team) < duration for hint in solve.puzzle.hint_set.all()])
       guesses = Guess.objects.filter(puzzle__episode__hunt=hunt, team__team_name=team.team_name).count()
-      team_data.append({'team_name': team.team_name, 'solves': team.solves, 'last_time':team.last_time, 'guesses':guesses, 'hints':hints, 'pk':team.pk})
+      team_data.append({'team_name': team.team_name, 'solves': team.solves, 'last_time':team.last_time, 'guesses':guesses, 'hints':hints, 'pk':team.pk, 'size': team.size})
         
       
 

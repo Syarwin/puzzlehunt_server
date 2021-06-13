@@ -18,6 +18,7 @@
         <tr>
           <th>Rank</th>
           <th>Team</th>
+          <th>Number of members</th>
         <!--  <th>Solves</th>
           <th>Last Solve Time</th>-->
         </tr>
@@ -26,6 +27,7 @@
         <tr>
           <td>{{forloop.counter}}</td>
           <td>{{team.team_name|truncatechars:30}}</td>
+          <td>{{team.size}}</td>
        <!--   <td>{{team.solves}}</td>
           <td>{{team.last_time|date:'d/m H:i' }}</td>-->
         </tr>
