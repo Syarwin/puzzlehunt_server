@@ -255,3 +255,87 @@ img.fit-inside {
 .showhint:target ~ .spoiler {
   display: inline;
 }
+
+@media (max-width: 700px) {
+    .daypicture img {
+        width: 11rem;
+        height: 12rem;
+    }
+    
+    main > .daypicture {
+        display: none;
+    }
+    
+    #sidebar h2 ~ * {
+        display: none
+    }
+    
+    #sidebar:hover h2 ~ * {
+        display: unset
+    }
+    
+    main {
+        display: grid;
+        grid-template-rows: 3fr 1fr;
+    }
+    
+    .puzzle-container .daypicture {
+        position: absolute;
+        top: 3rem;
+        right: -.5rem;
+        bottom: unset;
+        margin-left: unset;
+        height: unset;
+        left: unset;
+    }
+    
+    .hunt-template-inside .daypicture {
+        position: absolute;
+        margin-left: unset;
+        height: unset;
+    }
+    
+    .puzzle-container .puzzle-title {
+        margin-top: 2rem;
+        max-width: calc(100% - 11rem);
+        min-height: 6.83rem;
+    }
+    
+    .puzzle-container .puzzle-holder {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .puzzle-container {
+        grid-row: 1;
+        padding: 1.5rem 1rem;
+    }
+    
+    #right-bar {
+        grid-row: 2;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        width: unset;
+    }
+    #right-bar .right-block {
+        margin: .3rem;
+    }
+    #right-bar .right-block:first-child {
+        grid-column-start: 1;
+    }
+    #right-bar .right-block:nth-last-child(2) {
+        grid-column-end: 3;
+    }
+    #right-bar .right-block ul {
+        display: flex;
+        flex-direction: column-reverse;
+        justify-content: flex-end;
+    }
+    #right-bar .right-block ul > li {
+       flex: 0 0 auto;
+    }
+    
+    #sidebar {
+        position: absolute;
+    }
+}
