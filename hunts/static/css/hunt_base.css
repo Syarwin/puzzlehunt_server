@@ -23,7 +23,7 @@ main.split-hor {
   flex-flow: column;
   z-index:1
   }
-  
+
 .vertical-nav.active {
   margin-left: 0rem;
 }
@@ -192,6 +192,7 @@ h3.episode-header a.collapsed::after {
 .right-block ul li {
   border-bottom: 1px dotted rgb(128, 80, 50);
   color: #424141;
+  word-break: break-word;
 }
 
 .right-block ul li span.guess-value {
@@ -249,7 +250,7 @@ img.fit-inside {
 }
 
 .showhint:target {
-  display: none; 
+  display: none;
 }
 
 .showhint:target ~ .spoiler {
@@ -257,85 +258,132 @@ img.fit-inside {
 }
 
 @media (max-width: 700px) {
-    .daypicture img {
-        width: 11rem;
-        height: 12rem;
-    }
-    
-    main > .daypicture {
-        display: none;
-    }
-    
-    #sidebar h2 ~ * {
-        display: none
-    }
-    
-    #sidebar:hover h2 ~ * {
-        display: unset
-    }
-    
-    main {
-        display: grid;
-        grid-template-rows: 3fr 1fr;
-    }
-    
-    .puzzle-container .daypicture {
-        position: absolute;
-        top: 3rem;
-        right: -.5rem;
-        bottom: unset;
-        margin-left: unset;
-        height: unset;
-        left: unset;
-    }
-    
-    .hunt-template-inside .daypicture {
-        position: absolute;
-        margin-left: unset;
-        height: unset;
-    }
-    
-    .puzzle-container .puzzle-title {
-        margin-top: 2rem;
-        max-width: calc(100% - 11rem);
-        min-height: 6.83rem;
-    }
-    
-    .puzzle-container .puzzle-holder {
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-    }
-    
-    .puzzle-container {
-        grid-row: 1;
-        padding: 1.5rem 1rem;
-    }
-    
-    #right-bar {
-        grid-row: 2;
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        width: unset;
-    }
-    #right-bar .right-block {
-        margin: .3rem;
-    }
-    #right-bar .right-block:first-child {
-        grid-column-start: 1;
-    }
-    #right-bar .right-block:nth-last-child(2) {
-        grid-column-end: 3;
-    }
-    #right-bar .right-block ul {
-        display: flex;
-        flex-direction: column-reverse;
-        justify-content: flex-end;
-    }
-    #right-bar .right-block ul > li {
-       flex: 0 0 auto;
-    }
-    
-    #sidebar {
-        position: absolute;
-    }
+  main > .daypicture {
+    display: none;
+  }
+
+  body {
+    background-attachment: scroll; /* please, dont use small screen */
+  }
+
+  main {
+    display: grid;
+    grid-template-rows: 3fr 1fr;
+    min-height: 500px; /* please, dont use small screen */
+  }
+
+  .side-content .daypicture {
+    bottom: unset;
+    margin-left: unset;
+    height: unset;
+    left: unset;
+    position: unset;
+    text-align: center;
+  }
+
+  .side-content {
+    grid-row: 1/3;
+  }
+
+  .puzzle-container .daypicture {
+    position: absolute;
+    top: 3rem;
+    right: 0;
+    width: 10.5rem; /* 11rem - .5rem */
+    bottom: unset;
+    margin-left: unset;
+    height: unset;
+    left: unset;
+  }
+
+  .daypicture img {
+    width: 11rem;
+    height: 12rem;
+  }
+
+  .puzzle-container .puzzle-title {
+    margin-top: 2rem;
+    max-width: calc(100% - 9.5rem);
+    min-height: 7.5rem;
+  }
+
+  .puzzle-container .puzzle-holder {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .puzzle-container {
+    grid-row: 1;
+    padding: 1rem .5rem .5rem .5rem;
+  }
+
+  #guess-bar {
+    padding: 0;
+  }
+
+  #right-bar {
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    width: unset;
+  }
+  #right-bar .right-block {
+    margin: .3rem;
+  }
+  #right-bar .right-block:first-child {
+    grid-column-start: 1;
+  }
+  #right-bar .right-block:nth-last-child(2) {
+    grid-column-end: 3;
+  }
+  #right-bar .right-block ul {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+  }
+  #right-bar .right-block ul > li {
+    flex: 0 0 auto;
+  }
+
+  #sidebar {
+    position: absolute;
+    min-width: unset;
+    max-width: calc(100% - 10rem);
+    max-height: calc(100% - 4rem);
+    z-index: 2;
+  }
+
+  #sidebar h2 {
+    padding-right: 1.2rem;
+  }
+
+  #sidebar h2:after {
+    content: "▼";
+    display: inline-block;
+    right: 8px;
+    top: 13px;
+    transition: transform 0.5s;
+    text-indent: 0;
+    position: absolute;
+    font-size: .8em;
+  }
+
+  #sidebar:hover h2:after {
+    transform: scale(0);
+  }
+
+  #sidebar h2 ~ * {
+    display: none
+  }
+
+  #sidebar:hover h2 ~ * {
+    display: unset
+  }
+}
+
+
+@media (max-width: 650px) {
+  .puzzle-container .puzzle-title {
+    font-size: 23px;
+  }
 }
