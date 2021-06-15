@@ -34,7 +34,7 @@ class PersonAdminForm(forms.ModelForm):
 
 class PersonAdmin(admin.ModelAdmin):
     form = PersonAdminForm
-    list_display = ['user_full_name', 'user_username']
+    list_display = ['user_full_name', 'user_username', 'user_is_staff']
     list_display_links = ['user_full_name', 'user_username']
     search_fields = ['user__email', 'user__username', 'user__first_name', 'user__last_name']
     filter_horizontal = ['teams']
@@ -44,6 +44,9 @@ class PersonAdmin(admin.ModelAdmin):
 
     def user_username(self, person):
         return person.user.username
+        
+    def user_is_staff(self, person):
+        return person.user.is_staff
 
     user_full_name.short_description = "Name"
     user_username.short_description = "Username"
