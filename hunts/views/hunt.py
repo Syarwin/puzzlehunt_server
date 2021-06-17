@@ -307,6 +307,8 @@ def unlockables(request):
 
 
 
+def int_to_rank(n):
+  return "%d%s" % (n,"tsnrhtdd"[(n//10%10!=1)*(n%10<4)*n%10::4])
 #TODO: clean time format + clear useless info out of all_teams before sending
 @login_required
 def leaderboard(request):
@@ -328,7 +330,8 @@ def leaderboard(request):
       for unlock in unlocks.all():
         try:
           solve = solves.get(puzId=unlock.puzId)
-          solves_data.append({'name' : unlock.name, 'sol_time': solve.time, 'duration':  format_duration(solve.duration)})
+          rank = int_to_rank(PuzzleSolve.objects.filter(puzzle= unlock.puzzle, guess__guess_time__lt= solve.time).count()+1)
+          solves_data.append({'name' : unlock.name, 'sol_time': solve.time, 'duration':  format_duration(solve.duration), 'rank': rank})
         except ObjectDoesNotExist:
           start = unlock.puzzle.starting_time_for_team(unlock.team)
           if (timezone.now() > start):
