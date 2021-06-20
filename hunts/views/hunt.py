@@ -317,7 +317,12 @@ def leaderboard(request):
     all_teams = teams.annotate(solves=Count('puz_solved')).filter(solves__gt=0)
     all_teams = all_teams.annotate(last_time=Max('puzzlesolve__guess__guess_time'))
     all_teams = all_teams.order_by(F('solves').desc(nulls_last=True),
-                                   F('last_time').asc(nulls_last=True))[:10]
+                                   F('last_time').asc(nulls_last=True))
+    
+    if all_teams.count() > 10 and all_teams[9].ep_solved.count() == curr_hunt.episode_set.count():
+      all_teams = all_teams.filter(solves=all_teams[0].solves)
+    else:
+      all_teams = all_teams[:10]
 
     team = Hunt.objects.get(is_current_hunt=True).team_from_user(request.user)
     if(team is None):
