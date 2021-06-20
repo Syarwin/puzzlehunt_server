@@ -239,7 +239,9 @@ def progress(request, ep_pk):
 
 
 # background color of overview row
-def getColor(minutes): 
+def getColor(minutes, minutes_lastguess): 
+    if minutes_lastguess > 60:
+      return "rgb(213,213,213)"
     if minutes < 0:
       return "rgb(192,163,255)"
     if (minutes < 40):
@@ -278,12 +280,12 @@ def overview(request):
       puzzle = puzzle_unlock.puzzle
       puzzle_name = puzzle.puzzle_name
       time_stuck = max(-1,int((timezone.now() - puzzle.starting_time_for_team(team)).total_seconds()/60))
-      color = getColor(time_stuck)
       guesses = Guess.objects.filter(puzzle=puzzle, team=team).order_by('guess_time')
       nb_guess = guesses.count()
       lastguess = guesses.last()
       text_lastguess = '' if lastguess == None else lastguess.guess_text
       time_lastguess = 0 if lastguess == None else int((timezone.now() - lastguess.guess_time).total_seconds()/60)
+      color = getColor(time_stuck, time_lastguess)
       team_eurekas = team.eurekas.filter(puzzle=puzzle, admin_only=False).annotate(time=F('teameurekalink__time')).order_by('time')
       lasteureka = team_eurekas.last()
       time_lasteureka = 0 if lasteureka == None else int((timezone.now() - lasteureka.time).total_seconds()/60)
