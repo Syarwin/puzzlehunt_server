@@ -148,6 +148,19 @@ new Chart(puzCanvas, {
                 ],
       borderColor: '#00ff00',
         },
+        {
+          label: "Median Time",
+          data: [
+                {% for point in data_puz %}
+                {% if point.min_dur == None %}
+                  null ,
+                {% else %}      
+                  "{{point.med_dur}}",
+                {%endif%}
+                {%endfor%}
+                ],
+      borderColor: '#0000ff',
+        },
       ]
     },
     

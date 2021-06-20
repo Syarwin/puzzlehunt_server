@@ -20,6 +20,7 @@ import json
 from copy import deepcopy
 # from silk.profiling.profiler import silk_profile
 
+import math
 from hunts.models import Guess, Hunt, Puzzle
 from teams.models import Team, TeamPuzzleLink, PuzzleSolve, Person
 from teams.forms import GuessForm, UnlockForm, EmailForm, LookupForm
@@ -253,8 +254,8 @@ def charts(request):
     teams = teams.order_by(F('solves').desc(nulls_last=True),
                                    F('last_time').asc(nulls_last=True))
                                    
-    minTime = timezone.now()
     for ep in hunt.episode_set.order_by('ep_number').all():
+      minTime = timezone.now()
       solve_ep = []
       for team in teams:
         solves = team.puzzlesolve_set.filter(puzzle__episode=ep)
@@ -274,14 +275,15 @@ def charts(request):
 
     data_puz = []
     for puz in puzzle_list:
-      solves = PuzzleSolve.objects.filter(puzzle=puz)
+      solves = PuzzleSolve.objects.filter(puzzle=puz).order_by('duration')
       dic = solves.aggregate(av_dur= Avg('duration'), min_dur = Min('duration'))
       if len(solves)>0:
         dic =  {'av_dur': datetime.fromtimestamp(dic['av_dur'].total_seconds(), timezone.utc).isoformat()[:-13] , 
         'min_dur': datetime.fromtimestamp(dic['min_dur'].total_seconds(), timezone.utc).isoformat()[:-13],
+        'med_dur': datetime.fromtimestamp(solves[math.floor(solves.count()/2-1)].duration.total_seconds(), timezone.utc).isoformat()[:-13],
         'name': puz.puzzle_name}
       else:
-        dic =  {'av_dur': None, 'min_dur': None,  'name': puz.puzzle_name}
+        dic =  {'av_dur': None, 'min_dur': None,  'name': puz.puzzle_name, 'med_dur': None}
       data_puz.append(dic)
     
     
