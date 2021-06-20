@@ -215,7 +215,7 @@ class PuzzleView(RequiredPuzzleAccessMixin, View):
             'hunt': request.hunt,
             'episodes': episodes,
             'puzzle': request.puzzle,
-            'eureka': len(request.puzzle.eureka_set.all())>0,
+            'eureka': request.puzzle.eureka_set.filter(admin_only=False).count()>0,
             'team': request.team,
             'text':text,
             'status': status
