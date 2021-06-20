@@ -169,15 +169,19 @@ class ManageTeam(View):
 
         if("form_type" in request.POST):
             if(request.POST["form_type"] == "leave_team"):
-                request.user.person.teams.remove(team)
-                logger.info("User %s left team %s" % (str(request.user), str(team)))
-                if(team.person_set.count() == 0 and team.puz_solved.count()==0):
-                    logger.info("Team %s was deleted because it was empty." % (str(team)))
-                    team.delete()
-                team = None
-                return redirect(reverse('registration'))
                 
-                messages.success(request, "You have successfully left the team.")
+                if (team.puz_solved.count()>0):
+                  messages.error(request, "You cannot leave a team that has started the hunt.")
+                else:
+                  request.user.person.teams.remove(team)
+                  logger.info("User %s left team %s" % (str(request.user), str(team)))
+                  if(team.person_set.count() == 0 and team.puz_solved.count()==0):
+                      logger.info("Team %s was deleted because it was empty." % (str(team)))
+                      team.delete()
+                  team = None
+                  return redirect(reverse('registration'))
+                
+                  messages.success(request, "You have successfully left the team.")
             elif(request.POST["form_type"] == "new_location" and team is not None):
                 old_location = team.location
                 team.location = request.POST.get("team_location")
