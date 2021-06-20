@@ -10,7 +10,10 @@
          />
     <script>    
         $(document).ready(function () {
-            $("#overview").tablesorter({theme:'bootstrap' });
+            $("#overview").tablesorter({theme:'bootstrap',
+            sortList: [[1,1]]
+             });
+             
         });
     </script>
 {% endblock includes %}
