@@ -240,7 +240,7 @@ def progress(request, ep_pk):
 
 # background color of overview row
 def getColor(minutes, minutes_lastguess): 
-    if minutes_lastguess > 60 or minutes_lastguess < 0:
+    if minutes_lastguess > 60 or (minutes_lastguess < 0 and minutes >30):
       return "rgb(213,213,213)"
     if minutes < 0:
       return "rgb(192,163,255)"
