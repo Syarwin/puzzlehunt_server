@@ -16,11 +16,16 @@ from django.db.models.fields import PositiveIntegerField
 from django.db.models.functions import Lower
 from huey.contrib.djhuey import result
 from django.contrib.auth.decorators import login_required
+from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.dateparse import parse_datetime
 import json
 from copy import deepcopy
+from collections import Counter
 # from silk.profiling.profiler import silk_profile
 
+import re
 import math
+import os.path
 from hunts.models import Guess, Hunt, Puzzle
 from teams.models import Team, TeamPuzzleLink, PuzzleSolve, Person
 from teams.forms import GuessForm, UnlockForm, EmailForm, LookupForm
@@ -92,35 +97,56 @@ def teams(request):
       context = {'hunt': None}
       return render(request, 'stats/teams.html', context)
 
-    teams = hunt.team_set
-    teams = teams.annotate(solves=Count('puz_solved'))
-    teams = teams.order_by(F('solves').desc(nulls_last=True),
-                                   F('last_time').asc(nulls_last=True))
-    teams = teams.annotate(last_time=Max('puzzlesolve__guess__guess_time'))
-    
-    team_data = []   
-    for team in teams.all():
-      hints = 0
-      for solve in team.puzzlesolve_set.all():
-          duration = solve.duration
-          hints += sum([hint.delay_for_team(team) < duration for hint in solve.puzzle.hint_set.all()])
-      guesses = Guess.objects.filter(puzzle__episode__hunt=hunt, team__team_name=team.team_name).count()
-      team_data.append({'team_name': team.team_name, 'solves': team.solves, 'last_time':team.last_time, 'guesses':guesses, 'hints':hints, 'pk':team.pk, 'size': team.size})
-        
-      
 
-    context = {'team_data': team_data, 'hunt': hunt}
+
+    
+    # load json if exists & non staff
+    template_filename =  'stats/static/teams.json'
+    filename =  'hunts/templates/' + template_filename
+
+    if ((not request.user.is_staff) and os.path.exists(filename)):
+      with open(filename) as json_file:
+        context = json.load(json_file)
+        for d in context['team_data']:
+          d.update({'last_time': parse_datetime(d['last_time']) if d['last_time'] is not None else None})
+          
+    else:
+      teams = hunt.team_set
+      teams = teams.annotate(solves=Count('puz_solved'))
+      teams = teams.order_by(F('solves').desc(nulls_last=True),
+                                     F('last_time').asc(nulls_last=True))
+      teams = teams.annotate(last_time=Max('puzzlesolve__guess__guess_time'))
+      
+      team_data = []   
+      for team in teams.all():
+        hints = 0
+        for solve in team.puzzlesolve_set.all():
+            duration = solve.duration
+            hints += sum([hint.delay_for_team(team) < duration for hint in solve.puzzle.hint_set.all()])
+        guesses = Guess.objects.filter(puzzle__episode__hunt=hunt, team__team_name=team.team_name).count()
+        team_data.append({'team_name': team.team_name, 'solves': team.solves, 'last_time':team.last_time, 'guesses':guesses, 'hints':hints, 'pk':team.pk, 'size': team.size})
+
+      context = {'team_data': team_data, 'hunt': {'hunt_name':hunt.hunt_name, 'display_start_date': hunt.display_start_date, 'puz' : hunt.puz}}
+      
+      
+      # write json
+      with open(filename, 'w') as outfile:
+        json.dump(context, outfile, cls=DjangoJSONEncoder)
+      
     return render(request, 'stats/teams.html', context)
 
 @login_required
 def team(request):
     ''' Summary of a single team performance, asked by /?team=ID: time / duration per puzzle, rank on each, number of guesses, number of hints needed
       global param: #teammates'''
+      
+      
+      
     hunt = get_last_hunt_or_none(request)
     context = {'hunt': None}
     if hunt == None:
       return render(request, 'stats/team.html', context)
-
+      
     try:
       team = Team.objects.get(pk=request.GET.get("team"))
     except ObjectDoesNotExist:
@@ -130,7 +156,19 @@ def team(request):
       return render(request, 'stats/team.html', context)
 
     if(team is None):
-      solves_data = []
+      return render(request, 'stats/team.html', context)
+
+    
+    # load json if exists & non staff
+    template_filename =  'stats/static/team-' + str(request.GET.get("team")) + '.json'
+    filename =  'hunts/templates/' + template_filename
+
+    if ((not request.user.is_staff) and os.path.exists(filename)):
+      with open(filename) as json_file:
+        context = json.load(json_file)
+        for d in context['solve_data']:
+          d.update({'sol_time': parse_datetime(d['sol_time'])})
+        
     else:
       solves = team.puzzlesolve_set.annotate(time=F('guess__guess_time'), puzId = F('puzzle__puzzle_id')).order_by('time')
       unlocks = team.teampuzzlelink_set.annotate(puzId = F('puzzle__puzzle_id'), name = F('puzzle__puzzle_name')).order_by('time')
@@ -157,9 +195,13 @@ def team(request):
 
         solves_data.append({'name' : unlock.name, 'pk':unlock.puzzle.pk, 'sol_time': solvetime , 'duration' : duration, 'rank' : rank, 'rankduration': rankduration, 'hints': hints, 'nbguesses': nbguesses})
 
-    context = {'solve_data': solves_data, 'hunt': hunt, 'team': team}
-
-
+      context = {'solve_data': solves_data, 'team': {'team_name': team.team_name, 'size': team.size}, 'hunt': {'hunt_name':hunt.hunt_name, 'display_start_date': hunt.display_start_date}}
+      
+      # write json
+      with open(filename, 'w') as outfile:
+        json.dump(context, outfile, cls=DjangoJSONEncoder)
+    
+    
     return render(request, 'stats/team.html', context)
 
 
@@ -171,29 +213,47 @@ def puzzles(request):
       context = {'hunt': None}
       return render(request, 'stats/puzzles.html', context)
 
-    puzzle_list = [puzzle for episode in hunt.episode_set.order_by('ep_number').all() for puzzle in episode.puzzle_set.all()]
+    
+    # load json if exists & non staff
+    template_filename =  'stats/static/puzzles.json'
+    filename =  'hunts/templates/' + template_filename
 
-    data = []
-    reftime = timezone.now()
-    for puz in puzzle_list:
-      solves = PuzzleSolve.objects.filter(puzzle=puz)
-      unlocks = TeamPuzzleLink.objects.filter(puzzle=puz)
-      dic = solves.annotate(ref=F('guess__guess_time')-reftime).aggregate(min_time = Min('ref')+reftime, av_dur= Avg('duration'), min_dur = Min('duration'), av_time=Avg('ref')+reftime)
-      dic['av_dur'] = format_duration(dic['av_dur'])
-      dic['min_dur'] = format_duration(dic['min_dur'])
-      dic['success'] = solves.count()
-      dic['name'] = puz.puzzle_name
-      hints = [sum([hint.delay_for_team(sol.team) < sol.duration for hint in puz.hint_set.all()]) for sol in solves]
-      dic['min_hints'] = 0 if len(hints)==0 else min(hints)
-      dic['av_hints'] =  0 if len(hints)==0 else round(sum(hints)/len(hints), 2)
-      if (unlocks.count() == 0):
-        dic['guesses'] = 0
-      else:
-        dic['guesses'] = round(Guess.objects.filter(puzzle=puz).count() / unlocks.count(), 2)
-      dic['pk'] = puz.pk
-      data.append(dic)
+    if ((not request.user.is_staff) and os.path.exists(filename)):
+      with open(filename) as json_file:
+        context = json.load(json_file)
+        for d in context['data']:
+          d.update({'min_time': parse_datetime(d['min_time'])})
+          d.update({'av_time': parse_datetime(d['av_time'])})
+          
+    else:
+      puzzle_list = [puzzle for episode in hunt.episode_set.order_by('ep_number').all() for puzzle in episode.puzzle_set.all()]
 
-    context = {'hunt': hunt, 'data': data}
+      data = []
+      reftime = timezone.now()
+      for puz in puzzle_list:
+        solves = PuzzleSolve.objects.filter(puzzle=puz)
+        unlocks = TeamPuzzleLink.objects.filter(puzzle=puz)
+        dic = solves.annotate(ref=F('guess__guess_time')-reftime).aggregate(min_time = Min('ref')+reftime, av_dur= Avg('duration'), min_dur = Min('duration'), av_time=Avg('ref')+reftime)
+        dic['av_dur'] = format_duration(dic['av_dur'])
+        dic['min_dur'] = format_duration(dic['min_dur'])
+        dic['success'] = solves.count()
+        dic['name'] = puz.puzzle_name
+        hints = [sum([hint.delay_for_team(sol.team) < sol.duration for hint in puz.hint_set.all()]) for sol in solves]
+        dic['min_hints'] = 0 if len(hints)==0 else min(hints)
+        dic['av_hints'] =  0 if len(hints)==0 else round(sum(hints)/len(hints), 2)
+        if (unlocks.count() == 0):
+          dic['guesses'] = 0
+        else:
+          dic['guesses'] = round(Guess.objects.filter(puzzle=puz).count() / unlocks.count(), 2)
+        dic['pk'] = puz.pk
+        data.append(dic)
+        
+      context = {'hunt': {'hunt_name':hunt.hunt_name, 'display_start_date': hunt.display_start_date}, 'data': data}
+      
+      # write json
+      with open(filename, 'w') as outfile:
+        json.dump(context, outfile, cls=DjangoJSONEncoder)
+    
     return render(request, 'stats/puzzles.html', context)
 
 
@@ -217,19 +277,68 @@ def puzzle(request):
     if puz.episode.hunt != hunt:
       return render(request, 'stats/puzzle.html', context)
 
-    solves = PuzzleSolve.objects.filter(puzzle=puz)
 
-    data = []
+    
+    
+    # load json if exists & non staff
+    template_filename =  'stats/static/puzzle-' + str(request.GET.get("puzzle")) + '.json'
+    filename =  'hunts/templates/' + template_filename
 
-    for sol in solves:
-      duration = sol.duration
-      sol_time = sol.guess.guess_time
-      guesses = sol.team.guess_set.filter(puzzle=puz, guess_time__lte=sol_time).count()
-      hints = sum([hint.delay_for_team(sol.team) < sol.duration for hint in puz.hint_set.all()])
-      eurekas = [ {'txt' : eur.eureka.answer , 'time': format_duration(eur.time - sol_time + duration) } for eur in sol.team.teameurekalink_set.filter(eureka__puzzle=puz,time__lt=sol_time).all()]
-      data.append({'duration':format_duration(duration), 'sol_time': sol_time, 'guesses':guesses, 'hints': hints, 'eurekas':eurekas, 'team':sol.team.team_name, 'team_pk':sol.team.pk})
+    if ((not request.user.is_staff) and os.path.exists(filename)):
+      with open(filename) as json_file:
+        context = json.load(json_file)
+        for d in context['data']:
+          d.update({'sol_time': parse_datetime(d['sol_time'])})
 
-    context = {'hunt': hunt, 'data':data, 'name': puz.puzzle_name }
+    else:
+    
+      solves = PuzzleSolve.objects.filter(puzzle=puz)
+
+      data = []
+
+      for sol in solves:
+        duration = sol.duration
+        sol_time = sol.guess.guess_time
+        guesses = sol.team.guess_set.filter(puzzle=puz, guess_time__lte=sol_time).count()
+        hints = sum([hint.delay_for_team(sol.team) < sol.duration for hint in puz.hint_set.all()])
+        eurekas = [ {'txt' : eur.eureka.answer , 'time': format_duration(eur.time - sol_time + duration) } for eur in sol.team.teameurekalink_set.filter(eureka__puzzle=puz,time__lt=sol_time).all()]
+        data.append({'duration':format_duration(duration), 'sol_time': sol_time, 'guesses':guesses, 'hints': hints, 'eurekas':eurekas, 'team':sol.team.team_name, 'team_pk':sol.team.pk})
+        
+        
+      guesses = Guess.objects.filter(puzzle=puz).annotate(teampk=F('team'))
+      
+      guesses = list(dict.fromkeys([(g.guess_text.lower().replace(" ", ""), g.teampk) for g in guesses.all()])) # remove duplicate guesses per team
+      guesses = Counter(elem[0] for elem in guesses).most_common(30) # want 10 most common uncorrect answers, take some margin to remove eureka and answers
+      
+      common_guess = []
+      
+      for g,c in guesses:
+        if c < 2:
+          break
+        if (g == puz.answer.upper().replace(" ","") or
+                 (puz.answer_regex!="" and re.fullmatch(puz.answer_regex, g, re.IGNORECASE))):
+          continue
+          
+        eur = False
+        for resp in puz.eureka_set.all():
+          if(re.fullmatch(resp.regex.replace(" ",""), g, re.IGNORECASE)):
+            eur = True
+            break
+        if eur:
+          continue
+        
+        common_guess.append({'txt': g, 'teams': c})
+        if len(common_guess) > 9 :
+          break
+        
+
+      context = {'hunt': {'hunt_name':hunt.hunt_name, 'display_start_date': hunt.display_start_date}, 'data':data, 'name': puz.puzzle_name, 'common_guess': common_guess }
+      
+      # write json
+      with open(filename, 'w') as outfile:
+        json.dump(context, outfile, cls=DjangoJSONEncoder)
+        
+        
     return render(request, 'stats/puzzle.html', context)
 
 
@@ -241,52 +350,67 @@ def charts(request):
       context = {'hunt': None}
       return render(request, 'stats/charts.html', context)
 
-    spams = Guess.objects.filter(puzzle__episode__hunt=hunt).values(name=F('user__username' )).annotate(c=Count('name')).order_by('-c')[:10]
-    spam_teams = Guess.objects.filter(puzzle__episode__hunt=hunt).values(team_name=F('team__team_name'),team_iid=F('team')).annotate(c=Count('team_name')).order_by('-c')[:10]
+
+
+    # load json if exists & non staff
+    template_filename =  'stats/static/charts.json'
+    filename =  'hunts/templates/' + template_filename
+
+    if ((not request.user.is_staff) and os.path.exists(filename)):
+      with open(filename) as json_file:
+        context = json.load(json_file)
+    
+    else:        
+    
+      spams = list(Guess.objects.filter(puzzle__episode__hunt=hunt).values(name=F('user__username' )).annotate(c=Count('name')).order_by('-c')[:10])
+      spam_teams = list(Guess.objects.filter(puzzle__episode__hunt=hunt).values(team_name=F('team__team_name'),team_iid=F('team')).annotate(c=Count('team_name')).order_by('-c')[:10])
 
 
 
-    # Chart solve over time
-    solve_time = []
-    teams = Team.objects.filter(hunt=hunt)
-    teams = teams.annotate(solves=Count('puz_solved')).filter(solves__gt=0)
-    teams = teams.annotate(last_time=Max('puzzlesolve__guess__guess_time'))
-    teams = teams.order_by(F('solves').desc(nulls_last=True),
-                                   F('last_time').asc(nulls_last=True))
-                                   
-    for ep in hunt.episode_set.order_by('ep_number').all():
-      minTime = timezone.now()
-      solve_ep = []
-      for team in teams:
-        solves = team.puzzlesolve_set.filter(puzzle__episode=ep)
-        solves = solves.order_by('guess__guess_time').values_list('guess__guess_time', flat=True)
+      # Chart solve over time
+      solve_time = []
+      teams = Team.objects.filter(hunt=hunt)
+      teams = teams.annotate(solves=Count('puz_solved')).filter(solves__gt=0)
+      teams = teams.annotate(last_time=Max('puzzlesolve__guess__guess_time'))
+      teams = teams.order_by(F('solves').desc(nulls_last=True),
+                                     F('last_time').asc(nulls_last=True))
+                                     
+      for ep in hunt.episode_set.order_by('ep_number').all():
+        minTime = timezone.now()
+        solve_ep = []
+        for team in teams:
+          solves = team.puzzlesolve_set.filter(puzzle__episode=ep)
+          solves = solves.order_by('guess__guess_time').values_list('guess__guess_time', flat=True)
+          if len(solves)>0:
+            minTime = min(minTime, min(solves))
+          solves = [sol.isoformat() for sol in solves]
+          solves += [None] * (ep.puzzle_set.count() - len(solves))
+
+          solve_ep.append({'solve': solves, 'name': team.team_name})
+        names = ep.puzzle_set.values_list('puzzle_name',flat=True)
+        solve_time.append({'solve': solve_ep, 'names': list(names), 'min': minTime.isoformat()})
+
+
+      #Chart fast / average puzzle solves
+      puzzle_list = [puzzle for episode in hunt.episode_set.order_by('ep_number').all() for puzzle in episode.puzzle_set.all()]
+
+      data_puz = []
+      for puz in puzzle_list:
+        solves = PuzzleSolve.objects.filter(puzzle=puz).order_by('duration')
+        dic = solves.aggregate(av_dur= Avg('duration'), min_dur = Min('duration'))
         if len(solves)>0:
-          minTime = min(minTime, min(solves))
-        solves = [sol.isoformat() for sol in solves]
-        solves += [None] * (ep.puzzle_set.count() - len(solves))
-
-        solve_ep.append({'solve': solves, 'name': team.team_name})
-      names = ep.puzzle_set.values_list('puzzle_name',flat=True)
-      solve_time.append({'solve': solve_ep, 'names':names, 'min': minTime.isoformat()})
-
-
-    #Chart fast / average puzzle solves
-    puzzle_list = [puzzle for episode in hunt.episode_set.order_by('ep_number').all() for puzzle in episode.puzzle_set.all()]
-
-    data_puz = []
-    for puz in puzzle_list:
-      solves = PuzzleSolve.objects.filter(puzzle=puz).order_by('duration')
-      dic = solves.aggregate(av_dur= Avg('duration'), min_dur = Min('duration'))
-      if len(solves)>0:
-        dic =  {'av_dur': datetime.fromtimestamp(dic['av_dur'].total_seconds(), timezone.utc).isoformat()[:-13] , 
-        'min_dur': datetime.fromtimestamp(dic['min_dur'].total_seconds(), timezone.utc).isoformat()[:-13],
-        'med_dur': datetime.fromtimestamp(solves[math.floor(solves.count()/2-1)].duration.total_seconds(), timezone.utc).isoformat()[:-13],
-        'name': puz.puzzle_name}
-      else:
-        dic =  {'av_dur': None, 'min_dur': None,  'name': puz.puzzle_name, 'med_dur': None}
-      data_puz.append(dic)
+          dic =  {'av_dur': datetime.fromtimestamp(dic['av_dur'].total_seconds(), timezone.utc).isoformat()[:-13] , 
+          'min_dur': datetime.fromtimestamp(dic['min_dur'].total_seconds(), timezone.utc).isoformat()[:-13],
+          'med_dur': datetime.fromtimestamp(solves[math.floor(solves.count()/2-1)].duration.total_seconds(), timezone.utc).isoformat()[:-13],
+          'name': puz.puzzle_name}
+        else:
+          dic =  {'av_dur': None, 'min_dur': None,  'name': puz.puzzle_name, 'med_dur': None}
+        data_puz.append(dic)
     
+      context = { 'hunt': {'hunt_name':hunt.hunt_name, 'display_start_date': hunt.display_start_date}, 'spammers' : spams, 'spam_teams': spam_teams, 'solve_time':solve_time, 'data_puz': data_puz}
     
+      # write json
+      with open(filename, 'w') as outfile:
+        json.dump(context, outfile, cls=DjangoJSONEncoder)
 
-    context = {'hunt': hunt, 'spammers' : spams, 'spam_teams': spam_teams, 'solve_time':solve_time, 'data_puz': data_puz}
     return render(request, 'stats/charts.html', context)

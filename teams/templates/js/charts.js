@@ -46,6 +46,7 @@ function setAllHidden(chart, hidden) {
                   {%endfor%}
                   ],
         borderColor: randomColorGenerator(),
+        hidden: {% if forloop.counter < 11 %} false {%else%} true {%endif%}
               },
 {%endfor%}
         ]
@@ -189,7 +190,7 @@ new Chart(puzCanvas, {
     plugins:{
     title: {
       display: true,
-      text: 'Minimum and average resolution time per puzzle'
+      text: 'Resolution time per puzzle'
     }
     },
   }

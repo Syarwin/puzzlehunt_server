@@ -58,6 +58,9 @@
         $(document).ready(function () {
             $("#myTable").tablesorter({theme:'bootstrap' });
         });
+        $(document).ready(function () {
+            $("#myTableguess").tablesorter({theme:'bootstrap' });
+        });
     </script>
 
 {% endblock includes %}
@@ -93,6 +96,22 @@
               {{eur.txt}} : {{ eur.time}} <br>
           {% endfor %}
             </td>
+        </tr>
+        {% endfor %}
+      </table>
+      <br>
+      <br>
+      <table class="table table-striped table-hover table-condensed tablesorter" id="myTableguess">
+      <thead>
+        <tr>
+          <th>Common wrong guesses</th>
+          <th>Number of teams involved</th>
+        </tr>
+        </thead>
+        {% for g in common_guess %}
+        <tr>
+          <td>{{g.txt}}</td>
+          <td>{{g.teams}}</td>
         </tr>
         {% endfor %}
       </table>
