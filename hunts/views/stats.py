@@ -315,7 +315,7 @@ def puzzle(request):
       for g,c in guesses:
         if c < 2:
           break
-        if (g == puz.answer.upper().replace(" ","") or
+        if (g == puz.answer.lower().replace(" ","") or
                  (puz.answer_regex!="" and re.fullmatch(puz.answer_regex, g, re.IGNORECASE))):
           continue
           
