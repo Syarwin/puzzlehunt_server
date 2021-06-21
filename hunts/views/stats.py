@@ -32,6 +32,8 @@ from teams.forms import GuessForm, UnlockForm, EmailForm, LookupForm
 
 DT_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
+UPDATE_STATS = False
+
 
 def add_apps_to_context(context, request):
     context['available_apps'] = admin.site.get_app_list(request)
@@ -104,7 +106,7 @@ def teams(request):
     template_filename =  'stats/static/teams.json'
     filename =  'hunts/templates/' + template_filename
 
-    if ((not request.user.is_staff) and os.path.exists(filename)):
+    if ((not request.user.is_staff or not UPDATE_STATS) and os.path.exists(filename)):
       with open(filename) as json_file:
         context = json.load(json_file)
         for d in context['team_data']:
@@ -163,7 +165,7 @@ def team(request):
     template_filename =  'stats/static/team-' + str(request.GET.get("team")) + '.json'
     filename =  'hunts/templates/' + template_filename
 
-    if ((not request.user.is_staff) and os.path.exists(filename)):
+    if ((not request.user.is_staff or not UPDATE_STATS) and os.path.exists(filename)):
       with open(filename) as json_file:
         context = json.load(json_file)
         for d in context['solve_data']:
@@ -218,7 +220,7 @@ def puzzles(request):
     template_filename =  'stats/static/puzzles.json'
     filename =  'hunts/templates/' + template_filename
 
-    if ((not request.user.is_staff) and os.path.exists(filename)):
+    if ((not request.user.is_staff or not UPDATE_STATS) and os.path.exists(filename)):
       with open(filename) as json_file:
         context = json.load(json_file)
         for d in context['data']:
@@ -284,7 +286,7 @@ def puzzle(request):
     template_filename =  'stats/static/puzzle-' + str(request.GET.get("puzzle")) + '.json'
     filename =  'hunts/templates/' + template_filename
 
-    if ((not request.user.is_staff) and os.path.exists(filename)):
+    if ((not request.user.is_staff or not UPDATE_STATS) and os.path.exists(filename)):
       with open(filename) as json_file:
         context = json.load(json_file)
         for d in context['data']:
@@ -356,7 +358,7 @@ def charts(request):
     template_filename =  'stats/static/charts.json'
     filename =  'hunts/templates/' + template_filename
 
-    if ((not request.user.is_staff) and os.path.exists(filename)):
+    if ((not request.user.is_staff or not UPDATE_STATS) and os.path.exists(filename)):
       with open(filename) as json_file:
         context = json.load(json_file)
     
